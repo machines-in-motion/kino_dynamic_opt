@@ -1,0 +1,11 @@
+<package>
+  <name>yaml_cpp</name>
+  <version>0.5.1</version>
+  <description>yaml_cpp</description>
+  <maintainer email="bponton@tue.mpg.de">Autonomous Motion Lab - MPI-IS</maintainer>
+  <license>TODO</license>
+  
+  <buildtool_depend>catkin</buildtool_depend>
+  
+  <export></export>
+</package>

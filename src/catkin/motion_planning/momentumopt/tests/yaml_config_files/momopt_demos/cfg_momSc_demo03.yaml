@@ -1,0 +1,173 @@
+initial_robot_configuration:
+
+  ###############################
+  # Initial robot configuration #
+  ###############################
+  
+  com: [0.0, 0.15, -0.15]
+  amom: [0.0, 0.0, 0.0]
+  lmom: [0.0, 0.0, 0.0]
+  eef_ctrl:
+    eef_frc_rf: [0.0, 0.0, 0.5]
+    eef_frc_lf: [0.0, 0.0, 0.5]
+    eef_frc_rh: [0.0, 0.0, 0.0]
+    eef_frc_lh: [0.0, 0.0, 0.0]
+  eef_pose:
+    eef_rf: [1.0,    0.086, 0.15, -0.92,    1.0, 0.0, 0.0, 0.0]
+    eef_lf: [1.0,   -0.086, 0.15, -0.92,    1.0, 0.0, 0.0, 0.0]
+    eef_rh: [0.0,    0.400, 0.30,  0.00,    0.0, -0.70711, 0.70711, 0.0 ]
+    eef_lh: [0.0,   -0.400, 0.30,  0.00,    0.70711, 0.0, 0.0,  0.70711 ]
+
+
+contact_plan:
+
+  ######################
+  # Contact parameters #
+  ######################
+
+  num_contacts: [3, 3, 1, 1]
+  effcnt_rf:
+    cnt0: [ 0.0,  6.0,    0.086, 0.15, -0.92,    1.0, 0.0, 0.0, 0.0,    1.0]
+    cnt1: [ 7.0, 11.0,    0.086, 0.50, -0.92,    1.0, 0.0, 0.0, 0.0,    1.0]
+    cnt2: [12.0, 14.0,    0.086, 0.70, -0.92,    1.0, 0.0, 0.0, 0.0,    1.0]
+  effcnt_lf:
+    cnt0: [ 0.0,  1.0,   -0.086, 0.15, -0.92,    1.0, 0.0, 0.0, 0.0,    1.0]
+    cnt1: [ 2.0,  9.0,   -0.086, 0.35, -0.92,    1.0, 0.0, 0.0, 0.0,    1.0]
+    cnt2: [10.0, 14.0,   -0.086, 0.70, -0.92,    1.0, 0.0, 0.0, 0.0,    1.0]
+  effcnt_rh:
+    cnt0: [ 3.0,  8.0,    0.450, 0.45, -0.20,    0.9689, 0.0, -0.2474, 0.0,  1.0]
+  effcnt_lh:
+    cnt0: [ 5.5,  8.0,   -0.350, 0.70, -0.25,    0.9689, 0.0,  0.2474, 0.0,  1.0]
+
+
+planner_variables:
+
+  #######################
+  # Dynamics parameters #
+  #######################
+
+  heuristic: SoftConstraint  # Types: TrustRegion, SoftConstraint, TimeOptimization #
+  n_act_eefs: 4
+  time_step: 0.15
+  time_horizon: 12.8
+  external_force: [0.00, 0.00, 0.00]
+  com_displacement: [0.00, 0.60, 0.00]
+  num_com_viapoints: 1
+  com_viapoints:
+    via0: [6.50,     0.00, 0.50, -0.50]
+
+  #####################
+  # Timing parameters #
+  #####################
+
+  max_time_iterations: 100
+  max_time_residual_tolerance: 1e-3
+  min_time_residual_improvement: 1e-5
+
+  ############################
+  # Configuration parameters #
+  ############################
+
+  gravity: 9.81    
+  robot_mass: 60.00
+  friction_coeff: 1.0
+  friction_cone: LinearCone  # Types: LinearCone, SocCone #
+  torque_range: [-200.0, 200.0]
+  eff_offset_rf: [ 0.00,  0.00,  0.00]
+  eff_offset_lf: [ 0.00,  0.00,  0.00]
+  eff_offset_rh: [ 0.20,  0.00,  0.48]
+  eff_offset_lh: [-0.20,  0.00,  0.48]
+  cop_range_rf: [-0.03,  0.03, -0.08,  0.08]
+  cop_range_lf: [-0.03,  0.03, -0.08,  0.08]
+  cop_range_rh: [-0.03,  0.03, -0.03,  0.03]
+  cop_range_lh: [-0.03,  0.03, -0.03,  0.03]
+  max_eef_lengths: [0.82,  0.82,  0.60,  0.60]
+
+  ####################
+  # Dynamics weights #
+  ####################
+
+  w_trq_arm:       1.000
+  w_trq_leg:       1.000
+  w_com:           [ 1000.,  1000.,  1000.]
+  w_amom:          [ 0.100,  0.100,  0.100]
+  w_lmom:          [ 0.010,  0.010,  0.010]
+  w_amomd:         [ 0.100,  0.100,  0.100]
+  w_lmomd:         [ 0.001,  0.001,  0.010]
+  w_amom_final:    [ 10.00,  10.00,  10.00]
+  w_lmom_final:    [ 10.00,  10.00,  10.00]
+  w_com_via:       [ 10.00,  10.00,  1000.]
+  w_frc_arm:       [ 0.500,  0.500,  0.500]
+  w_frc_leg:       [ 0.001,  0.001,  0.001]
+  w_dfrc_arm:      [ 0.000,  0.000,  0.000]
+  w_dfrc_leg:      [ 0.000,  0.000,  0.000]
+  w_amom_track:    [ 1.000,  1.000,  1.000]
+  w_lmom_track:    [ 0.100,  0.100,  0.100]
+
+  #######################
+  # Storage information #
+  #######################
+
+  store_data: False
+
+  ##################
+  # Solver setting #
+  ##################
+  
+  use_default_solver_setting: False
+
+
+solver_variables:
+
+  ##########################
+  # Convergence tolerances #
+  ##########################
+  
+  feasibility_tolerance: 1e-7
+  absolute_suboptimality_gap: 1e-7
+  relative_suboptimality_gap: 1e-6
+  feasibility_tolerance_inaccurate: 1e-4
+  absolute_suboptimality_gap_inaccurate: 5e-5
+  relative_suboptimality_gap_inaccurate: 5e-5
+  
+  ############################
+  # Equilibration parameters #
+  ############################
+  
+  equil_iterations: 3  
+  
+  ############################
+  # Linear System parameters #
+  ############################
+  
+  dyn_reg_thresh: 1e-13
+  lin_sys_accuracy: 1e-14
+  err_reduction_factor: 6.0
+  num_iter_ref_lin_solve: 9
+  static_regularization: 7e-8
+  dynamic_regularization: 2e-7
+  
+  ########################
+  # Algorithm parameters #
+  ########################
+
+  safeguard: 500.0
+  min_step_length: 1e-6
+  max_step_length: 0.999
+  min_centering_step: 1e-4
+  max_centering_step: 1.00
+  step_length_scaling: 0.99
+  
+  ####################
+  # Model parameters #
+  ####################
+
+  verbose: False
+  
+  max_iters: 100
+  ipsolver_max_iters: 100
+  ipsolver_warm_iters: 100
+  
+  num_itrefs_trustregion: 1
+  trust_region_threshold: 0.15
+  soft_constraint_weight: 0.8e4

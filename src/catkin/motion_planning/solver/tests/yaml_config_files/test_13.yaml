@@ -1,0 +1,21 @@
+problem_size:
+  nvars: 3
+  nleq:  2
+  ncone: 3
+  nlpc:  3
+  nsoc:  0
+  qvec: []
+  binprob: False
+
+problem_data:
+  bvec: [3.000e+00, 0.000e+00]
+  cvec: [-1.000e+00, 0.000e+00, 0.000e+00]
+  hvec: [2.500e+01, 0.000e+00, 0.000e+00]
+
+  Gcol: [1, 1, 2, 2]
+  Grow: [0, 1, 0, 2]
+  Gval: [8.000e+00, 1.000e+00, 9.000e+00, -1.000e+00] 
+  
+  Acol: [0, 0, 1, 2]
+  Arow: [0, 1, 1, 1]
+  Aval: [1.000e+00, -1.000e+00, 1.000e+00, 1.000e+00] 

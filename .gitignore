@@ -1,0 +1,11 @@
+build/
+devel/
+src/CMakeLists.txt
+
+*.pyc
+
+*.project
+*.DS_Store
+*_results.yaml
+*.pydevproject
+*.catkin_workspace
