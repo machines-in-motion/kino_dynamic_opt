@@ -18,18 +18,42 @@ set(CATKIN_PKGS ${CATKIN_PKGS}
   pybind11
 )
 
-find_package (Eigen3 REQUIRED)
+find_package(Eigen3 REQUIRED)
 find_package(catkin REQUIRED COMPONENTS ${CATKIN_PKGS})
 find_package(Boost REQUIRED COMPONENTS system program_options filesystem)
+
+#####################
+# optional packages #
+#####################
+
+find_package(IPOPT QUIET)
+find_package(GUROBI QUIET)
 
 ##################
 # catkin package #
 ##################
 
+set(EXPORTED_CFG_EXTRAS ${EXPORTED_CFG_EXTRAS})
+set(EXPORTED_LIBRARIES ${EXPORTED_LIBRARIES} "solver")
+set(EXPORTED_INCLUDE_DIRS ${EXPORTED_INCLUDE_DIRS} "include" ${EIGEN3_INCLUDE_DIR})
+
+if(IPOPT_FOUND)
+  set(EXPORTED_LIBRARIES ${EXPORTED_LIBRARIES} ${IPOPT_LIBRARIES})
+  set(EXPORTED_CFG_EXTRAS ${EXPORTED_CFG_EXTRAS} "${PROJECT_NAME}-extras-ipopt.cmake")
+  set(EXPORTED_INCLUDE_DIRS ${EXPORTED_INCLUDE_DIRS} ${IPOPT_INCLUDE_DIRS})
+endif()
+
+if(GUROBI_FOUND)
+  set(EXPORTED_LIBRARIES ${EXPORTED_LIBRARIES} ${GUROBI_LIBRARIES})
+  set(EXPORTED_CFG_EXTRAS ${EXPORTED_CFG_EXTRAS} "${PROJECT_NAME}-extras-gurobi.cmake")
+  set(EXPORTED_INCLUDE_DIRS ${EXPORTED_INCLUDE_DIRS} ${GUROBI_INCLUDE_DIRS})
+endif()
+
 catkin_package(
-  LIBRARIES solver
   CATKIN_DEPENDS ${CATKIN_PKGS}
-  INCLUDE_DIRS include ${EIGEN3_INCLUDE_DIR}
+  LIBRARIES ${EXPORTED_LIBRARIES}
+  CFG_EXTRAS ${EXPORTED_CFG_EXTRAS}
+  INCLUDE_DIRS ${EXPORTED_INCLUDE_DIRS}
 )
 
 ###############
@@ -51,6 +75,20 @@ include_directories(
   ${Boost_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
 )
+
+#####################
+# optional includes #
+#####################
+
+if (IPOPT_FOUND)
+  include_directories( ${IPOPT_INCLUDE_DIRS} )
+  include(${PROJECT_SOURCE_DIR}/cmake/solver-extras-ipopt.cmake)
+endif (IPOPT_FOUND)
+
+if (GUROBI_FOUND)
+  include_directories( ${GUROBI_INCLUDE_DIRS} )
+  include(${PROJECT_SOURCE_DIR}/cmake/solver-extras-gurobi.cmake)
+endif (GUROBI_FOUND)
 
 ################
 # source files #
@@ -93,6 +131,18 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   set(solver_LIBS ${solver_LIBS} rt)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
+######################
+# optional libraries #
+######################
+
+if (GUROBI_FOUND)
+  set(solver_LIBS ${solver_LIBS} ${IPOPT_LIBRARIES})
+endif (GUROBI_FOUND)
+
+if (GUROBI_FOUND)
+  set(solver_LIBS ${solver_LIBS} ${GUROBI_LIBRARIES})
+endif (GUROBI_FOUND)
+
 ###################
 # build libraries #
 ###################
@@ -111,10 +161,20 @@ target_link_libraries(pysolver solver)
 # tests #
 #########
 
-catkin_add_gtest(solver_tests
+set(GTEST_FILES ${GTEST_FILES}
   tests/GtestMain.cpp
   tests/TestLbfgs.cpp
   tests/TestSolver.cpp
 )
+
+if(IPOPT_FOUND)
+  set(GTEST_FILES ${GTEST_FILES} tests/TestIpopt.cpp )
+endif()
+
+if(GUROBI_FOUND)
+  set(GTEST_FILES ${GTEST_FILES} tests/TestGurobi.cpp )
+endif()
+
+catkin_add_gtest(solver_tests ${GTEST_FILES})
 target_link_libraries(solver_tests solver)
 set_target_properties(solver_tests PROPERTIES COMPILE_DEFINITIONS TEST_PATH="${TEST_PATH}/yaml_config_files/")

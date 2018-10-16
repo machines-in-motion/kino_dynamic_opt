@@ -22,9 +22,9 @@ set(CATKIN_PKGS ${CATKIN_PKGS}
 find_package(catkin REQUIRED COMPONENTS ${CATKIN_PKGS})
 find_package(Boost  REQUIRED COMPONENTS system program_options filesystem)
 
-#######################
-# include directories #
-#######################
+##################
+# catkin package #
+##################
 
 catkin_package(
   INCLUDE_DIRS include
@@ -32,9 +32,16 @@ catkin_package(
   CATKIN_DEPENDS ${CATKIN_PKGS}
 )
 
+###############
+# definitions #
+###############
+
 get_filename_component(TEST_PATH tests ABSOLUTE)
 get_filename_component(CONFIG_PATH config ABSOLUTE)
 
+#######################
+# include directories #
+#######################
 
 include_directories(
   include
