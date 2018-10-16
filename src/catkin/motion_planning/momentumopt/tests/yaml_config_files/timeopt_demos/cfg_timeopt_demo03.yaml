@@ -123,6 +123,16 @@ planner_variables:
 
 solver_variables:
 
+  ###########################
+  # Branch and Bound solver #
+  ###########################
+  
+  BnB_verbose: False
+  BnB_max_iterations: 100
+  BnB_integer_tolerance: 1e-4
+  BnB_absolute_suboptimality_gap: 1e-3
+  BnB_relative_suboptimality_gap: 1e-6
+
   ##########################
   # Convergence tolerances #
   ##########################
@@ -174,4 +184,5 @@ solver_variables:
   
   num_itrefs_trustregion: 1
   trust_region_threshold: 0.15
-  soft_constraint_weight: 2.0e4
+  soft_constraint_weight_full: 2.0e4
+  soft_constraint_weight_reduced: 2.0e4

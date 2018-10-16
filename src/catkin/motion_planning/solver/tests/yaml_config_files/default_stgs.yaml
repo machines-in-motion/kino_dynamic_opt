@@ -15,10 +15,8 @@ solver_variables:
   ##########################
   
   feasibility_tolerance: 1e-8
-  max_residual_tolerance: 1e-3
   absolute_suboptimality_gap: 1e-8
   relative_suboptimality_gap: 1e-8
-  max_indeterminate_tolerance: 1e-9
   feasibility_tolerance_inaccurate: 1e-4
   absolute_suboptimality_gap_inaccurate: 5e-5
   relative_suboptimality_gap_inaccurate: 5e-5

@@ -247,7 +247,7 @@ namespace momentumopt {
               ub_z = ( LinExpr(std::pow(-ly_val+fx_val, 2.0) + std::pow( lx_val+fy_val, 2.0)) + ((LinExpr()-ly+fx)-(-ly_val+fx_val))*2.0*(-ly_val+fx_val) + (( lx+fy)-( lx_val+fy_val))*2.0*( lx_val+fy_val) ) - LinExpr(vars_[ub_var_[eff_id].id(2,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))]);
               lb_z = ( LinExpr(std::pow(-ly_val-fx_val, 2.0) + std::pow( lx_val-fy_val, 2.0)) + ((LinExpr()-ly-fx)-(-ly_val-fx_val))*2.0*(-ly_val-fx_val) + (( lx-fy)-( lx_val-fy_val))*2.0*( lx_val-fy_val) ) - LinExpr(vars_[lb_var_[eff_id].id(2,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))]);
 
-              double w_soft_constraint = model_.getStgs().get(SolverDoubleParam_SoftConstraintWeight);
+              double w_soft_constraint = model_.getSetting().get(SolverDoubleParam_SoftConstraintWeightReduced);
               quad_objective_.addQuaTerm(w_soft_constraint, ub_x);
               quad_objective_.addQuaTerm(w_soft_constraint, lb_x);
               quad_objective_.addQuaTerm(w_soft_constraint, ub_y);
