@@ -64,12 +64,15 @@ namespace linalg {
 	  Eigen::VectorXd& solve(const Eigen::VectorXd& b);
 
     private:
+      inline const solver::SolverSetting& getSetting() const { return *setting_; }
+
 	  int n_;
 	  double eps_, delta_;
 	  Eigen::VectorXd D_, Y_, X_;
 	  Eigen::SparseMatrix<double> L_;
-	  std::shared_ptr<solver::SolverSetting> stgs_;
 	  Eigen::VectorXi Parent_, Pattern_, Flag_, Lnnz_;
+	  std::shared_ptr<const solver::SolverSetting> setting_;
+
   };
 
 }

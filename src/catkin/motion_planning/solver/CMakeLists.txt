@@ -16,15 +16,15 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -Wall -Wwrite-strings -ped
 set(CATKIN_PKGS ${CATKIN_PKGS}
   yaml_cpp
   pybind11
-  )
+)
 
 find_package (Eigen3 REQUIRED)
 find_package(catkin REQUIRED COMPONENTS ${CATKIN_PKGS})
 find_package(Boost REQUIRED COMPONENTS system program_options filesystem)
 
-#######################
-# include directories #
-#######################
+##################
+# catkin package #
+##################
 
 catkin_package(
   LIBRARIES solver
@@ -32,8 +32,16 @@ catkin_package(
   INCLUDE_DIRS include ${EIGEN3_INCLUDE_DIR}
 )
 
+###############
+# definitions #
+###############
+
 get_filename_component(TEST_PATH tests ABSOLUTE)
 get_filename_component(CONFIG_PATH config ABSOLUTE)
+
+#######################
+# include directories #
+#######################
 
 include_directories(
   tests
@@ -54,13 +62,17 @@ set(solver_SRC_FILES ${solver_SRC_FILES}
   src/solver/interface/Exprs.cpp
   src/solver/interface/Model.cpp
   src/solver/interface/OptVar.cpp
+  src/solver/interface/ConicProblem.cpp
   src/solver/interface/SolverSetting.cpp
   
   src/solver/optimizer/IPSolver.cpp
   src/solver/optimizer/LinSolver.cpp
   src/solver/optimizer/EqRoutine.cpp
-  src/solver/optimizer/InfoPrinter.cpp
+  src/solver/optimizer/BnBSolver.cpp
+  src/solver/optimizer/LbfgsSolver.cpp
+  src/solver/optimizer/NcvxBnBSolver.cpp
   src/solver/optimizer/SparseCholesky.cpp
+  src/solver/optimizer/CvxInfoPrinter.cpp
 )
 
 set(pysolver_SRC_FILES ${pysolver_SRC_FILES}
@@ -88,20 +100,21 @@ ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 add_library(solver ${solver_SRC_FILES})
 target_link_libraries(solver ${solver_LIBS})
 
-#########
-# tests #
-#########
-
-catkin_add_gtest(solver_tests
-  tests/gtest_main.cpp
-  tests/test_solver.cpp
-)
-target_link_libraries(solver_tests solver)
-set_target_properties(solver_tests PROPERTIES COMPILE_DEFINITIONS TEST_PATH="${TEST_PATH}/yaml_config_files/")
-
 ###################
 # python bindings #
 ###################
 
 pybind11_add_module(pysolver ${pysolver_SRC_FILES})
 target_link_libraries(pysolver solver)
+
+#########
+# tests #
+#########
+
+catkin_add_gtest(solver_tests
+  tests/GtestMain.cpp
+  tests/TestLbfgs.cpp
+  tests/TestSolver.cpp
+)
+target_link_libraries(solver_tests solver)
+set_target_properties(solver_tests PROPERTIES COMPILE_DEFINITIONS TEST_PATH="${TEST_PATH}/yaml_config_files/")

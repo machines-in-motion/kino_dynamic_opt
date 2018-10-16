@@ -32,57 +32,51 @@ namespace solver {
    * Class that provides functionality for handling solution of linear systems
    * in optimization problems. Performs symbolic and numeric factorization of
    * kkt matrix, find permutation of kkt matrix to induce the best possible
-   * sparsity pattern, build and updates kkt matrix and its scalings as required.
+   * sparsity pattern, builds and updates kkt matrix and its scalings as required.
    */
   class LinSolver
   {
     public:
-	  LinSolver(){}
-	  ~LinSolver(){}
+      LinSolver(){}
+      ~LinSolver(){}
 
-	  void updateMatrix();
-	  void initializeMatrix();
+      void updateMatrix();
+      void initializeMatrix();
       FactStatus numericFactorization();
       void initialize(Cone& cone, SolverSetting& stgs, SolverStorage& stg);
       int solve(const Eigen::Ref<const Eigen::VectorXd>& permB, OptimizationVector& searchDir, bool is_initialization = false);
       void matrixTransposeTimesVector(const Eigen::SparseMatrix<double>& A,const Eigen::Ref<const Eigen::VectorXd>& eig_x, Eigen::Ref<Eigen::VectorXd> eig_y, bool add = true, bool is_new = true);
 
-	  // Some getter and setter methods
-	  int perm(int id) { return perm_.indices()[id]; }
-	  int invPerm(int id) { return invPerm_.indices()[id]; }
-	  Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic>& perm() { return perm_; }
-	  Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic>& invPerm() { return invPerm_; }
-	  const Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic>& perm() const { return perm_; }
-	  const Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic>& invPerm() const { return invPerm_; }
+      // Some getter and setter methods
+      int perm(int id) { return perm_.indices()[id]; }
+      int invPerm(int id) { return invPerm_.indices()[id]; }
+      Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic>& perm() { return perm_; }
+      Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic>& invPerm() { return invPerm_; }
+      const Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic>& perm() const { return perm_; }
+      const Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic>& invPerm() const { return invPerm_; }
 
     private:
-	  SolverSetting& getStgs() { return *stgs_; }
-	  Cone& getCone() { return *cone_; }
-	  SolverStorage& getStg() { return *stg_; }
-	  linalg::SparseCholesky& getCholesky() { return chol_; }
-
-	  const Cone& getCone() const { return *cone_; }
-	  const SolverSetting& getStgs() const { return *stgs_; }
-	  const SolverStorage& getStg() const { return *stg_; }
-	  const linalg::SparseCholesky& getCholesky() const { return chol_; }
+      inline Cone& getCone() { return *cone_; }
+      inline SolverStorage& getStorage() { return *storage_; }
+      inline SolverSetting& getSetting() { return *setting_; }
+      inline linalg::SparseCholesky& getCholesky() { return cholesky_; }
 
       void buildProblem();
-	  void findPermutation();
-	  void resizeProblemData();
-	  void symbolicFactorization();
+      void findPermutation();
+      void resizeProblemData();
+      void symbolicFactorization();
 
     private:
-	  Cone* cone_;
-	  SolverStorage* stg_;
-	  SolverSetting* stgs_;
+      Cone* cone_;
+      SolverStorage* storage_;
+      SolverSetting* setting_;
+      linalg::SparseCholesky cholesky_;
 
-	  ConicVector Gdx_;
-	  linalg::SparseCholesky chol_;
-	  double static_regularization_;
-	  ExtendedVector sign_, permSign_;
-	  Eigen::VectorXd permX_, Pe_, permdX_;
-	  Eigen::SparseMatrix<double> kkt_, permKkt_;
-	  Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic> perm_, invPerm_, permK_;
+      ConicVector Gdx_;
+      double static_regularization_;
+      ExtendedVector sign_, permSign_;
+      Eigen::VectorXd permX_, Pe_, permdX_;
+      Eigen::SparseMatrix<double> kkt_, permKkt_;
+      Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic> perm_, invPerm_, permK_;
   };
-
 }

@@ -40,7 +40,7 @@ namespace solver {
 
     switch (param) {
       case SolverIntParam_ColNum : { value = this->var_storage_->col_no_; break; }
-      default: { throw std::runtime_error("Var::get IntParam"); break; }
+      default: { throw std::runtime_error("Var::get SolverIntParam"); break; }
     }
     return value;
   }
@@ -49,7 +49,7 @@ namespace solver {
   {
     switch (param) {
       case SolverIntParam_ColNum : { this->var_storage_->col_no_ = value; break; }
-      default: { throw std::runtime_error("Var::set IntParam"); break; }
+      default: { throw std::runtime_error("Var::set SolverIntParam"); break; }
     }
   }
 

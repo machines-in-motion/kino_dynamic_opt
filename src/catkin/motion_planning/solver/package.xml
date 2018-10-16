@@ -3,7 +3,7 @@
   <name>solver</name>
   <version>1.0.0</version>
   <description>Optimization Routine</description>
-  <maintainer email="bponton@tue.mpg.de">Autonomous Motion Lab - MPI-IS</maintainer>
+  <maintainer email="bponton@tue.mpg.de"></maintainer>
   <license>TODO</license>
   
   <buildtool_depend>catkin</buildtool_depend>

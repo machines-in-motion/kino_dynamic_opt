@@ -43,6 +43,9 @@ namespace solver {
 	  void unsetEquilibration(SolverStorage& stg);
 	  void scaleVariables(OptimizationVector& opt);
 
+      Vector& equilVec() { return equil_vec_; }
+      const Vector& equilVec() const { return equil_vec_; }
+
     private:
 	  void ruizEquilibration(SolverStorage& stg);
 	  void maxRowsCols(double *row_vec, double *col_vec, const Eigen::SparseMatrix<double>& mat);

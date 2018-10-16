@@ -19,8 +19,11 @@
 
 namespace solver {
 
-    /*! Available integer variables used by the optimizer */
+  /*! Available integer variables used by the optimizer */
   enum SolverIntParam {
+	// Branch and Bound solver
+	SolverIntParam_BnBMaxIters,
+
 	// Equilibration parameters
 	SolverIntParam_EquilibrationIters,
 
@@ -46,10 +49,16 @@ namespace solver {
   /*! Available boolean variables used by the optimizer */
   enum SolverBoolParam {
 	SolverBoolParam_Verbose,
+	SolverBoolParam_BnBVerbose
   };
 
   /*! Available double variables used by the optimizer */
   enum SolverDoubleParam {
+	// Branch and Bound solver
+	SolverDoubleParam_BnBIntegerTol,
+	SolverDoubleParam_BnBAbsSubOptGap,
+	SolverDoubleParam_BnBRelSubOptGap,
+
 	// Convergence tolerances
 	SolverDoubleParam_FeasibilityTol,
 	SolverDoubleParam_DualityGapAbsTol,
@@ -60,7 +69,7 @@ namespace solver {
 
 	// Linear System parameters
 	SolverDoubleParam_LinearSystemAccuracy,
-    SolverDoubleParam_ErrorReductionFactor,
+	SolverDoubleParam_ErrorReductionFactor,
 	SolverDoubleParam_StaticRegularization,
 	SolverDoubleParam_DynamicRegularization,
 	SolverDoubleParam_DynamicRegularizationThresh,
@@ -75,7 +84,8 @@ namespace solver {
 
 	// Model parameters
 	SolverDoubleParam_TrustRegionThreshold,
-	SolverDoubleParam_SoftConstraintWeight,
+	SolverDoubleParam_SoftConstraintWeightFull,
+	SolverDoubleParam_SoftConstraintWeightReduced,
 
 	// Variable parameters
     SolverDoubleParam_X,

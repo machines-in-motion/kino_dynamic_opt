@@ -134,7 +134,11 @@ using namespace solver;
   {
     // adding variables to problem
 	for (int var_id=0; var_id<data.numVars(); var_id++)
-      vars.push_back(model.addVar(VarType::Continuous, 0.0, 1.0, 0.5));
+	  if (data.vartype()[var_id] == 0) {
+	    vars.push_back(model.addVar(VarType::Continuous, 0.0, 1.0, 0.5));
+	  } else {
+		vars.push_back(model.addVar(VarType::Binary, 0.0, 1.0, 0.5));
+	  }
 
 	// adding linear equality constraints to problem
 	if (data.numLeq()>0) {
@@ -146,7 +150,7 @@ using namespace solver;
 	  }
 	}
 
-	// adding linear inequality constraints to problem
+    // adding linear inequality constraints to problem
 	if (data.numLpc()>0) {
 	  for (int k=0; k<data.numLpc(); ++k) {
 		LinExpr lhs = -data.h()[k];
@@ -186,7 +190,7 @@ using namespace solver;
 	std::vector<Var> vars;
 	ProblemData data(cfg_file, sparseformat);
 	model.configSetting(TEST_PATH+std::string("default_stgs.yaml"));
-	model.getStgs().set(SolverBoolParam_Verbose, false);
+	model.getSetting().set(SolverBoolParam_Verbose, false);
 
 	buildProblemFromData(model, data, vars);
 	ExitCode exit_code = model.optimize();
@@ -198,8 +202,20 @@ using namespace solver;
 	EXPECT_NEAR(static_cast<int>(expected_code), static_cast<int>(exit_code), PRECISION);
   }
 
+  // Testing Branch and Bound Solver
+  TEST_F(SolverTest, BnBSolverTest)
+  {
+	testProblem(TEST_PATH+std::string("test_BnB_01.yaml"), ExitCode::Optimal);
+	testProblem(TEST_PATH+std::string("test_BnB_02.yaml"), ExitCode::Optimal);
+	testProblem(TEST_PATH+std::string("test_BnB_03.yaml"), ExitCode::Optimal);
+	testProblem(TEST_PATH+std::string("test_BnB_04.yaml"), ExitCode::Optimal);
+	testProblem(TEST_PATH+std::string("test_BnB_05.yaml"), ExitCode::Optimal);
+	testProblem(TEST_PATH+std::string("test_BnB_06.yaml"), ExitCode::Optimal);
+	testProblem(TEST_PATH+std::string("test_BnB_07.yaml"), ExitCode::Optimal);
+  }
+
   // Testing Interior Point Solver
-  TEST_F(SolverTest, test_InteriorPointSolver)
+  TEST_F(SolverTest, InteriorPointSolverTest)
   {
 	testProblem(TEST_PATH+std::string("test_01.yaml"), ExitCode::Optimal);
 	testProblem(TEST_PATH+std::string("test_02.yaml"), ExitCode::Optimal);

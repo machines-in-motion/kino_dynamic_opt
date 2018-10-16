@@ -434,31 +434,31 @@ namespace solver {
   // SolverStorage
   void SolverStorage::initialize(Cone& cone, SolverSetting& stgs)
   {
-	stgs_ = &stgs;
-	cone_ = &cone;
+    stgs_ = &stgs;
+    cone_ = &cone;
     cbh_.initialize(cone);
     u_opt_.initialize(cone);
     v_opt_.initialize(cone);
     u_t_opt_.initialize(cone);
     cbh_copy_.initialize(cone);
     u_prev_opt_.initialize(cone);
-    this->A().resize(cone_->numLeq(), cone_->numVars());
-    this->G().resize(cone_->sizeLpc() + cone_->sizeSoc(), cone_->numVars());
+    this->Amatrix().resize(cone_->numLeq(), cone_->numVars());
+    this->Gmatrix().resize(cone_->sizeLpc() + cone_->sizeSoc(), cone_->numVars());
   }
 
   void SolverStorage::addCoeff(const Eigen::Triplet<double>& coeff, bool flag_eq)
   {
-	if (flag_eq == true) { this->Acoeffs().push_back(coeff); }
-	else { this->Gcoeffs().push_back(coeff); }
+    if (flag_eq == true) { this->Acoeffs().push_back(coeff); }
+    else { this->Gcoeffs().push_back(coeff); }
   }
 
   void SolverStorage::initializeMatrices()
   {
-	this->A().setFromTriplets(Acoeffs_.begin(), Acoeffs_.end());
-	if (!this->A().isCompressed()) { this->A().makeCompressed(); }
+	this->Amatrix().setFromTriplets(Acoeffs_.begin(), Acoeffs_.end());
+	if (!this->Amatrix().isCompressed()) { this->Amatrix().makeCompressed(); }
 
-	this->G().setFromTriplets(Gcoeffs_.begin(), Gcoeffs_.end());
-	if (!this->G().isCompressed()) { this->G().makeCompressed(); }
+    this->Gmatrix().setFromTriplets(Gcoeffs_.begin(), Gcoeffs_.end());
+    if (!this->Gmatrix().isCompressed()) { this->Gmatrix().makeCompressed(); }
   }
 
 }

@@ -46,37 +46,38 @@ namespace solver {
   class OptimizationInfo
   {
     public:
-	  OptimizationInfo() : iteration_(-1){}
-	  ~OptimizationInfo(){}
+      OptimizationInfo() : iteration_(-1){}
+      ~OptimizationInfo(){}
 
-	  bool isBetterThan(const OptimizationInfo& info) const;
-	  OptimizationInfo& operator=(const OptimizationInfo& other);
+      bool isBetterThan(const OptimizationInfo& info) const;
+      OptimizationInfo& operator=(const OptimizationInfo& other);
 
       int& get(const SolverIntParam& param);
       double& get(const SolverDoubleParam& param);
-	  PrecisionConvergence& mode() { return mode_; }
+      PrecisionConvergence& mode() { return mode_; }
 
       const int& get(const SolverIntParam& param) const;
       const double& get(const SolverDoubleParam& param) const;
-	  const PrecisionConvergence& mode() const { return mode_; }
+      const PrecisionConvergence& mode() const { return mode_; }
 
     private:
-	  PrecisionConvergence mode_;
-	  int iteration_, linear_solve_refinements_, affine_linear_solve_refinements_, correction_linear_solve_refinements_;
-	  double primal_cost_, dual_cost_, primal_residual_, dual_residual_, primal_infeasibility_, dual_infeasibility_, tau_, kappa_,
-	         kappa_over_tau_, merit_function_, duality_gap_, relative_duality_gap_, correction_step_length_, affine_step_length, step_length_;
+      PrecisionConvergence mode_;
+      int iteration_, linear_solve_refinements_, affine_linear_solve_refinements_, correction_linear_solve_refinements_;
+      double primal_cost_, dual_cost_, primal_residual_, dual_residual_, primal_infeasibility_, dual_infeasibility_,
+             tau_, kappa_, kappa_over_tau_, merit_function_, duality_gap_, relative_duality_gap_, correction_step_length_,
+             step_length_, affine_step_length;
   };
 
-  class InfoPrinter
+  class CvxInfoPrinter
   {
     public:
-	  InfoPrinter(){}
-	  ~InfoPrinter(){}
+      CvxInfoPrinter(){}
+      ~CvxInfoPrinter(){}
 
-	  void initialize(const SolverSetting& stgs) { stgs_ = std::make_shared<SolverSetting>(stgs); }
-	  void display(const Msg& msg, const OptimizationInfo& info);
+      void initialize(const SolverSetting& stgs) { stgs_ = std::make_shared<SolverSetting>(stgs); }
+      void display(const Msg& msg, const OptimizationInfo& info);
 
     private:
-	  std::shared_ptr<SolverSetting> stgs_;
+      std::shared_ptr<SolverSetting> stgs_;
   };
 }

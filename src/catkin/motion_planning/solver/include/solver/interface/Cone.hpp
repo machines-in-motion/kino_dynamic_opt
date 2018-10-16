@@ -188,7 +188,7 @@ namespace solver {
 
 	  // variables of SO cone
 	  Eigen::VectorXd skbar_, zkbar_;
-	  std::vector<NesterovToddScaling> soc_;
+      std::vector<NesterovToddScaling> soc_;
 	  Eigen::VectorXi SOC_start_, opt_SOC_start_, ext_SOC_start_;
 
 	  // Operators
@@ -397,14 +397,14 @@ namespace solver {
 	  double& gTh() { return gTh_; }
 	  const double& gTh() const { return gTh_; }
 
-	  Eigen::SparseMatrix<double>& A() { return A_; }
-	  Eigen::SparseMatrix<double>& G() { return G_; }
-	  Eigen::SparseMatrix<double>& At() { return At_; }
-	  Eigen::SparseMatrix<double>& Gt() { return Gt_; }
-	  const Eigen::SparseMatrix<double>& A() const { return A_; }
-	  const Eigen::SparseMatrix<double>& G() const { return G_; }
-	  const Eigen::SparseMatrix<double>& At() const { return At_; }
-	  const Eigen::SparseMatrix<double>& Gt() const { return Gt_; }
+	  Eigen::SparseMatrix<double>& Amatrix() { return A_; }
+	  Eigen::SparseMatrix<double>& Gmatrix() { return G_; }
+	  Eigen::SparseMatrix<double>& Atmatrix() { return At_; }
+	  Eigen::SparseMatrix<double>& Gtmatrix() { return Gt_; }
+	  const Eigen::SparseMatrix<double>& Amatrix() const { return A_; }
+	  const Eigen::SparseMatrix<double>& Gmatrix() const { return G_; }
+	  const Eigen::SparseMatrix<double>& Atmatrix() const { return At_; }
+	  const Eigen::SparseMatrix<double>& Gtmatrix() const { return Gt_; }
 
 	  void initializeMatrices();
 	  void initialize(Cone& cone, SolverSetting& stgs);

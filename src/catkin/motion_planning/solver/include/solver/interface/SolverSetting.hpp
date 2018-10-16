@@ -57,7 +57,7 @@ namespace solver {
 	  SolverSetting(){}
 	  ~SolverSetting(){}
 
-	  void initialize(const std::string cfg_file, const std::string stgs_vars_yaml = "solver_variables");
+	  void initialize(const std::string cfg_file, const std::string solver_vars_yaml = "solver_variables");
 
       int get(SolverIntParam param) const;
       bool get(SolverBoolParam param) const;
@@ -71,6 +71,11 @@ namespace solver {
 	  static constexpr double inf = ((double)std::numeric_limits<double>::infinity());
 
     private:
+	  // Branch and Bound solver
+	  bool BnB_verbose_;
+	  int  BnB_max_iterations_;
+	  double BnB_integer_tolerance_, BnB_absolute_suboptimality_gap_, BnB_relative_suboptimality_gap_;
+
 	  // Convergence tolerances
 	  double feasibility_tolerance_, absolute_suboptimality_gap_, relative_suboptimality_gap_,
 	         feasibility_tolerance_inaccurate_, absolute_suboptimality_gap_inaccurate_, relative_suboptimality_gap_inaccurate_;
@@ -87,9 +92,8 @@ namespace solver {
 
 	  // Model parameters
 	  bool verbose_;
-	  double trust_region_threshold_, soft_constraint_weight_;
+	  double trust_region_threshold_, soft_constraint_weight_full_, soft_constraint_weight_reduced_;
 	  int max_iters_, num_itrefs_trustregion_, ipsolver_warm_iters_, ipsolver_max_iters_;
-
   };
 
 }

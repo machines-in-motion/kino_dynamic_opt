@@ -25,10 +25,14 @@
 #include <solver/interface/Cone.hpp>
 #include <solver/optimizer/LinSolver.hpp>
 #include <solver/optimizer/EqRoutine.hpp>
-#include <solver/optimizer/InfoPrinter.hpp>
 #include <solver/interface/SolverSetting.hpp>
+#include <solver/optimizer/CvxInfoPrinter.hpp>
 
 namespace solver {
+
+  class Model;
+  class BnBSolver;
+  class NcvxBnBSolver;
 
   /**
    * Main class that implements an Interior Point Solver for Second-Order Cones.
@@ -38,61 +42,58 @@ namespace solver {
   class InteriorPointSolver
   {
     public:
-	  InteriorPointSolver(){}
-	  ~InteriorPointSolver() {}
+      InteriorPointSolver(){}
+      ~InteriorPointSolver() {}
 
-	  void internalInitialization();
-	  void initialize(SolverStorage& stg, Cone& cone, SolverSetting& stgs);
-	  ExitCode optimize();
-
-	  Cone& getCone() { return *cone_; }
-	  SolverStorage& getStg() { return *stg_; }
-      SolverSetting& getStgs() { return *stgs_; }
-	  EqRoutine& getEqRoutine() { return equil_; }
-	  OptimizationInfo& getInfo() { return info_; }
-      InfoPrinter& getPrinter() { return printer_; }
-      LinSolver& getLinSolver() { return linsolver_; }
-	  OptimizationInfo& getBestInfo() { return best_info_; }
-
-	  const Cone& getCone() const { return *cone_; }
-	  const SolverStorage& getStg() const { return *stg_; }
-      const SolverSetting& getStgs() const { return *stgs_; }
-	  const EqRoutine& getEqRoutine() const { return equil_; }
-	  const OptimizationInfo& getInfo() const { return info_; }
-	  const InfoPrinter& getPrinter() const { return printer_; }
-	  const LinSolver& getLinSolver() const { return linsolver_; }
-	  const OptimizationInfo& getBestInfo() const { return best_info_; }
-
-	  OptimizationVector& optsol() { return opt_; }
-	  const OptimizationVector& optsol() const { return opt_; }
+      ExitCode optimize();
+      const OptimizationVector& optimalVector() const { return opt_; }
+      void initialize(SolverStorage& stg, Cone& cone, SolverSetting& stgs);
 
     private:
-	  void rhsAffineStep();
-	  void saveIterateAsBest();
-	  void restoreBestIterate();
-	  void rhsCenteringPredictorStep();
-	  ExitCode convergenceCheck(const PrecisionConvergence& mode);
+      inline Cone& getCone() { return *cone_; }
+      inline SolverStorage& getStorage() { return *storage_; }
+      inline SolverSetting& getSetting() { return *setting_; }
+      inline CvxInfoPrinter& getPrinter() { return printer_; }
+      inline OptimizationVector& optimalVector() { return opt_; }
+      inline LinSolver& getLinSolver() { return linear_solver_; }
+      inline OptimizationInfo& getInfo() { return optimization_info_; }
+      inline EqRoutine& getEqRoutine() { return equilibration_routine_; }
+      inline OptimizationInfo& getBestInfo() { return best_optimization_info_; }
 
-	  void computeResiduals();
-	  void updateStatistics();
-	  ExitCode initializeVariables();
-	  double lineSearch(const Eigen::Ref<const Eigen::VectorXd>& dsvec, const Eigen::Ref<const Eigen::VectorXd>& dzvec, double tau, double dtau, double kappa, double dkappa);
+      void rhsAffineStep();
+      void computeResiduals();
+      void updateStatistics();
+      void saveIterateAsBest();
+      void restoreBestIterate();
+      void internalInitialization();
+      ExitCode initializeVariables();
+      void rhsCenteringPredictorStep();
+      void updateEquilH(int id, double value);
+      ExitCode convergenceCheck(const PrecisionConvergence& mode);
+      double lineSearch(const Eigen::Ref<const Eigen::VectorXd>& dsvec,
+                        const Eigen::Ref<const Eigen::VectorXd>& dzvec,
+                        double tau, double dtau, double kappa, double dkappa);
+
+      friend class Model;
+      friend class BnBSolver;
+      friend class ConicProblem;
+      friend class NcvxBnBSolver;
 
     private:
-	  Vector res_;
+      Vector res_;
       ExitCode exitcode_;
-      ExtendedVector RHS1_, RHS2_;
+      ExtendedVector rhs1_, rhs2_;
       OptimizationVector opt_, best_opt_, dopt1_, dopt2_;
       ConicVector lambda_, rho_, sigma_, lbar_, ds_affine_by_W_, W_times_dz_affine_, ds_combined_, dz_combined_;
-	  double dk_combined_, dt_affine_, dk_affine_, inires_x_, inires_y_, inires_z_, dt_denom_,
-	         residual_t_, residual_x_, residual_y_, residual_z_, cx_, by_, hz_, prev_pres_;
+      double dk_combined_, dt_affine_, dk_affine_, inires_x_, inires_y_, inires_z_, dt_denom_,
+             residual_t_, residual_x_, residual_y_, residual_z_, cx_, by_, hz_, prev_pres_;
 
-	  Cone* cone_;
-	  EqRoutine equil_;
-	  SolverStorage* stg_;
-	  SolverSetting* stgs_;
-	  LinSolver linsolver_;
-	  InfoPrinter printer_;
-	  OptimizationInfo info_, best_info_;
+      Cone* cone_;
+      SolverStorage* storage_;
+      SolverSetting* setting_;
+      CvxInfoPrinter printer_;
+      LinSolver linear_solver_;
+      EqRoutine equilibration_routine_;
+      OptimizationInfo optimization_info_, best_optimization_info_;
   };
 }

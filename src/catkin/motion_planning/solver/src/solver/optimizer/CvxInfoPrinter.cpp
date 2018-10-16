@@ -22,14 +22,14 @@
 
 #include <iomanip>
 #include <iostream>
-#include <solver/optimizer/InfoPrinter.hpp>
+#include <solver/optimizer/CvxInfoPrinter.hpp>
 
 namespace solver {
 
   // OptimizatinInfo class
   OptimizationInfo& OptimizationInfo::operator=(const OptimizationInfo& other)
   {
-    if (this!=&other){
+    if (this!=&other) {
       this->get(SolverDoubleParam_Tau) = other.get(SolverDoubleParam_Tau);
       this->get(SolverDoubleParam_Kappa) = other.get(SolverDoubleParam_Kappa);
       this->get(SolverDoubleParam_DualCost) = other.get(SolverDoubleParam_DualCost);
@@ -48,15 +48,15 @@ namespace solver {
 
   bool OptimizationInfo::isBetterThan(const OptimizationInfo& info) const
   {
-	bool better = false;
+    bool better = false;
     if (this->get(SolverDoubleParam_PrimalInfeasibility)!=SolverSetting::nan && this->get(SolverDoubleParam_KappaOverTau)>1.0) {
       if( info.get(SolverDoubleParam_PrimalInfeasibility)!=SolverSetting::nan ) {
         if ( (this->get(SolverDoubleParam_DualityGap)>0.0 && info.get(SolverDoubleParam_DualityGap)>0.0 && this->get(SolverDoubleParam_DualityGap)<info.get(SolverDoubleParam_DualityGap) ) &&
              (this->get(SolverDoubleParam_PrimalInfeasibility)>0.0 && this->get(SolverDoubleParam_PrimalInfeasibility)<info.get(SolverDoubleParam_PrimalResidual) ) &&
              (this->get(SolverDoubleParam_MeritFunction)>0.0 && this->get(SolverDoubleParam_MeritFunction)<info.get(SolverDoubleParam_MeritFunction) ) ) { better = true; }
       } else {
-        if ((this->get(SolverDoubleParam_DualityGap)>0.0 && info.get(SolverDoubleParam_DualityGap)>0.0 && this->get(SolverDoubleParam_DualityGap)<info.get(SolverDoubleParam_DualityGap)) &&
-            (this->get(SolverDoubleParam_MeritFunction)>0.0 && this->get(SolverDoubleParam_MeritFunction)<info.get(SolverDoubleParam_MeritFunction))) { better = true; }
+        if ( (this->get(SolverDoubleParam_DualityGap)>0.0 && info.get(SolverDoubleParam_DualityGap)>0.0 && this->get(SolverDoubleParam_DualityGap)<info.get(SolverDoubleParam_DualityGap)) &&
+             (this->get(SolverDoubleParam_MeritFunction)>0.0 && this->get(SolverDoubleParam_MeritFunction)<info.get(SolverDoubleParam_MeritFunction))) { better = true; }
       }
     } else {
       if ( (this->get(SolverDoubleParam_DualityGap)>0.0 && info.get(SolverDoubleParam_DualityGap)>0.0 && this->get(SolverDoubleParam_DualityGap)<info.get(SolverDoubleParam_DualityGap)) &&
@@ -124,7 +124,7 @@ namespace solver {
       case SolverIntParam_NumRefsLinSolve : { return linear_solve_refinements_; }
       case SolverIntParam_NumRefsLinSolveAffine : { return affine_linear_solve_refinements_; }
       case SolverIntParam_NumRefsLinSolveCorrector : { return correction_linear_solve_refinements_; }
-      default: { throw std::runtime_error("OptimizationInfo::get IntParam invalid"); break; }
+      default: { throw std::runtime_error("OptimizationInfo::get SolverIntParam invalid"); break; }
     }
   }
 
@@ -136,14 +136,14 @@ namespace solver {
       case SolverIntParam_NumRefsLinSolve : { return linear_solve_refinements_; }
       case SolverIntParam_NumRefsLinSolveAffine : { return affine_linear_solve_refinements_; }
       case SolverIntParam_NumRefsLinSolveCorrector : { return correction_linear_solve_refinements_; }
-      default: { throw std::runtime_error("OptimizationInfo::get IntParam invalid"); break; }
+      default: { throw std::runtime_error("OptimizationInfo::get SolverIntParam invalid"); break; }
     }
   }
 
-  // InfoPrinter class
-  void InfoPrinter::display(const Msg& msg, const OptimizationInfo& info)
+  // CvxInfoPrinter class
+  void CvxInfoPrinter::display(const Msg& msg, const OptimizationInfo& info)
   {
-	if (stgs_->get(SolverBoolParam_Verbose)) {
+    if (stgs_->get(SolverBoolParam_Verbose)) {
       switch (msg)
       {
         case Msg::MatrixFactorization:
@@ -205,24 +205,25 @@ namespace solver {
         case Msg::OptimizationProgress:
         {
           if (info.get(SolverIntParam_NumIter)==0) {
-        	    std::cout << std::endl
-        			      << " =============================== OPTIMIZATION PROGRESS =============================== " << std::endl << std::endl;
-        	    std::cout << "It        pcost       dcost      gap   pres   dres    k/t    mu     step   sigma     IR" << std::endl;
-                std::cout << std::scientific << std::setw(4)  << info.get(SolverIntParam_NumIter)
-                                             << std::setw(12) << std::setprecision(3) << info.get(SolverDoubleParam_PrimalCost)
-                                             << std::setw(12) << std::setprecision(3) << info.get(SolverDoubleParam_DualCost)
-                                             << std::setw(8)  << std::setprecision(0) << info.get(SolverDoubleParam_DualityGap)
-                                             << std::setw(7)  << std::setprecision(0) << info.get(SolverDoubleParam_PrimalResidual)
-                                             << std::setw(7)  << std::setprecision(0) << info.get(SolverDoubleParam_DualResidual)
-                                             << std::setw(7)  << std::setprecision(0) << info.get(SolverDoubleParam_KappaOverTau)
-                                             << std::setw(7)  << std::setprecision(0) << info.get(SolverDoubleParam_StepLength)
-                          << std::fixed      << std::setw(8)  << std::setprecision(4) << "--- "
-                          << std::scientific << std::setw(7)  << std::setprecision(0) << "--- "
-                          << std::fixed      << std::setw(4)  << std::setprecision(0) << info.get(SolverIntParam_NumRefsLinSolve)
-                                             << std::setw(3)  << std::setprecision(0) << info.get(SolverIntParam_NumRefsLinSolveAffine)
-                                             << std::setw(3)  << std::setprecision(0) << "-" << std::endl;
+            std::cout << std::endl
+                      << " =============================== OPTIMIZATION PROGRESS =============================== " << std::endl << std::endl;
+            std::cout << "It        pcost       dcost      gap   pres   dres    k/t    mu     step   sigma     IR" << std::endl;
+            std::cout << std::scientific << std::setw(4)  << info.get(SolverIntParam_NumIter)
+                                         << std::setw(12) << std::setprecision(3) << info.get(SolverDoubleParam_PrimalCost)
+                                         << std::setw(12) << std::setprecision(3) << info.get(SolverDoubleParam_DualCost)
+                                         << std::setw(8)  << std::setprecision(0) << info.get(SolverDoubleParam_DualityGap)
+                                         << std::setw(7)  << std::setprecision(0) << info.get(SolverDoubleParam_PrimalResidual)
+                                         << std::setw(7)  << std::setprecision(0) << info.get(SolverDoubleParam_DualResidual)
+                                         << std::setw(7)  << std::setprecision(0) << info.get(SolverDoubleParam_KappaOverTau)
+                                         << std::setw(7)  << std::setprecision(0) << info.get(SolverDoubleParam_StepLength)
+                      << std::fixed      << std::setw(8)  << std::setprecision(4) << "--- "
+                      << std::scientific << std::setw(7)  << std::setprecision(0) << "--- "
+                      << std::fixed      << std::setw(4)  << std::setprecision(0) << info.get(SolverIntParam_NumRefsLinSolve)
+                                         << std::setw(3)  << std::setprecision(0) << info.get(SolverIntParam_NumRefsLinSolveAffine)
+                                         << std::setw(3)  << std::setprecision(0) << "-" << std::endl;
+
           } else {
-        	    std::cout << std::scientific << std::setw(4)  << info.get(SolverIntParam_NumIter)
+            std::cout << std::scientific << std::setw(4)  << info.get(SolverIntParam_NumIter)
                                          << std::setw(12) << std::setprecision(3) << info.get(SolverDoubleParam_PrimalCost)
                                          << std::setw(12) << std::setprecision(3) << info.get(SolverDoubleParam_DualCost)
                                          << std::setw(8)  << std::setprecision(0) << info.get(SolverDoubleParam_DualityGap)
@@ -238,9 +239,8 @@ namespace solver {
           }
           break;
         }
-
       }
-	}
+    }
   }
 
 }

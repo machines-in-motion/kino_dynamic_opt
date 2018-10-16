@@ -22,7 +22,7 @@
 
 namespace solver {
 
-  enum class VarType {Continuous};
+  enum class VarType {Binary, Continuous};
 
   struct VarStorage
   {
@@ -45,8 +45,8 @@ namespace solver {
       void set(SolverIntParam param, int value);
       void set(SolverDoubleParam param, double value);
 
-      friend class Model;
       friend class LinExpr;
+      friend class ConicProblem;
 
     private:
       Var(int col_no, const VarType& type, double lb, double ub, double guess=0.0);
@@ -54,5 +54,4 @@ namespace solver {
     private:
 	  std::shared_ptr<VarStorage> var_storage_;
   };
-
 }
