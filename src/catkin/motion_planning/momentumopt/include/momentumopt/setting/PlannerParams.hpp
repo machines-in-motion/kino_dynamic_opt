@@ -22,6 +22,7 @@ namespace momentumopt {
   /*! Available integer variables used by the planner */
   enum PlannerIntParam {
     // Planner parameters
+    PlannerIntParam_NumDofs,
 	PlannerIntParam_NumTimesteps,
 	PlannerIntParam_NumViapoints,
 	PlannerIntParam_MaxNumTimeIterations,

@@ -28,6 +28,7 @@ void init_params(py::module &m)
 {
   // binding integer parameters
   py::enum_<PlannerIntParam>(m, "PlannerIntParam")
+    .value("PlannerIntParam_NumDofs", PlannerIntParam_NumDofs)
     .value("PlannerIntParam_NumTimesteps", PlannerIntParam_NumTimesteps)
     .value("PlannerIntParam_NumViapoints", PlannerIntParam_NumViapoints)
 	.value("PlannerIntParam_MaxNumTimeIterations", PlannerIntParam_MaxNumTimeIterations)

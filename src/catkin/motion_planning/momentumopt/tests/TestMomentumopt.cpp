@@ -56,8 +56,9 @@ using namespace momentumopt;
     ini_state.fillInitialRobotState(cfg_file);
 
     // define reference dynamic sequence
-    DynamicsSequence ref_sequence;
-    ref_sequence.resize(planner_setting.get(PlannerIntParam_NumTimesteps));
+    KinematicsSequence kin_sequence;
+    kin_sequence.resize(planner_setting.get(PlannerIntParam_NumTimesteps),
+                        planner_setting.get(PlannerIntParam_NumDofs));
 
     // define terrain description
     momentumopt::TerrainDescription terrain_description;
@@ -70,8 +71,9 @@ using namespace momentumopt;
 
     // optimize motion
     DynamicsOptimizer dyn_optimizer;
-    dyn_optimizer.initialize(planner_setting, ini_state, &contact_plan);
-    ExitCode exit_code = dyn_optimizer.optimize(ref_sequence);
+    dyn_optimizer.initialize(planner_setting);
+    ExitCode exit_code = dyn_optimizer.optimize(ini_state, &contact_plan, kin_sequence);
+
     if (tinfo) { std::cout << "  Timesteps:" << std::fixed << std::setw(4) << std::setprecision(0) << planner_setting.get(PlannerIntParam_NumTimesteps)
     	                       << "  ActiveEff:" << std::fixed << std::setw(3) << std::setprecision(0) << planner_setting.get(PlannerIntParam_NumActiveEndeffectors)
                            << "  SolveTime:" << std::fixed << std::setw(6) << std::setprecision(0) << dyn_optimizer.solveTime() << " ms"<< std::endl; }

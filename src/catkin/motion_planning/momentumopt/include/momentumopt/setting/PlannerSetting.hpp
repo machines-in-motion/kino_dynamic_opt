@@ -65,7 +65,7 @@ namespace momentumopt {
 	  std::string cfg_file_, save_dynamics_file_, default_solver_setting_file_;
 
 	  /*! helper integer variables for the optimization problem */
-      int num_com_viapoints_, num_act_eefs_, num_timesteps_, max_time_iterations_;
+      int num_com_viapoints_, num_act_eefs_, num_timesteps_, max_time_iterations_, num_dofs_;
 
       /*! helper boolean variables for the optimization problem */
       bool store_data_, is_time_horizon_fixed_, is_friction_cone_linear_, use_default_solver_setting_;

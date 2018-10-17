@@ -19,6 +19,7 @@
 
 namespace momentumopt {
 
+  // DynamicsState class function implementations
   DynamicsState::DynamicsState()
     : dtime_(0.0),
 	  com_(Eigen::Vector3d::Zero()),
@@ -79,10 +80,6 @@ namespace momentumopt {
   }
 
   // DynamicsSequence class function implementations
-  DynamicsSequence::DynamicsSequence()
-  {
-  }
-
   void DynamicsSequence::resize(int num_timesteps)
   {
     dynamics_sequence_.clear();

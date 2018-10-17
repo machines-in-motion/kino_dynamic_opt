@@ -16,8 +16,9 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
-
+import quaternion
 import sys, getopt
+import numpy as np
 from pysolver import *
 from pymomentum import *
 from scipy.constants.constants import dyn
@@ -46,21 +47,26 @@ def main(argv):
     ini_state.fillInitialRobotState(cfg_file)
 
     'define reference dynamic sequence'
-    ref_sequence = DynamicsSequence()
-    ref_sequence.resize(planner_setting.get(PlannerIntParam_NumTimesteps))
+    kin_sequence = KinematicsSequence()
+    kin_sequence.resize(planner_setting.get(PlannerIntParam_NumTimesteps),
+                        planner_setting.get(PlannerIntParam_NumDofs))
+
+    'define terrain description'
+    terrain_description = TerrainDescription()
+    terrain_description.loadFromFile(planner_setting.get(PlannerStringParam_ConfigFile))
 
     'define contact plan'
     contact_plan = ContactPlanFromFile()
     contact_plan.initialize(planner_setting)
-    contact_plan.optimize(ini_state)
-    
+    contact_plan.optimize(ini_state, terrain_description)
+     
     'optimize motion'
     dyn_optimizer = DynamicsOptimizer()
-    dyn_optimizer.initialize(planner_setting, ini_state, contact_plan)
-    dyn_optimizer.optimize(ref_sequence)
-
-    print dyn_optimizer.solveTime()
-    print dyn_optimizer.dynamicsSequence().dynamicsStates[planner_setting.get(PlannerIntParam_NumTimesteps)-1]
+    dyn_optimizer.initialize(planner_setting)
+    dyn_optimizer.optimize(ini_state, contact_plan, kin_sequence)
+ 
+    #print dyn_optimizer.solveTime()
+    #print dyn_optimizer.dynamicsSequence().dynamicsStates[planner_setting.get(PlannerIntParam_NumTimesteps)-1]
     
     print('Done...')
 

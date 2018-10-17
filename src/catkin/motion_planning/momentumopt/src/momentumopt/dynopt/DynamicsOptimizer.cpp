@@ -24,22 +24,16 @@ using namespace solver;
 
 namespace momentumopt {
 
-  void DynamicsOptimizer::initialize(PlannerSetting& planner_setting, const DynamicsState& ini_state, ContactPlanInterface* contact_plan)
+  void DynamicsOptimizer::initialize(PlannerSetting& planner_setting)
   {
-    ini_state_ = ini_state;
-    contact_plan_ = contact_plan;
     planner_setting_ = &planner_setting;
 
     if (!this->getSetting().get(PlannerBoolParam_UseDefaultSolverSetting)) { model_.configSetting(this->getSetting().get(PlannerStringParam_ConfigFile)); }
     else                                                                   { model_.configSetting(this->getSetting().get(PlannerStringParam_DefaultSolverSettingFile)); }
 
-    com_pos_goal_ = ini_state_.centerOfMass() + this->getSetting().get(PlannerVectorParam_CenterOfMassMotion);
     friction_cone_.getCone(this->getSetting().get(PlannerDoubleParam_FrictionCoefficient), cone_matrix_);
     dynamicsSequence().resize(this->getSetting().get(PlannerIntParam_NumTimesteps));
     for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++) { dynamicsSequence().dynamicsState(time_id).time() = this->getSetting().get(PlannerDoubleParam_TimeStep); }
-
-    contact_plan_->fillDynamicsSequence(this->dynamicsSequence());
-    this->initializeOptimizationVariables();
   }
 
   void DynamicsOptimizer::initializeOptimizationVariables()
@@ -75,27 +69,35 @@ namespace momentumopt {
 	this->getSetting().get(PlannerVectorParam_WeightAngularMomentum) = this->getSetting().get(PlannerVectorParam_WeightDynamicTrackingAngularMomentum);
   }
 
-  ExitCode DynamicsOptimizer::optimize(const DynamicsSequence& ref_sequence, bool update_tracking_objective)
+  ExitCode DynamicsOptimizer::optimize(const DynamicsState& ini_state, ContactPlanInterface* contact_plan,
+                                       const KinematicsSequence& kin_sequence, bool update_tracking_objective)
   {
+    ini_state_ = ini_state;
+    contact_plan_ = contact_plan;
+
+    com_pos_goal_ = ini_state_.centerOfMass() + this->getSetting().get(PlannerVectorParam_CenterOfMassMotion);
+    contact_plan_->fillDynamicsSequence(this->dynamicsSequence());
+    this->initializeOptimizationVariables();
+
 	if (update_tracking_objective)
 	  this->updateTrackingObjective();
 
 	solve_time_ = 0.0;
 	has_converged_ = false;
-	internalOptimize(ref_sequence, true);
+	internalOptimize(kin_sequence, true);
 
 	if (this->getSetting().heuristic() == Heuristic::TimeOptimization) {
 	  for (int iter_id=1; iter_id<=this->getSetting().get(PlannerIntParam_MaxNumTimeIterations); iter_id++) {
-	    internalOptimize(ref_sequence);
+	    internalOptimize(kin_sequence);
 	    if (has_converged_) { break; }
 	  }
 	}
 
-	this->saveToFile(ref_sequence);
+	this->saveToFile(kin_sequence);
     return exitcode_;
   }
 
-  void DynamicsOptimizer::internalOptimize(const DynamicsSequence& ref_sequence, bool is_first_time)
+  void DynamicsOptimizer::internalOptimize(const KinematicsSequence& kin_sequence, bool is_first_time)
   {
     try
     {
@@ -138,11 +140,11 @@ namespace momentumopt {
           // penalty on center of mass, linear and angular momentum
           if (time_id==this->getSetting().get(PlannerIntParam_NumTimesteps)-1) {
         	    quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightCenterOfMass)[axis_id], LinExpr(vars_[com_.id(axis_id,time_id)]) - LinExpr(com_pos_goal_[axis_id]));
-            	quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightFinalLinearMomentum)[axis_id], LinExpr(vars_[lmom_.id(axis_id,time_id)]) - LinExpr(ref_sequence.dynamicsState(time_id).linearMomentum()[axis_id]));
-            	quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightFinalAngularMomentum)[axis_id], LinExpr(vars_[amom_.id(axis_id,time_id)]) - LinExpr(ref_sequence.dynamicsState(time_id).angularMomentum()[axis_id]));
+            	quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightFinalLinearMomentum)[axis_id], LinExpr(vars_[lmom_.id(axis_id,time_id)]) - LinExpr(kin_sequence.kinematicsState(time_id).linearMomentum()[axis_id]));
+            	quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightFinalAngularMomentum)[axis_id], LinExpr(vars_[amom_.id(axis_id,time_id)]) - LinExpr(kin_sequence.kinematicsState(time_id).angularMomentum()[axis_id]));
           } else {
-            	quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightLinearMomentum)[axis_id], LinExpr(vars_[lmom_.id(axis_id,time_id)]) - LinExpr(ref_sequence.dynamicsState(time_id).linearMomentum()[axis_id]));
-            	quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightAngularMomentum)[axis_id], LinExpr(vars_[amom_.id(axis_id,time_id)]) - LinExpr(ref_sequence.dynamicsState(time_id).angularMomentum()[axis_id]));
+            	quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightLinearMomentum)[axis_id], LinExpr(vars_[lmom_.id(axis_id,time_id)]) - LinExpr(kin_sequence.kinematicsState(time_id).linearMomentum()[axis_id]));
+            	quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightAngularMomentum)[axis_id], LinExpr(vars_[amom_.id(axis_id,time_id)]) - LinExpr(kin_sequence.kinematicsState(time_id).angularMomentum()[axis_id]));
           }
 
           // penalty on linear and angular momentum rates
@@ -662,7 +664,7 @@ namespace momentumopt {
     }
   }
 
-  void DynamicsOptimizer::saveToFile(const DynamicsSequence& ref_sequence)
+  void DynamicsOptimizer::saveToFile(const KinematicsSequence& kin_sequence)
   {
     if (this->getSetting().get(PlannerBoolParam_StoreData)) {
       try
@@ -683,9 +685,9 @@ namespace momentumopt {
         amom_.getGuessValue(mat_guess_);  qcqp_cfg["dynopt_params"]["ang_mom"] = mat_guess_;
 
         // building momentum references
-        for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++) { mat_guess_.col(time_id) = ref_sequence.dynamicsState(time_id).centerOfMass();  } qcqp_cfg["dynopt_params"]["com_motion_ref"] = mat_guess_;
-        for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++) { mat_guess_.col(time_id) = ref_sequence.dynamicsState(time_id).linearMomentum(); } qcqp_cfg["dynopt_params"]["lin_mom_ref"] = mat_guess_;
-        for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++) { mat_guess_.col(time_id) = ref_sequence.dynamicsState(time_id).angularMomentum(); } qcqp_cfg["dynopt_params"]["ang_mom_ref"] = mat_guess_;
+        for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++) { mat_guess_.col(time_id) = kin_sequence.kinematicsState(time_id).centerOfMass();  } qcqp_cfg["dynopt_params"]["com_motion_ref"] = mat_guess_;
+        for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++) { mat_guess_.col(time_id) = kin_sequence.kinematicsState(time_id).linearMomentum(); } qcqp_cfg["dynopt_params"]["lin_mom_ref"] = mat_guess_;
+        for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++) { mat_guess_.col(time_id) = kin_sequence.kinematicsState(time_id).angularMomentum(); } qcqp_cfg["dynopt_params"]["ang_mom_ref"] = mat_guess_;
 
         // saving vector of time-steps
         mat_guess_.resize(1, this->getSetting().get(PlannerIntParam_NumTimesteps)); mat_guess_.setZero();

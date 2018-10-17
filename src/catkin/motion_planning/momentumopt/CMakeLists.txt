@@ -55,19 +55,37 @@ include_directories(
 ################
 
 set(momentumopt_SRC_FILES ${momentumopt_SRC_FILES}
+  # files for contacts planning
   src/momentumopt/cntopt/ContactState.cpp
-  src/momentumopt/dynopt/DynamicsState.cpp
-  src/momentumopt/setting/PlannerSetting.cpp
-  src/momentumopt/dynopt/DynamicsOptimizer.cpp
+  src/momentumopt/cntopt/TerrainDescription.cpp
   src/momentumopt/cntopt/ContactPlanFromFile.cpp
   src/momentumopt/cntopt/ContactPlanInterface.cpp
+
+  # files for dynamics planning
+  src/momentumopt/dynopt/DynamicsState.cpp
+  src/momentumopt/dynopt/DynamicsOptimizer.cpp
+
+  # files for kinematics planning
+  src/momentumopt/kinopt/KinematicsState.cpp
+
+  # files for setting up environments
+  src/momentumopt/setting/PlannerSetting.cpp
 )
 
 set(pymomentumopt_SRC_FILES ${pymomentumopt_SRC_FILES}
+  # files for contacts planning
+  srcpy/momentumopt/cntopt/PyTerrain.cpp
+  srcpy/momentumopt/cntopt/PyContacts.cpp
+  
+  # files for dynamics planning
+  srcpy/momentumopt/dynopt/PyDynamics.cpp
+  
+  # files for kinematics planning
+  srcpy/momentumopt/kinopt/PyKinematics.cpp
+  
+  # files for setting up environments
   srcpy/momentumopt/PyMomentumopt.cpp
   srcpy/momentumopt/setting/PyParams.cpp
-  srcpy/momentumopt/cntopt/PyContacts.cpp
-  srcpy/momentumopt/dynopt/PyDynamics.cpp
   srcpy/momentumopt/setting/PySetting.cpp
 )
 

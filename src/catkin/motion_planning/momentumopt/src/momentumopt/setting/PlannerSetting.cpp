@@ -33,6 +33,9 @@ namespace momentumopt {
 	  YAML::Node planner_cfg = YAML::LoadFile(cfg_file.c_str());
 	  YAML::Node planner_vars = planner_cfg[planner_vars_yaml.c_str()];
 
+	  // Kinematics parameters
+	  readParameter(planner_vars, "num_dofs", num_dofs_);
+
 	  // Dynamics parameters
 	  readParameter(planner_vars, "num_com_viapoints", num_com_viapoints_);
 	  com_viapoints_.clear();
@@ -116,6 +119,9 @@ namespace momentumopt {
   {
     switch (param)
     {
+      // Kinematics parameters
+      case PlannerIntParam_NumDofs : { return num_dofs_; }
+
       // Dynamics parameters
       case PlannerIntParam_NumTimesteps : { return num_timesteps_; }
       case PlannerIntParam_NumViapoints : { return num_com_viapoints_; }
@@ -267,6 +273,9 @@ namespace momentumopt {
   {
     switch (param)
     {
+      // Kinematics parameters
+      case PlannerIntParam_NumDofs : { return num_dofs_; }
+
       // Dynamics parameters
       case PlannerIntParam_NumTimesteps : { return num_timesteps_; }
       case PlannerIntParam_NumViapoints : { return num_com_viapoints_; }

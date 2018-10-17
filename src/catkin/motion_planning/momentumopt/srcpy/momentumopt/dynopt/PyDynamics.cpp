@@ -57,7 +57,7 @@ void init_dynamics(py::module &m)
   py::class_<DynamicsOptimizer>(m, "DynamicsOptimizer")
     .def(py::init<>())
     .def("initialize", &DynamicsOptimizer::initialize)
-    .def("optimize", &DynamicsOptimizer::optimize, py::arg("ref_sequence"), py::arg("update_tracking_objective") = false)
+    .def("optimize", &DynamicsOptimizer::optimize, py::arg("ini_state"), py::arg("contact_plan"), py::arg("kin_sequence"), py::arg("update_tracking_objective") = false)
     .def("dynamicsSequence", (const DynamicsSequence& (DynamicsOptimizer::*)(void) const) &DynamicsOptimizer::dynamicsSequence)
     .def("solveTime", &DynamicsOptimizer::solveTime);
 }

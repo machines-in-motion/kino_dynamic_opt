@@ -25,6 +25,7 @@
 #include <momentumopt/cntopt/ContactState.hpp>
 #include <momentumopt/dynopt/DynamicsState.hpp>
 #include <momentumopt/setting/PlannerSetting.hpp>
+#include <momentumopt/cntopt/TerrainDescription.hpp>
 
 namespace momentumopt {
 

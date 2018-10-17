@@ -57,9 +57,10 @@ int main( int argc, char *argv[] )
   DynamicsState ini_state;
   ini_state.fillInitialRobotState(cfg_file);
 
-  // define reference dynamic sequence
-  momentumopt::DynamicsSequence ref_sequence;
-  ref_sequence.resize(planner_setting.get(PlannerIntParam_NumTimesteps));
+  // define reference kinematic sequence
+  momentumopt::KinematicsSequence kin_sequence;
+  kin_sequence.resize(planner_setting.get(PlannerIntParam_NumTimesteps),
+                      planner_setting.get(PlannerIntParam_NumDofs));
 
   // define terrain description
   momentumopt::TerrainDescription terrain_description;
@@ -72,8 +73,8 @@ int main( int argc, char *argv[] )
 
   // optimize motion
   DynamicsOptimizer dyn_optimizer;
-  dyn_optimizer.initialize(planner_setting, ini_state, &contact_plan);
-  dyn_optimizer.optimize(ref_sequence);
+  dyn_optimizer.initialize(planner_setting);
+  dyn_optimizer.optimize(ini_state, &contact_plan, kin_sequence);
 
   /*  optimized variables can be retrieved as (remember that forces are normalized by mass times gravity)
    *

@@ -39,9 +39,6 @@ namespace momentumopt {
   {
     public:
 	  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-	  typedef std::array<int, Problem::n_endeffs_> IntArray;
-	  typedef std::array<bool, Problem::n_endeffs_> BoolArray;
-	  typedef std::array<Eigen::Vector3d, Problem::n_endeffs_> Vec3dArray;
 
     public:
 	  DynamicsState();
@@ -69,23 +66,23 @@ namespace momentumopt {
 	  void linearMomentumRate(const Eigen::Vector3d& lmomd) { lmomd_ = lmomd; }
 	  void angularMomentumRate(const Eigen::Vector3d& amomd) { amomd_ = amomd; }
 
-      // Endeffector ids, forces, torques and cops
-      int& endeffectorContactId(int eef_id) { return cnts_ids_[eef_id]; }
-      int& endeffectorActivationId(int eef_id) { return eefs_ids_[eef_id]; }
-      Eigen::Vector3d& endeffectorCoP(int eef_id) { return eefs_cops_[eef_id]; }
-      Eigen::Vector3d& endeffectorForce(int eef_id) { return eefs_frcs_[eef_id]; }
-      Eigen::Vector3d& endeffectorTorque(int eef_id) { return eefs_trqs_[eef_id]; }
+      // Endeffector forces, torques and cops
+      Eigen::Vector3d& endeffectorCoP(int eff_id) { return eefs_cops_[eff_id]; }
+      Eigen::Vector3d& endeffectorForce(int eff_id) { return eefs_frcs_[eff_id]; }
+      Eigen::Vector3d& endeffectorTorque(int eff_id) { return eefs_trqs_[eff_id]; }
 
-      const int& endeffectorContactId(int eef_id) const { return cnts_ids_[eef_id]; }
-      const int& endeffectorActivationId(int eef_id) const { return eefs_ids_[eef_id]; }
-      const Eigen::Vector3d& endeffectorCoP(int eef_id) const { return eefs_cops_[eef_id]; }
-      const Eigen::Vector3d& endeffectorForce(int eef_id) const { return eefs_frcs_[eef_id]; }
-      const Eigen::Vector3d& endeffectorTorque(int eef_id) const { return eefs_trqs_[eef_id]; }
+      const Eigen::Vector3d& endeffectorCoP(int eff_id) const { return eefs_cops_[eff_id]; }
+      const Eigen::Vector3d& endeffectorForce(int eff_id) const { return eefs_frcs_[eff_id]; }
+      const Eigen::Vector3d& endeffectorTorque(int eff_id) const { return eefs_trqs_[eff_id]; }
 
-	  // Endeffector activations, positions, orientations and contact types
-	  bool& endeffectorActivation(int eef_id) { return eefs_activation_[eef_id]; }
+	  // Endeffector activations, activation and contact ids
+      int& endeffectorContactId(int eff_id) { return cnts_ids_[eff_id]; }
+      int& endeffectorActivationId(int eff_id) { return eefs_ids_[eff_id]; }
+      bool& endeffectorActivation(int eff_id) { return eefs_activation_[eff_id]; }
 
-	  bool endeffectorActivation(int eef_id) const { return eefs_activation_[eef_id]; }
+      const int& endeffectorContactId(int eff_id) const { return cnts_ids_[eff_id]; }
+      const int& endeffectorActivationId(int eff_id) const { return eefs_ids_[eff_id]; }
+      bool endeffectorActivation(int eff_id) const { return eefs_activation_[eff_id]; }
 
 	  // Helper functions
 	  std::string toString() const;
@@ -96,9 +93,9 @@ namespace momentumopt {
 	  double dtime_;
 	  Eigen::Vector3d com_, amom_, lmom_, amomd_, lmomd_;
 
-  	  BoolArray eefs_activation_;
-      IntArray eefs_ids_, cnts_ids_;
-	  Vec3dArray eefs_frcs_, eefs_trqs_, eefs_cops_;
+      std::array<bool, Problem::n_endeffs_> eefs_activation_;
+      std::array<int, Problem::n_endeffs_> eefs_ids_, cnts_ids_;
+      std::array<Eigen::Vector3d, Problem::n_endeffs_> eefs_frcs_, eefs_trqs_, eefs_cops_;
   };
 
   /**
@@ -111,7 +108,7 @@ namespace momentumopt {
       EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     public:
-	  DynamicsSequence();
+	  DynamicsSequence(){}
 	  ~DynamicsSequence(){}
 
 	  void resize(int num_timesteps);

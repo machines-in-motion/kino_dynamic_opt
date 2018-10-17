@@ -25,6 +25,7 @@
 #include <solver/interface/Solver.hpp>
 #include <momentumopt/utilities/Clock.hpp>
 #include <momentumopt/setting/PlannerSetting.hpp>
+#include <momentumopt/kinopt/KinematicsState.hpp>
 #include <momentumopt/cntopt/ContactPlanInterface.hpp>
 
 namespace momentumopt {
@@ -64,18 +65,19 @@ namespace momentumopt {
       /**
        * function to initialize and configure the optimization
        * @param[in]  PlannerSetting               setting of planner configuration variables
-       * @param[in]  ini_state                    initial state of the robot
-       * @param[in]  contact_plan                 container of contact sequence to be used for dynamics planning
        */
-      void initialize(PlannerSetting& planner_setting, const DynamicsState& ini_state, ContactPlanInterface* contact_plan);
+      void initialize(PlannerSetting& planner_setting);
 
       /**
        * function to parse equations and objective into optimization problem and attempt to find a solution
-       * @param[in]  ref_sequence                 dynamics sequence to be used as momentum tracking reference (can be zeros).
+       * @param[in]  ini_state                    initial state of the robot
+       * @param[in]  contact_plan                 container of contact sequence to be used for dynamics planning
+       * @param[in]  kin_sequence                 kinematics sequence to be used as momentum tracking reference (can be zeros).
        * @param[in]  update_tracking_objective    changes weights from regulation to tracking of momentum in ref_sequence
        * @return     ExitCode                     flag that indicates the optimization result (for example: optimal, infeasible)
        */
-      solver::ExitCode optimize(const DynamicsSequence& ref_sequence, bool update_tracking_objective = false);
+      solver::ExitCode optimize(const DynamicsState& ini_state, ContactPlanInterface* contact_plan,
+                                const KinematicsSequence& kin_sequence, bool update_tracking_objective = false);
 
       /**
        * this function gives access to the optimized motion plan
@@ -120,7 +122,7 @@ namespace momentumopt {
        * @param[in]  ref_sequence                 dynamics sequence to be used as momentum tracking reference (can be zeros).
        * @param[in]  is_first_time                flag to indicate if this is the first time the solution is being constructed
        */
-      void internalOptimize(const DynamicsSequence& ref_sequence, bool is_first_time = false);
+      void internalOptimize(const KinematicsSequence& kin_sequence, bool is_first_time = false);
       void updateTrackingObjective();
 
       /**
@@ -132,7 +134,7 @@ namespace momentumopt {
        */
       void saveSolution(solver::OptimizationVariable& opt_var);
       void storeSolution();
-      void saveToFile(const DynamicsSequence& ref_sequence);
+      void saveToFile(const KinematicsSequence& kin_sequence);
 
     private:
       /*! Variables required for optimization */

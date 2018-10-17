@@ -15,23 +15,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <pybind11/eigen.h>
+#include <pybind11/stl_bind.h>
 #include <pybind11/pybind11.h>
 
+#include <momentumopt/cntopt/TerrainDescription.hpp>
+
 namespace py = pybind11;
+using namespace momentumopt;
 
-void init_params(py::module& module);
-void init_setting(py::module& module);
-void init_terrain(py::module& module);
-void init_contacts(py::module& module);
-void init_dynamics(py::module& module);
-void init_kinematics(py::module& module);
+void init_terrain(py::module &m)
+{
+  py::class_<TerrainDescription>(m, "TerrainDescription")
+    .def(py::init<>())
+    .def("addTerrainRegion", &TerrainDescription::addTerrainRegion)
+	.def("loadFromFile", &TerrainDescription::loadFromFile, py::arg("cfg_file"), py::arg("terrain_description_name") = "terrain_description")
 
-
-PYBIND11_MODULE(pymomentum, m) {
-  init_params(m);
-  init_setting(m);
-  init_terrain(m);
-  init_contacts(m);
-  init_dynamics(m);
-  init_kinematics(m);
+    .def("__repr__", [](const TerrainDescription &terrain) { return terrain.toString(); } );
 }
