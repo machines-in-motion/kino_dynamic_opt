@@ -41,9 +41,7 @@ namespace momentumopt {
 	  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 	  typedef std::array<int, Problem::n_endeffs_> IntArray;
 	  typedef std::array<bool, Problem::n_endeffs_> BoolArray;
-	  typedef std::array<ContactType, Problem::n_endeffs_> CntTypeArray;
 	  typedef std::array<Eigen::Vector3d, Problem::n_endeffs_> Vec3dArray;
-	  typedef std::array<Eigen::Quaternion<double>, Problem::n_endeffs_> OriArray;
 
     public:
 	  DynamicsState();
@@ -72,11 +70,13 @@ namespace momentumopt {
 	  void angularMomentumRate(const Eigen::Vector3d& amomd) { amomd_ = amomd; }
 
       // Endeffector ids, forces, torques and cops
+      int& endeffectorContactId(int eef_id) { return cnts_ids_[eef_id]; }
       int& endeffectorActivationId(int eef_id) { return eefs_ids_[eef_id]; }
       Eigen::Vector3d& endeffectorCoP(int eef_id) { return eefs_cops_[eef_id]; }
       Eigen::Vector3d& endeffectorForce(int eef_id) { return eefs_frcs_[eef_id]; }
       Eigen::Vector3d& endeffectorTorque(int eef_id) { return eefs_trqs_[eef_id]; }
 
+      const int& endeffectorContactId(int eef_id) const { return cnts_ids_[eef_id]; }
       const int& endeffectorActivationId(int eef_id) const { return eefs_ids_[eef_id]; }
       const Eigen::Vector3d& endeffectorCoP(int eef_id) const { return eefs_cops_[eef_id]; }
       const Eigen::Vector3d& endeffectorForce(int eef_id) const { return eefs_frcs_[eef_id]; }
@@ -84,14 +84,8 @@ namespace momentumopt {
 
 	  // Endeffector activations, positions, orientations and contact types
 	  bool& endeffectorActivation(int eef_id) { return eefs_activation_[eef_id]; }
-	  Eigen::Vector3d& endeffectorPosition(int eef_id) { return eefs_position_[eef_id]; }
-	  ContactType& endeffectorContactType(int eef_id) { return eefs_contact_type_[eef_id]; }
-	  Eigen::Quaternion<double>& endeffectorOrientation(int eef_id) { return eefs_orientation_[eef_id]; }
 
 	  bool endeffectorActivation(int eef_id) const { return eefs_activation_[eef_id]; }
-	  const Eigen::Vector3d& endeffectorPosition(int eef_id) const { return eefs_position_[eef_id]; }
-	  const ContactType& endeffectorContactType(int eef_id) const { return eefs_contact_type_[eef_id]; }
-	  const Eigen::Quaternion<double>& endeffectorOrientation(int eef_id) const  { return eefs_orientation_[eef_id]; }
 
 	  // Helper functions
 	  std::string toString() const;
@@ -102,11 +96,9 @@ namespace momentumopt {
 	  double dtime_;
 	  Eigen::Vector3d com_, amom_, lmom_, amomd_, lmomd_;
 
-	  IntArray eefs_ids_;
   	  BoolArray eefs_activation_;
-	  OriArray eefs_orientation_;
-	  CntTypeArray eefs_contact_type_;
-	  Vec3dArray eefs_frcs_, eefs_trqs_, eefs_cops_, eefs_position_;
+      IntArray eefs_ids_, cnts_ids_;
+	  Vec3dArray eefs_frcs_, eefs_trqs_, eefs_cops_;
   };
 
   /**

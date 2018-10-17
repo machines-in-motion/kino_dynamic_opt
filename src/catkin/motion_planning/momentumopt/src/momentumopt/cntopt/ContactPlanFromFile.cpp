@@ -24,6 +24,9 @@ namespace momentumopt {
   {
     // this function fills in the contact sequence by reading it from a file
     this->contactSequence().loadFromFile(this->getSetting().get(PlannerStringParam_ConfigFile));
+    for (int eff_id=0; eff_id<Problem::n_endeffs_; eff_id++)
+      for (int cnt_id=0; cnt_id<this->contactSequence().endeffectorContacts(eff_id).size(); cnt_id++)
+        this->contactSequence().endeffectorContacts(eff_id)[cnt_id].selectedAsActive() = true;
   }
 
 }

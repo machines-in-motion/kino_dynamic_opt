@@ -33,16 +33,16 @@ namespace momentumopt {
       int counter = 0;
       int ini_id = 0, end_id = contact_sequence_.endeffectorContacts(eff_id).size();
       for (int cnt_id=ini_id; cnt_id<end_id; cnt_id++) {
-        for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++) {
-          double current_time = double(time_id+1.0)*this->getSetting().get(PlannerDoubleParam_TimeStep);
-          if (current_time>=contact_sequence_.endeffectorContacts(eff_id)[cnt_id].contactActivationTime() &&
-              current_time< contact_sequence_.endeffectorContacts(eff_id)[cnt_id].contactDeactivationTime())
-          {
-        	    dynamics_sequence.dynamicsState(time_id).endeffectorActivation(eff_id) = true;
-            dynamics_sequence.dynamicsState(time_id).endeffectorActivationId(eff_id) = counter++;
-            dynamics_sequence.dynamicsState(time_id).endeffectorContactType(eff_id) = contact_sequence_.endeffectorContacts(eff_id)[cnt_id].contactType();
-            dynamics_sequence.dynamicsState(time_id).endeffectorPosition(eff_id) = contact_sequence_.endeffectorContacts(eff_id)[cnt_id].contactPosition();
-            dynamics_sequence.dynamicsState(time_id).endeffectorOrientation(eff_id) = contact_sequence_.endeffectorContacts(eff_id)[cnt_id].contactOrientation();
+        if (contact_sequence_.endeffectorContacts(eff_id)[cnt_id].selectedAsActive()) {
+          for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++) {
+            double current_time = double(time_id+1.0)*this->getSetting().get(PlannerDoubleParam_TimeStep);
+            if (current_time>=contact_sequence_.endeffectorContacts(eff_id)[cnt_id].contactActivationTime() &&
+                current_time< contact_sequence_.endeffectorContacts(eff_id)[cnt_id].contactDeactivationTime())
+            {
+              dynamics_sequence.dynamicsState(time_id).endeffectorActivation(eff_id) = true;
+              dynamics_sequence.dynamicsState(time_id).endeffectorContactId(eff_id) = cnt_id;
+              dynamics_sequence.dynamicsState(time_id).endeffectorActivationId(eff_id) = counter++;
+            }
           }
         }
       }

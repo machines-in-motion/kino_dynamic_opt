@@ -94,6 +94,11 @@ namespace momentumopt {
       inline PlannerSetting& getSetting() { return *planner_setting_; }
       inline const PlannerSetting& getSetting() const { return *planner_setting_; }
 
+      /*! helper functions for the optimization problem */
+      const ContactType contactType(int time_id, int eff_id) const;
+      const Eigen::Matrix3d contactRotation(int time_id, int eff_id) const;
+      const double contactLocation(int time_id, int eff_id, int axis_id) const;
+
       /**
        * function to initialize optimization variables: type [continuous or binary],
        * guess value [if any], upper and lower bounds for the variable

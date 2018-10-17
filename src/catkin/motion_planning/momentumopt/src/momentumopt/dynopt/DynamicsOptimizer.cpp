@@ -219,22 +219,22 @@ namespace momentumopt {
         for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++) {
       	  for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++) {
       	    if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id)) {
-      		  Eigen::Matrix3d rot = dynamicsSequence().dynamicsState(time_id).endeffectorOrientation(eff_id).toRotationMatrix();
+      		  Eigen::Matrix3d rot = this->contactRotation(time_id, eff_id);
       		  Eigen::Vector3d rx = rot.col(0);
       		  Eigen::Vector3d ry = rot.col(1);
 
               LinExpr lx, ly, lz, fx, fy, fz;
-              lx = LinExpr(dynamicsSequence().dynamicsState(time_id).endeffectorPosition(eff_id).x()) - LinExpr(vars_[com_.id(0,time_id)]) + LinExpr(vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*rx(0) + LinExpr(vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*ry(0);
-              ly = LinExpr(dynamicsSequence().dynamicsState(time_id).endeffectorPosition(eff_id).y()) - LinExpr(vars_[com_.id(1,time_id)]) + LinExpr(vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*rx(1) + LinExpr(vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*ry(1);
-              lz = LinExpr(dynamicsSequence().dynamicsState(time_id).endeffectorPosition(eff_id).z()) - LinExpr(vars_[com_.id(2,time_id)]) + LinExpr(vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*rx(2) + LinExpr(vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*ry(2);
+              lx = LinExpr(this->contactLocation(time_id, eff_id, 0)) - LinExpr(vars_[com_.id(0,time_id)]) + LinExpr(vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*rx(0) + LinExpr(vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*ry(0);
+              ly = LinExpr(this->contactLocation(time_id, eff_id, 1)) - LinExpr(vars_[com_.id(1,time_id)]) + LinExpr(vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*rx(1) + LinExpr(vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*ry(1);
+              lz = LinExpr(this->contactLocation(time_id, eff_id, 2)) - LinExpr(vars_[com_.id(2,time_id)]) + LinExpr(vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*rx(2) + LinExpr(vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*ry(2);
               fx = vars_[frc_world_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))];
               fy = vars_[frc_world_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))];
               fz = vars_[frc_world_[eff_id].id(2,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))];
 
   		      double lx_val, ly_val, lz_val, fx_val, fy_val, fz_val;
-              lx_val = dynamicsSequence().dynamicsState(time_id).endeffectorPosition(eff_id).x() - dynamicsSequence().dynamicsState(time_id).centerOfMass().x() + rx(0)*dynamicsSequence().dynamicsState(time_id).endeffectorCoP(eff_id).x() + ry(0)*dynamicsSequence().dynamicsState(time_id).endeffectorCoP(eff_id).y();
-              ly_val = dynamicsSequence().dynamicsState(time_id).endeffectorPosition(eff_id).y() - dynamicsSequence().dynamicsState(time_id).centerOfMass().y() + rx(1)*dynamicsSequence().dynamicsState(time_id).endeffectorCoP(eff_id).x() + ry(1)*dynamicsSequence().dynamicsState(time_id).endeffectorCoP(eff_id).y();
-              lz_val = dynamicsSequence().dynamicsState(time_id).endeffectorPosition(eff_id).z() - dynamicsSequence().dynamicsState(time_id).centerOfMass().z() + rx(2)*dynamicsSequence().dynamicsState(time_id).endeffectorCoP(eff_id).x() + ry(2)*dynamicsSequence().dynamicsState(time_id).endeffectorCoP(eff_id).y();
+              lx_val = this->contactLocation(time_id, eff_id, 0) - dynamicsSequence().dynamicsState(time_id).centerOfMass().x() + rx(0)*dynamicsSequence().dynamicsState(time_id).endeffectorCoP(eff_id).x() + ry(0)*dynamicsSequence().dynamicsState(time_id).endeffectorCoP(eff_id).y();
+              ly_val = this->contactLocation(time_id, eff_id, 1) - dynamicsSequence().dynamicsState(time_id).centerOfMass().y() + rx(1)*dynamicsSequence().dynamicsState(time_id).endeffectorCoP(eff_id).x() + ry(1)*dynamicsSequence().dynamicsState(time_id).endeffectorCoP(eff_id).y();
+              lz_val = this->contactLocation(time_id, eff_id, 2) - dynamicsSequence().dynamicsState(time_id).centerOfMass().z() + rx(2)*dynamicsSequence().dynamicsState(time_id).endeffectorCoP(eff_id).x() + ry(2)*dynamicsSequence().dynamicsState(time_id).endeffectorCoP(eff_id).y();
               fx_val = dynamicsSequence().dynamicsState(time_id).endeffectorForce(eff_id).x();
               fy_val = dynamicsSequence().dynamicsState(time_id).endeffectorForce(eff_id).y();
               fz_val = dynamicsSequence().dynamicsState(time_id).endeffectorForce(eff_id).z();
@@ -290,9 +290,9 @@ namespace momentumopt {
       // friction cone constraints
       for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++) {
         for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++) {
-          if (dynamicsSequence().dynamicsState(time_id).endeffectorContactType(eff_id) != ContactType::FullContact) {
+          if (this->contactType(time_id, eff_id) != ContactType::FullContact) {
             if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id)) {
-              Eigen::Matrix3d eff_rotation = dynamicsSequence().dynamicsState(time_id).endeffectorOrientation(eff_id).toRotationMatrix();
+              Eigen::Matrix3d eff_rotation = this->contactRotation(time_id, eff_id);
               if (this->getSetting().get(PlannerBoolParam_IsFrictionConeLinear)) {  // using a linear representation
                 Eigen::Matrix<double,4,3> rotated_cone_matrix_ = cone_matrix_*eff_rotation.transpose();
                 for (int row_id=0; row_id<4; row_id++) {
@@ -393,7 +393,7 @@ namespace momentumopt {
             lin_cons_ = LinExpr() - LinExpr(vars_[amomd_.id(axis_id,time_id)]);
             for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++) {
               if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id)) {
-                Eigen::Matrix3d rot = dynamicsSequence().dynamicsState(time_id).endeffectorOrientation(eff_id).toRotationMatrix();
+                Eigen::Matrix3d rot = this->contactRotation(time_id, eff_id);
                 lin_cons_ += (LinExpr(vars_[ub_var_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])-LinExpr(vars_[lb_var_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))]))*0.25*this->getSetting().get(PlannerDoubleParam_MassTimesGravity);
                 lin_cons_ += LinExpr(vars_[trq_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*rot.col(2)[axis_id];
               }
@@ -428,7 +428,7 @@ namespace momentumopt {
               if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id)) {
                 lin_cons_ += (LinExpr(vars_[lb_var_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])-LinExpr(vars_[ub_var_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))]))*(0.25*dynamicsSequence().dynamicsState(time_id).time()*this->getSetting().get(PlannerDoubleParam_MassTimesGravity));
 
-          	    Eigen::Vector3d rz = dynamicsSequence().dynamicsState(time_id).endeffectorOrientation(eff_id).toRotationMatrix().col(2);
+          	    Eigen::Vector3d rz = this->contactRotation(time_id, eff_id).col(2);
                 lin_cons_ += LinExpr(vars_[trq_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*(-rz[axis_id]*dynamicsSequence().dynamicsState(time_id).time());
               }
             }
@@ -448,14 +448,14 @@ namespace momentumopt {
       for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++) {
       	for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++) {
       	  if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id)) {
-      		Eigen::Matrix3d rot = dynamicsSequence().dynamicsState(time_id).endeffectorOrientation(eff_id).toRotationMatrix();
+      		Eigen::Matrix3d rot = this->contactRotation(time_id, eff_id);
       		Eigen::Vector3d rx = rot.col(0);
       		Eigen::Vector3d ry = rot.col(1);
 
 			LinExpr lx, ly , lz, fx, fy, fz;
-      		lx = LinExpr(dynamicsSequence().dynamicsState(time_id).endeffectorPosition(eff_id).x()) - LinExpr(vars_[com_.id(0,time_id)]) + LinExpr(vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*rx(0) + LinExpr(vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*ry(0);
-		    ly = LinExpr(dynamicsSequence().dynamicsState(time_id).endeffectorPosition(eff_id).y()) - LinExpr(vars_[com_.id(1,time_id)]) + LinExpr(vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*rx(1) + LinExpr(vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*ry(1);
-		    lz = LinExpr(dynamicsSequence().dynamicsState(time_id).endeffectorPosition(eff_id).z()) - LinExpr(vars_[com_.id(2,time_id)]) + LinExpr(vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*rx(2) + LinExpr(vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*ry(2);
+      		lx = LinExpr(this->contactLocation(time_id, eff_id, 0)) - LinExpr(vars_[com_.id(0,time_id)]) + LinExpr(vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*rx(0) + LinExpr(vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*ry(0);
+		    ly = LinExpr(this->contactLocation(time_id, eff_id, 1)) - LinExpr(vars_[com_.id(1,time_id)]) + LinExpr(vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*rx(1) + LinExpr(vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*ry(1);
+		    lz = LinExpr(this->contactLocation(time_id, eff_id, 2)) - LinExpr(vars_[com_.id(2,time_id)]) + LinExpr(vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*rx(2) + LinExpr(vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*ry(2);
 			fx = vars_[frc_world_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))];
 		    fy = vars_[frc_world_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))];
 		    fz = vars_[frc_world_[eff_id].id(2,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))];
@@ -551,19 +551,19 @@ namespace momentumopt {
 
       for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++) {
         if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id)) {
-          Eigen::Matrix3d rot = dynamicsSequence().dynamicsState(time_id).endeffectorOrientation(eff_id).toRotationMatrix();
+          Eigen::Matrix3d rot = this->contactRotation(time_id, eff_id);
           Eigen::Vector3d rx = rot.col(0);
           Eigen::Vector3d ry = rot.col(1);
           Eigen::Vector3d rz = rot.col(2);
 
           if (this->getSetting().heuristic() == Heuristic::TimeOptimization) {
-            len.x() = dynamicsSequence().dynamicsState(time_id).endeffectorPosition(eff_id).x() - compos(0,time_id) + rx(0)*vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))].get(SolverDoubleParam_X) + ry(0)*vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))].get(SolverDoubleParam_X);
-            len.y() = dynamicsSequence().dynamicsState(time_id).endeffectorPosition(eff_id).y() - compos(1,time_id) + rx(1)*vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))].get(SolverDoubleParam_X) + ry(1)*vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))].get(SolverDoubleParam_X);
-            len.z() = dynamicsSequence().dynamicsState(time_id).endeffectorPosition(eff_id).z() - compos(2,time_id) + rx(2)*vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))].get(SolverDoubleParam_X) + ry(2)*vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))].get(SolverDoubleParam_X);
+            len.x() = this->contactLocation(time_id, eff_id, 0) - compos(0,time_id) + rx(0)*vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))].get(SolverDoubleParam_X) + ry(0)*vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))].get(SolverDoubleParam_X);
+            len.y() = this->contactLocation(time_id, eff_id, 1) - compos(1,time_id) + rx(1)*vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))].get(SolverDoubleParam_X) + ry(1)*vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))].get(SolverDoubleParam_X);
+            len.z() = this->contactLocation(time_id, eff_id, 2) - compos(2,time_id) + rx(2)*vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))].get(SolverDoubleParam_X) + ry(2)*vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))].get(SolverDoubleParam_X);
           } else {
-            len.x() = dynamicsSequence().dynamicsState(time_id).endeffectorPosition(eff_id).x() - vars_[com_.id(0,time_id)].get(SolverDoubleParam_X) + rx(0)*vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))].get(SolverDoubleParam_X) + ry(0)*vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))].get(SolverDoubleParam_X);
-            len.y() = dynamicsSequence().dynamicsState(time_id).endeffectorPosition(eff_id).y() - vars_[com_.id(1,time_id)].get(SolverDoubleParam_X) + rx(1)*vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))].get(SolverDoubleParam_X) + ry(1)*vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))].get(SolverDoubleParam_X);
-            len.z() = dynamicsSequence().dynamicsState(time_id).endeffectorPosition(eff_id).z() - vars_[com_.id(2,time_id)].get(SolverDoubleParam_X) + rx(2)*vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))].get(SolverDoubleParam_X) + ry(2)*vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))].get(SolverDoubleParam_X);
+            len.x() = this->contactLocation(time_id, eff_id, 0) - vars_[com_.id(0,time_id)].get(SolverDoubleParam_X) + rx(0)*vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))].get(SolverDoubleParam_X) + ry(0)*vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))].get(SolverDoubleParam_X);
+            len.y() = this->contactLocation(time_id, eff_id, 1) - vars_[com_.id(1,time_id)].get(SolverDoubleParam_X) + rx(1)*vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))].get(SolverDoubleParam_X) + ry(1)*vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))].get(SolverDoubleParam_X);
+            len.z() = this->contactLocation(time_id, eff_id, 2) - vars_[com_.id(2,time_id)].get(SolverDoubleParam_X) + rx(2)*vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))].get(SolverDoubleParam_X) + ry(2)*vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))].get(SolverDoubleParam_X);
           }
       	  frc.x() = this->getSetting().get(PlannerDoubleParam_MassTimesGravity)*vars_[frc_world_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))].get(SolverDoubleParam_X);
       	  frc.y() = this->getSetting().get(PlannerDoubleParam_MassTimesGravity)*vars_[frc_world_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))].get(SolverDoubleParam_X);
@@ -715,6 +715,24 @@ namespace momentumopt {
       }
       catch (YAML::ParserException &e) { std::cout << e.what() << "\n"; }
     }
+  }
+
+  const ContactType DynamicsOptimizer::contactType(int time_id, int eff_id) const
+  {
+    int contact_id = dynamicsSequence().dynamicsState(time_id).endeffectorContactId(eff_id);
+    return contact_plan_->contactSequence().endeffectorContacts(eff_id)[contact_id].contactType();
+  }
+
+  const Eigen::Matrix3d DynamicsOptimizer::contactRotation(int time_id, int eff_id) const
+  {
+    int contact_id = dynamicsSequence().dynamicsState(time_id).endeffectorContactId(eff_id);
+    return contact_plan_->contactSequence().endeffectorContacts(eff_id)[contact_id].contactOrientation().toRotationMatrix();
+  }
+
+  const double DynamicsOptimizer::contactLocation(int time_id, int eff_id, int axis_id) const
+  {
+    int contact_id = dynamicsSequence().dynamicsState(time_id).endeffectorContactId(eff_id);
+    return contact_plan_->contactSequence().endeffectorContacts(eff_id)[contact_id].contactPosition()[axis_id];
   }
 
 }

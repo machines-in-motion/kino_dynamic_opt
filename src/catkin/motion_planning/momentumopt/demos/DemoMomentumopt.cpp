@@ -85,8 +85,6 @@ int main( int argc, char *argv[] )
    *      std::cout << dyn_optimizer.dynamicsSequence().dynamicsState(time_id).endeffectorForce(eff_id).transpose() << std::endl;
    *      std::cout << dyn_optimizer.dynamicsSequence().dynamicsState(time_id).endeffectorTorque(eff_id).transpose() << std::endl;
    *      std::cout << dyn_optimizer.dynamicsSequence().dynamicsState(time_id).endeffectorCoP(eff_id).transpose() << std::endl;
-   *      std::cout << dyn_optimizer.dynamicsSequence().dynamicsState(time_id).endeffectorPosition(eff_id).transpose() << std::endl;
-   *      std::cout << dyn_optimizer.dynamicsSequence().dynamicsState(time_id).endeffectorOrientation(eff_id).coeffs().transpose() << std::endl;
    *    }
    *  }
    */

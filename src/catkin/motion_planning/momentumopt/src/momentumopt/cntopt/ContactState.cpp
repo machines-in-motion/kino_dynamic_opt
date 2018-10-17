@@ -34,8 +34,8 @@ namespace momentumopt {
   ContactState::ContactState()
     : time_ini_(0.),
       time_end_(0.),
-      contact_id_(-1),
       terrain_id_(-1),
+      optimization_id_(-1),
       selected_as_active_(false),
       position_(Eigen::Vector3d::Zero()),
       contact_type_(ContactType::FreeContact),
@@ -43,13 +43,13 @@ namespace momentumopt {
   {
   }
 
-  ContactState::ContactState(const Eigen::VectorXd& parameters, const int contact_id)
+  ContactState::ContactState(const Eigen::VectorXd& parameters, const int optimization_id)
   {
-    contact_id_ = contact_id;
     time_ini_ = parameters(0);
     time_end_ = parameters(1);
     selected_as_active_ = false;
     terrain_id_ = parameters(10);
+    optimization_id_ = optimization_id;
     position_ = parameters.segment<3>(2);
     contact_type_ = idToContactType(parameters(9));
     orientation_ = Eigen::Quaternion<double>(parameters(5), parameters(6), parameters(7), parameters(8));
@@ -58,13 +58,13 @@ namespace momentumopt {
   std::string ContactState::toString() const
   {
     std::stringstream text;
-    text << "    is active    " << selected_as_active_ << "\n";
-    text << "    contact id   " << contact_id_ << "\n";
-    text << "    terrain id   " << terrain_id_ << "\n";
-    text << "    time         " << time_ini_ << " - " << time_end_ << "\n";
-    text << "    contact type " << static_cast<int>(contact_type_) << "\n";
-    text << "    position     " << position_.transpose() << "\n";
-    text << "    orientation  " << orientation_.coeffs().transpose() << "\n";
+    text << "    is active        " << selected_as_active_ << "\n";
+    text << "    optimization id  " << optimization_id_ << "\n";
+    text << "    terrain id       " << terrain_id_ << "\n";
+    text << "    time             " << time_ini_ << " - " << time_end_ << "\n";
+    text << "    contact type     " << static_cast<int>(contact_type_) << "\n";
+    text << "    position         " << position_.transpose() << "\n";
+    text << "    orientation      " << orientation_.coeffs().transpose() << "\n";
     return text.str();
   }
 
@@ -75,7 +75,7 @@ namespace momentumopt {
       YAML::Node contact_cfg = YAML::LoadFile(cfg_file.c_str());
       YAML::Node contact_plan = contact_cfg[contact_plan_name.c_str()];
 
-      num_contacts_ = 0;
+      num_optimization_contacts_ = 0;
       std::vector<Eigen::VectorXd> contacts;
       for (int eff_id=0; eff_id<Problem::n_endeffs_; eff_id++) {
         contacts.clear();
@@ -83,7 +83,7 @@ namespace momentumopt {
 
         this->endeffectorContacts(eff_id).clear();
         for (int cnt_id=0; cnt_id<contacts.size(); cnt_id++)
-          this->endeffectorContacts(eff_id).push_back(ContactState(contacts[cnt_id], num_contacts_++));
+          this->endeffectorContacts(eff_id).push_back(ContactState(contacts[cnt_id], num_optimization_contacts_++));
       }
     } catch (std::runtime_error& e) {
       std::cout << "Error reading parameter ["<< e.what() << "] at file: [" << __FILE__ << "]" << std::endl << std::endl;

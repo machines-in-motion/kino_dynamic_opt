@@ -49,8 +49,8 @@ namespace momentumopt {
       ContactState();
       ~ContactState(){}
 
-      int& contactId() { return contact_id_; }
       int& terrainId() { return terrain_id_; }
+      int& optimizationId() { return optimization_id_; }
       ContactType& contactType() { return contact_type_; }
       double& contactActivationTime() { return time_ini_; }
       double& contactDeactivationTime() { return time_end_; }
@@ -58,9 +58,8 @@ namespace momentumopt {
       Eigen::Vector3d& contactPosition() { return position_; }
       Eigen::Quaternion<double>& contactOrientation() { return orientation_; }
 
-
-      const int& contactId() const { return contact_id_; }
       const int& terrainId() const { return terrain_id_; }
+      const int& optimizationId() const { return optimization_id_; }
       const ContactType& contactType() const { return contact_type_; }
       const double& contactActivationTime() const { return time_ini_; }
       const double& contactDeactivationTime() const { return time_end_; }
@@ -73,14 +72,14 @@ namespace momentumopt {
 
     private:
       friend class ContactSequence;
-      ContactState(const Eigen::VectorXd& parameters, const int contact_id);
+      ContactState(const Eigen::VectorXd& parameters, const int optimization_id);
 
     private:
       bool selected_as_active_;
       Eigen::Vector3d position_;
       ContactType contact_type_;
       double time_ini_, time_end_;
-      int contact_id_, terrain_id_;
+      int optimization_id_, terrain_id_;
       Eigen::Quaternion<double> orientation_;
   };
 
@@ -94,7 +93,7 @@ namespace momentumopt {
       ContactSequence(){}
       ~ContactSequence(){}
 
-      const int numEndeffectorContacts() { return num_contacts_; }
+      const int numOptimizationContacts() { return num_optimization_contacts_; }
       const int numEndeffectorContacts(int eff_id) const { return endeffector_contacts_[eff_id].size(); }
       void loadFromFile(const std::string cfg_file, const std::string contact_plan_name = "contact_plan");
       std::vector<ContactState>& endeffectorContacts(int eff_id) { return endeffector_contacts_[eff_id]; }
@@ -105,7 +104,7 @@ namespace momentumopt {
 
     private:
       EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-      int num_contacts_;
+      int num_optimization_contacts_;
       std::array<std::vector<ContactState>, Problem::n_endeffs_> endeffector_contacts_;
   };
 
