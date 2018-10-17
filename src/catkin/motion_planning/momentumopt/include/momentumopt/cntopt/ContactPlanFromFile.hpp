@@ -31,6 +31,6 @@ namespace momentumopt {
       ContactPlanFromFile(){}
       ~ContactPlanFromFile(){}
 
-      virtual void optimize(const DynamicsState& ini_state);
+      virtual void optimize(const DynamicsState& ini_state, const TerrainDescription& terrain);
   };
 }

@@ -61,10 +61,14 @@ int main( int argc, char *argv[] )
   momentumopt::DynamicsSequence ref_sequence;
   ref_sequence.resize(planner_setting.get(PlannerIntParam_NumTimesteps));
 
+  // define terrain description
+  momentumopt::TerrainDescription terrain_description;
+  terrain_description.loadFromFile(cfg_file);
+
   // define contact plan
   ContactPlanFromFile contact_plan;
   contact_plan.initialize(planner_setting);
-  contact_plan.optimize(ini_state);
+  contact_plan.optimize(ini_state, terrain_description);
 
   // optimize motion
   DynamicsOptimizer dyn_optimizer;

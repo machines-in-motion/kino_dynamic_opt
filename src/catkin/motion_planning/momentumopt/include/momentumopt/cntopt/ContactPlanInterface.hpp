@@ -45,14 +45,11 @@ namespace momentumopt {
       ~ContactPlanInterface(){}
 
       void initialize(const PlannerSetting& planner_setting);
-      virtual void optimize(const DynamicsState& ini_state) = 0;
       void fillDynamicsSequence(DynamicsSequence& dynamics_sequence);
+      virtual void optimize(const DynamicsState& ini_state, const TerrainDescription& terrain) = 0;
 
       ContactSequence& contactSequence() { return contact_sequence_; }
       const ContactSequence& contactSequence() const { return contact_sequence_; }
-      int endeffectorContacts(int eff_id) const { return contacts_per_endeff_[eff_id]; }
-      Eigen::Matrix<int, Problem::n_endeffs_, 1>& endeffectorContacts() { return contacts_per_endeff_; }
-      const Eigen::Matrix<int, Problem::n_endeffs_, 1>& endeffectorContacts() const { return contacts_per_endeff_; }
 
     protected:
       /*! Getter and setter methods for getting the planner variables  */
@@ -61,6 +58,5 @@ namespace momentumopt {
     protected:
       ContactSequence contact_sequence_;
       const PlannerSetting* planner_setting_;
-      Eigen::Matrix<int, Problem::n_endeffs_, 1> contacts_per_endeff_;
   };
 }
