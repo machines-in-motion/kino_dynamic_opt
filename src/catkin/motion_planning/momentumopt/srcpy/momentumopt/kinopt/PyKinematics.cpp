@@ -20,16 +20,20 @@
 #include <pybind11/pybind11.h>
 
 #include <momentumopt/kinopt/KinematicsState.hpp>
+#include <momentumopt/kinopt/KinematicsOptimizer.hpp>
+#include <momentumopt/kinopt/PyKinematicsInterface.hpp>
 
 namespace py = pybind11;
 using namespace momentumopt;
 
 PYBIND11_MAKE_OPAQUE(std::vector<KinematicsState>);
+PYBIND11_MAKE_OPAQUE(std::vector<Eigen::MatrixXd>);
 
 void init_kinematics(py::module &m)
 {
   // binding of stl containers
   py::bind_vector<std::vector<KinematicsState>>(m, "KinStateVector");
+  py::bind_vector<std::vector<Eigen::MatrixXd>>(m, "JacobianVector");
 
   // binding of robot posture
   py::class_<RobotPosture>(m, "RobotPosture")
@@ -74,7 +78,20 @@ void init_kinematics(py::module &m)
     .def("size", &KinematicsSequence::size)
     .def("clean", &KinematicsSequence::clean)
     .def("resize", &KinematicsSequence::resize)
-    .def_property("kinematicsStates", (const std::vector<KinematicsState>& (KinematicsSequence::*)(void) const) &KinematicsSequence::kinematicsSequence, (void (KinematicsSequence::*)(const std::vector<KinematicsState>&)) &KinematicsSequence::kinematicsSequence)
+    .def_property("kinematics_states", (const std::vector<KinematicsState>& (KinematicsSequence::*)(void) const) &KinematicsSequence::kinematicsSequence, (void (KinematicsSequence::*)(const std::vector<KinematicsState>&)) &KinematicsSequence::kinematicsSequence)
     .def("__repr__", [](const KinematicsSequence &kin_seq) { return kin_seq.toString(); } );
+
+  // binding of kinematics interface
+  py::class_<KinematicsInterface, PyKinematicsInterface>(m, "KinematicsInterface")
+    .def(py::init<>())
+    .def_property("centroidal_momentum_matrix", (const Eigen::MatrixXd& (KinematicsInterface::*)(void) const) &KinematicsInterface::centroidalMomentumMatrix, (void (KinematicsInterface::*)(const Eigen::MatrixXd&)) &KinematicsInterface::centroidalMomentumMatrix)
+    .def_property("endeffector_jacobians", (const std::vector<Eigen::MatrixXd>& (KinematicsInterface::*)(void) const) &KinematicsInterface::endeffectorJacobians, (void (KinematicsInterface::*)(const std::vector<Eigen::MatrixXd>&)) &KinematicsInterface::endeffectorJacobians)
+	.def("initialize", &KinematicsInterface::initialize)
+    .def("updateJacobians", &KinematicsInterface::updateJacobians);
+
+  // binding of kinematics optimizer
+  py::class_<KinematicsOptimizer>(m, "KinematicsOptimizer")
+    .def(py::init<>())
+    .def("initialize", &KinematicsOptimizer::initialize);
 
 }

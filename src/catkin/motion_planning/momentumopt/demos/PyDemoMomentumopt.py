@@ -16,13 +16,27 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
-import quaternion
+
 import sys, getopt
 import numpy as np
 from pysolver import *
 from pymomentum import *
-from scipy.constants.constants import dyn
 
+'Kinematics Interface using Pinocchio'
+import pinocchio
+class PinocchioKinematicsInterface(KinematicsInterface):
+    def __init__(self):
+        KinematicsInterface.__init__(self)
+
+    def initialize(self, planner_setting):
+        print 'user initialization'
+
+    def updateJacobians(self):
+        self.centroidal_momentum_matrix = 0.1*np.ones((6,56))
+        for eff_id in range(0,4):
+            self.endeffector_jacobians[eff_id] = (eff_id+2.0)*0.1*np.ones((6,56))
+
+'Main function for optimization demo'
 def main(argv):
     cfg_file = ''
     try:
@@ -41,7 +55,7 @@ def main(argv):
     'define problem configuration'
     planner_setting = PlannerSetting()
     planner_setting.initialize(cfg_file)
-    
+
     'define robot initial state'
     ini_state = DynamicsState()
     ini_state.fillInitialRobotState(cfg_file)
@@ -66,8 +80,20 @@ def main(argv):
     dyn_optimizer.optimize(ini_state, contact_plan, kin_sequence)
  
     #print dyn_optimizer.solveTime()
-    #print dyn_optimizer.dynamicsSequence().dynamicsStates[planner_setting.get(PlannerIntParam_NumTimesteps)-1]
+    #print dyn_optimizer.dynamicsSequence().dynamics_states[planner_setting.get(PlannerIntParam_NumTimesteps)-1]
     
+################################################################
+################################################################
+    'Kinematics Interface'
+    kin_interface = PinocchioKinematicsInterface()
+
+    'Kinematics Optimizer'
+    kin_optimizer = KinematicsOptimizer()
+    kin_optimizer.initialize(planner_setting, kin_interface)
+################################################################
+################################################################
+    
+
     print('Done...')
 
 if __name__ == "__main__":

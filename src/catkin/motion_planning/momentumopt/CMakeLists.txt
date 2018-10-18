@@ -67,6 +67,8 @@ set(momentumopt_SRC_FILES ${momentumopt_SRC_FILES}
 
   # files for kinematics planning
   src/momentumopt/kinopt/KinematicsState.cpp
+  src/momentumopt/kinopt/KinematicsInterface.cpp
+  src/momentumopt/kinopt/KinematicsOptimizer.cpp
 
   # files for setting up environments
   src/momentumopt/setting/PlannerSetting.cpp

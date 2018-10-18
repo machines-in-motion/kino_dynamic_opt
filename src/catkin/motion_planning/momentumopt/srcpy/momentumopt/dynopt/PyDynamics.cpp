@@ -50,7 +50,7 @@ void init_dynamics(py::module &m)
     .def("size", &DynamicsSequence::size)
     .def("clean", &DynamicsSequence::clean)
     .def("resize", &DynamicsSequence::resize)
-    .def_property("dynamicsStates", (const std::vector<DynamicsState>& (DynamicsSequence::*)(void) const) &DynamicsSequence::dynamicsSequence, (void (DynamicsSequence::*)(const std::vector<DynamicsState>&)) &DynamicsSequence::dynamicsSequence)
+    .def_property("dynamics_states", (const std::vector<DynamicsState>& (DynamicsSequence::*)(void) const) &DynamicsSequence::dynamicsSequence, (void (DynamicsSequence::*)(const std::vector<DynamicsState>&)) &DynamicsSequence::dynamicsSequence)
     .def("__repr__", [](const DynamicsSequence &dyn_seq) { return dyn_seq.toString(); } );
 
   // binding of dynamics optimizer
