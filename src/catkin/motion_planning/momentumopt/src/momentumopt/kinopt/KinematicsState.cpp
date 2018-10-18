@@ -51,7 +51,8 @@ namespace momentumopt {
 
   // KinematicsState class functions implementation
   KinematicsState::KinematicsState(int num_joints)
-    : robot_posture_(num_joints),
+    : num_joints_(num_joints),
+      robot_posture_(num_joints),
       robot_velocity_(num_joints),
       robot_acceleration_(num_joints)
   {
@@ -59,11 +60,15 @@ namespace momentumopt {
     lmom_.setZero();
     amom_.setZero();
 
+    eff_positions_.clear();
+    eff_velocities_.clear();
+    eff_orientations_.clear();
+    eff_accelerations_.clear();
     for (int eff_id=0; eff_id<Problem::n_endeffs_; eff_id++) {
-      eff_positions_[eff_id] = Eigen::Vector3d::Zero();
-      eff_velocities_[eff_id] = Eigen::Vector3d::Zero();
-      eff_accelerations_[eff_id] = Eigen::Vector3d::Zero();
-      eff_orientations_[eff_id] = Eigen::Quaternion<double>::Identity();
+      eff_positions_.push_back(Eigen::Vector3d::Zero());
+      eff_velocities_.push_back(Eigen::Vector3d::Zero());
+      eff_accelerations_.push_back(Eigen::Vector3d::Zero());
+      eff_orientations_.push_back(Eigen::Quaternion<double>::Identity());
     }
   }
 

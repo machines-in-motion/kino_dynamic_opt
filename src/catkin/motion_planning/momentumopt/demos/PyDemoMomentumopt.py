@@ -17,24 +17,48 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import sys, getopt
-import numpy as np
 from pysolver import *
 from pymomentum import *
+from pinocchio.utils import *
+from pinocchio.robot_wrapper import RobotWrapper
+import os, sys, getopt, numpy as np, pinocchio as pin
 
 'Kinematics Interface using Pinocchio'
-import pinocchio
 class PinocchioKinematicsInterface(KinematicsInterface):
     def __init__(self):
         KinematicsInterface.__init__(self)
 
     def initialize(self, planner_setting):
-        print 'user initialization'
+        urdf = str(os.path.dirname(os.path.abspath(__file__)) + '/quadruped/quadruped.urdf')
+        self.robot = RobotWrapper(urdf, root_joint=pin.JointModelFreeFlyer())
 
-    def updateJacobians(self):
-        self.centroidal_momentum_matrix = 0.1*np.ones((6,56))
-        for eff_id in range(0,4):
-            self.endeffector_jacobians[eff_id] = (eff_id+2.0)*0.1*np.ones((6,56))
+    def updateJacobians(self, kin_state):
+        'Generalized joint positions and velocities'
+        self.q = np.matrix(np.squeeze(np.asarray(kin_state.robot_posture.generalized_joint_positions()))).transpose()
+        self.dq = np.matrix(np.squeeze(np.asarray(kin_state.robot_velocity.generalized_joint_velocities))).transpose()
+
+        'Update of jacobians'
+        self.robot.framesForwardKinematics(self.q)
+        self.endeffector_jacobians[0] = self.robot.getFrameJacobian(self.robot.model.getFrameId("BL_END"), pin.ReferenceFrame.WORLD)
+        self.endeffector_jacobians[1] = self.robot.getFrameJacobian(self.robot.model.getFrameId("FL_END"), pin.ReferenceFrame.WORLD)
+        self.endeffector_jacobians[2] = self.robot.getFrameJacobian(self.robot.model.getFrameId("BR_END"), pin.ReferenceFrame.WORLD)
+        self.endeffector_jacobians[3] = self.robot.getFrameJacobian(self.robot.model.getFrameId("FR_END"), pin.ReferenceFrame.WORLD)
+
+        pin.ccrba(self.robot.model, self.robot.data, self.q, self.dq)
+        self.centroidal_momentum_matrix = self.robot.data.Ag
+
+        'Update of kinematics state'
+        kin_state.com = self.robot.com(self.q)
+        kin_state.lmom = self.robot.data.hg.vector[:3]
+        kin_state.amom = self.robot.data.hg.vector[3:]
+
+        kin_state.endeffector_positions[0] = self.robot.data.oMf[self.robot.model.getFrameId("BL_END")].translation
+        kin_state.endeffector_positions[1] = self.robot.data.oMf[self.robot.model.getFrameId("FL_END")].translation
+        kin_state.endeffector_positions[2] = self.robot.data.oMf[self.robot.model.getFrameId("BR_END")].translation
+        kin_state.endeffector_positions[3] = self.robot.data.oMf[self.robot.model.getFrameId("FR_END")].translation
+
+        return kin_state
+
 
 'Main function for optimization demo'
 def main(argv):
@@ -55,11 +79,11 @@ def main(argv):
     'define problem configuration'
     planner_setting = PlannerSetting()
     planner_setting.initialize(cfg_file)
-
+ 
     'define robot initial state'
     ini_state = DynamicsState()
     ini_state.fillInitialRobotState(cfg_file)
-
+ 
     'define reference dynamic sequence'
     kin_sequence = KinematicsSequence()
     kin_sequence.resize(planner_setting.get(PlannerIntParam_NumTimesteps),
@@ -68,24 +92,25 @@ def main(argv):
     'define terrain description'
     terrain_description = TerrainDescription()
     terrain_description.loadFromFile(planner_setting.get(PlannerStringParam_ConfigFile))
-
+ 
     'define contact plan'
     contact_plan = ContactPlanFromFile()
     contact_plan.initialize(planner_setting)
     contact_plan.optimize(ini_state, terrain_description)
-     
+      
     'optimize motion'
     dyn_optimizer = DynamicsOptimizer()
     dyn_optimizer.initialize(planner_setting)
     dyn_optimizer.optimize(ini_state, contact_plan, kin_sequence)
- 
+  
     #print dyn_optimizer.solveTime()
     #print dyn_optimizer.dynamicsSequence().dynamics_states[planner_setting.get(PlannerIntParam_NumTimesteps)-1]
-    
+     
 ################################################################
 ################################################################
     'Kinematics Interface'
     kin_interface = PinocchioKinematicsInterface()
+#    kin_interface.initialize()
 
     'Kinematics Optimizer'
     kin_optimizer = KinematicsOptimizer()

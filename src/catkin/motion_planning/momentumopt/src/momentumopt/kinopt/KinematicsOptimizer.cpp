@@ -14,7 +14,10 @@ namespace momentumopt {
     planner_setting_ = &planner_setting;
     kin_interface_->internalInitialization(planner_setting);
 
-    kin_interface_->updateJacobians();
+    KinematicsState kin_state(this->getSetting().get(PlannerIntParam_NumDofs));
+    kin_state = kin_interface_->updateJacobians(kin_state);
+    std::cout << kin_state << std::endl;
+
 //    std::cout << "centroidalMomentumMatrix" << std::endl;
 //    std::cout << kin_interface_->centroidalMomentumMatrix() << std::endl;
 //

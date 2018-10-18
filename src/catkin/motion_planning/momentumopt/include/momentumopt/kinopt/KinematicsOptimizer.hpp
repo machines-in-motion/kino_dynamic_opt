@@ -65,10 +65,10 @@ namespace momentumopt {
 //      void loadSolution(const std::string& load_file);
 
     private:
-//      /*! Getter and setter methods for getting the planner variables  */
-//      inline PlannerSetting& getSetting() { return *planner_setting_; }
-//      inline const PlannerSetting& getSetting() const { return *planner_setting_; }
-//
+      /*! Getter and setter methods for getting the planner variables  */
+      inline PlannerSetting& getSetting() { return *planner_setting_; }
+      inline const PlannerSetting& getSetting() const { return *planner_setting_; }
+
 //      /**
 //       * function to initialize optimization variables: type [continuous or binary],
 //       * guess value [if any], upper and lower bounds for the variable

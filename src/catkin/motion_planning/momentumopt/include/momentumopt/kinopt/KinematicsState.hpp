@@ -35,7 +35,8 @@ namespace momentumopt {
 
     public:
 	  RobotPosture(int num_joints)
-        : base_position_(Eigen::Vector3d::Zero()),
+        : num_joints_(num_joints),
+          base_position_(Eigen::Vector3d::Zero()),
           joint_positions_(Eigen::VectorXd(num_joints).setZero()),
 		  base_orientation_(Eigen::Quaternion<double>::Identity())
       {}
@@ -48,15 +49,27 @@ namespace momentumopt {
       const Eigen::Vector3d& basePosition() const { return base_position_; }
       const Eigen::VectorXd& jointPositions() const { return joint_positions_; }
       const Eigen::Quaternion<double>& baseOrientation() const { return base_orientation_; }
+      const Eigen::Vector4d pyBaseOrientation() const { return Eigen::Vector4d(base_orientation_.x(), base_orientation_.y(), base_orientation_.z(), base_orientation_.w()); }
 
       void basePosition(const Eigen::Vector3d& base_position) { base_position_ = base_position; }
       void jointPositions(const Eigen::VectorXd& joint_positions) { joint_positions_ = joint_positions; }
       void baseOrientation(const Eigen::Quaternion<double>& base_orientation) { base_orientation_ = base_orientation; }
+      void pyBaseOrientation(const Eigen::Vector4d base_orientation) { base_orientation_ = Eigen::Quaternion<double>(base_orientation[3], base_orientation[0], base_orientation[1], base_orientation[2]); }
+
+      Eigen::VectorXd generalizedJointPositions() const
+      {
+        Eigen::VectorXd generalized_joint_positions(num_joints_+7);
+        generalized_joint_positions.head(3) = base_position_;
+        generalized_joint_positions.tail(num_joints_) = joint_positions_;
+        generalized_joint_positions.segment<4>(3) = Eigen::Vector4d(base_orientation_.x(), base_orientation_.y(), base_orientation_.z(), base_orientation_.w());
+        return generalized_joint_positions;
+      }
 
 	  std::string toString() const;
 	  friend std::ostream& operator<<(std::ostream &os, const RobotPosture& obj) { return os << obj.toString(); }
 
     private:
+      int num_joints_;
       Eigen::Vector3d base_position_;
       Eigen::VectorXd joint_positions_;
       Eigen::Quaternion<double> base_orientation_;
@@ -182,8 +195,12 @@ namespace momentumopt {
       const Eigen::Vector3d& endeffectorAcceleration(int eff_id) const { return eff_accelerations_[eff_id]; }
       const Eigen::Quaternion<double>& endeffectorOrientation(int eff_id) const { return eff_orientations_[eff_id]; }
 
+      const std::vector<Eigen::Vector3d>& pyEndeffectorPositions() const { return eff_positions_; }
+      void pyEndeffectorPositions(const std::vector<Eigen::Vector3d>& eff_positions) { eff_positions_ = eff_positions; }
+
 	  // Helper functions
 	  std::string toString() const;
+	  const int numJoints() const { return num_joints_; }
 	  friend std::ostream& operator<<(std::ostream &os, const KinematicsState& obj) { return os << obj.toString(); }
 
     private:
@@ -191,9 +208,10 @@ namespace momentumopt {
 	  RobotVelocity robot_velocity_;
 	  RobotAcceleration robot_acceleration_;
 
-	  Eigen::Vector3d com_, lmom_, amom_;
-      std::array<Eigen::Quaternion<double>, Problem::n_endeffs_> eff_orientations_;
-      std::array<Eigen::Vector3d, Problem::n_endeffs_> eff_positions_, eff_velocities_, eff_accelerations_;
+      int num_joints_;
+      Eigen::Vector3d com_, lmom_, amom_;
+      std::vector<Eigen::Quaternion<double>> eff_orientations_;
+      std::vector<Eigen::Vector3d> eff_positions_, eff_velocities_, eff_accelerations_;
   };
 
   /**

@@ -28,15 +28,6 @@ namespace momentumopt {
       using KinematicsInterface::KinematicsInterface;
 
       // trampoline for pure virtual functions
-      void updateJacobians(void) override
-      {
-        PYBIND11_OVERLOAD_PURE(
-          void,
-          KinematicsInterface,
-          updateJacobians,
-        );
-      }
-
       void initialize(PlannerSetting& planner_setting) override
       {
         PYBIND11_OVERLOAD_PURE(
@@ -46,6 +37,17 @@ namespace momentumopt {
           planner_setting
         );
       }
+
+      KinematicsState updateJacobians(const KinematicsState& kin_state) override
+      {
+        PYBIND11_OVERLOAD_PURE(
+          KinematicsState,
+          KinematicsInterface,
+          updateJacobians,
+          kin_state
+        );
+      }
+
   };
 
 }

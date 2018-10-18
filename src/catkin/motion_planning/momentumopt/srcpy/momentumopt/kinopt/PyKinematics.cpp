@@ -28,19 +28,22 @@ using namespace momentumopt;
 
 PYBIND11_MAKE_OPAQUE(std::vector<KinematicsState>);
 PYBIND11_MAKE_OPAQUE(std::vector<Eigen::MatrixXd>);
+PYBIND11_MAKE_OPAQUE(std::vector<Eigen::Vector3d>);
 
 void init_kinematics(py::module &m)
 {
   // binding of stl containers
+  py::bind_vector<std::vector<Eigen::Vector3d>>(m, "ArrayVector3d");
   py::bind_vector<std::vector<KinematicsState>>(m, "KinStateVector");
   py::bind_vector<std::vector<Eigen::MatrixXd>>(m, "JacobianVector");
 
   // binding of robot posture
   py::class_<RobotPosture>(m, "RobotPosture")
     .def(py::init<int&>())
+    .def("generalized_joint_positions", &RobotPosture::generalizedJointPositions)
     .def_property("base_position", (const Eigen::Vector3d& (RobotPosture::*)(void) const) &RobotPosture::basePosition, (void (RobotPosture::*)(const Eigen::Vector3d&)) &RobotPosture::basePosition)
     .def_property("joint_positions", (const Eigen::VectorXd& (RobotPosture::*)(void) const) &RobotPosture::jointPositions, (void (RobotPosture::*)(const Eigen::VectorXd&)) &RobotPosture::jointPositions)
-    .def_property("base_orientation", (const Eigen::Quaternion<double>& (RobotPosture::*)(void) const) &RobotPosture::baseOrientation, (void (RobotPosture::*)(const Eigen::Quaternion<double>&)) &RobotPosture::baseOrientation)
+    .def_property("base_orientation", (const Eigen::Vector4d (RobotPosture::*)(void) const) &RobotPosture::pyBaseOrientation, (void (RobotPosture::*)(const Eigen::Vector4d)) &RobotPosture::pyBaseOrientation)
     .def("__repr__", [](const RobotPosture &robot_posture) { return robot_posture.toString(); } );
 
   // binding of robot velocity
@@ -64,12 +67,14 @@ void init_kinematics(py::module &m)
   // binding of kinematics state
   py::class_<KinematicsState>(m, "KinematicsState")
     .def(py::init<int&>())
+    .def("numJoints", &KinematicsState::numJoints)
     .def_property("com", (const Eigen::Vector3d& (KinematicsState::*)(void) const) &KinematicsState::centerOfMass, (void (KinematicsState::*)(const Eigen::Vector3d&)) &KinematicsState::centerOfMass)
     .def_property("lmom", (const Eigen::Vector3d& (KinematicsState::*)(void) const) &KinematicsState::linearMomentum, (void (KinematicsState::*)(const Eigen::Vector3d&)) &KinematicsState::linearMomentum)
     .def_property("amom", (const Eigen::Vector3d& (KinematicsState::*)(void) const) &KinematicsState::angularMomentum, (void (KinematicsState::*)(const Eigen::Vector3d&)) &KinematicsState::angularMomentum)
 	.def_property("robot_posture", (const RobotPosture& (KinematicsState::*)(void) const) &KinematicsState::robotPosture, (void (KinematicsState::*)(const RobotPosture&)) &KinematicsState::robotPosture)
 	.def_property("robot_velocity", (const RobotVelocity& (KinematicsState::*)(void) const) &KinematicsState::robotVelocity, (void (KinematicsState::*)(const RobotVelocity&)) &KinematicsState::robotVelocity)
 	.def_property("robot_acceleration", (const RobotAcceleration& (KinematicsState::*)(void) const) &KinematicsState::robotAcceleration, (void (KinematicsState::*)(const RobotAcceleration&)) &KinematicsState::robotAcceleration)
+    .def_property("endeffector_positions", (const std::vector<Eigen::Vector3d>& (KinematicsState::*)(void) const) &KinematicsState::pyEndeffectorPositions, (void (KinematicsState::*)(const std::vector<Eigen::Vector3d>&)) &KinematicsState::pyEndeffectorPositions)
     .def("__repr__", [](const KinematicsState &kin_state) { return kin_state.toString(); } );
 
   // binding of kinematics sequence

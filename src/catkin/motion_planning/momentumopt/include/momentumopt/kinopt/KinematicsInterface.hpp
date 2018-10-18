@@ -24,7 +24,7 @@
 #include <momentumopt/setting/PlannerSetting.hpp>
 //#include <solver/interface/NlpDescription.hpp>
 //#include <momentumopt/dynopt/DynamicsState.hpp>
-//#include <momentumopt/kinopt/KinematicsState.hpp>
+#include <momentumopt/kinopt/KinematicsState.hpp>
 
 namespace momentumopt {
 
@@ -40,8 +40,8 @@ namespace momentumopt {
       ~KinematicsInterface(){}
 
       // pure virtual functions to be implemented
-      virtual void updateJacobians(void) = 0;
       virtual void initialize(PlannerSetting& planner_setting) = 0;
+      virtual KinematicsState updateJacobians(const KinematicsState& kin_state) = 0;
 
 
 //      // pure virtual functions to be implemented

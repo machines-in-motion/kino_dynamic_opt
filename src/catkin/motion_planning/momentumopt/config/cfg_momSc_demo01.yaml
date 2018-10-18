@@ -55,7 +55,7 @@ planner_variables:
   # Kinematics parameters #
   #########################
   
-  num_dofs: 50
+  num_dofs: 8
 
   #######################
   # Dynamics parameters #
