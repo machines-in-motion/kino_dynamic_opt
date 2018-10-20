@@ -31,6 +31,7 @@ class PinocchioKinematicsInterface(KinematicsInterface):
     def initialize(self, planner_setting):
         urdf = str(os.path.dirname(os.path.abspath(__file__)) + '/quadruped/quadruped.urdf')
         self.robot = RobotWrapper(urdf, root_joint=pin.JointModelFreeFlyer())
+        self.eff_names = {0: "BL_END", 1: "FL_END", 2: "BR_END", 3: "FR_END"}
 
     def updateJacobians(self, kin_state):
         'Generalized joint positions and velocities'
@@ -39,10 +40,8 @@ class PinocchioKinematicsInterface(KinematicsInterface):
 
         'Update of jacobians'
         self.robot.framesForwardKinematics(self.q)
-        self.endeffector_jacobians[0] = self.robot.getFrameJacobian(self.robot.model.getFrameId("BL_END"), pin.ReferenceFrame.WORLD)
-        self.endeffector_jacobians[1] = self.robot.getFrameJacobian(self.robot.model.getFrameId("FL_END"), pin.ReferenceFrame.WORLD)
-        self.endeffector_jacobians[2] = self.robot.getFrameJacobian(self.robot.model.getFrameId("BR_END"), pin.ReferenceFrame.WORLD)
-        self.endeffector_jacobians[3] = self.robot.getFrameJacobian(self.robot.model.getFrameId("FR_END"), pin.ReferenceFrame.WORLD)
+        for eff_id in range(0, len(self.eff_names)):
+            self.endeffector_jacobians[eff_id] = self.robot.getFrameJacobian(self.robot.model.getFrameId(self.eff_names[eff_id]), pin.ReferenceFrame.WORLD)
 
         pin.ccrba(self.robot.model, self.robot.data, self.q, self.dq)
         self.centroidal_momentum_matrix = self.robot.data.Ag
@@ -52,10 +51,8 @@ class PinocchioKinematicsInterface(KinematicsInterface):
         kin_state.lmom = self.robot.data.hg.vector[:3]
         kin_state.amom = self.robot.data.hg.vector[3:]
 
-        kin_state.endeffector_positions[0] = self.robot.data.oMf[self.robot.model.getFrameId("BL_END")].translation
-        kin_state.endeffector_positions[1] = self.robot.data.oMf[self.robot.model.getFrameId("FL_END")].translation
-        kin_state.endeffector_positions[2] = self.robot.data.oMf[self.robot.model.getFrameId("BR_END")].translation
-        kin_state.endeffector_positions[3] = self.robot.data.oMf[self.robot.model.getFrameId("FR_END")].translation
+        for eff_id in range(0, len(self.eff_names)):
+            kin_state.endeffector_positions[eff_id] = self.robot.data.oMf[self.robot.model.getFrameId(self.eff_names[eff_id])].translation
 
         return kin_state
 
@@ -110,11 +107,11 @@ def main(argv):
 ################################################################
     'Kinematics Interface'
     kin_interface = PinocchioKinematicsInterface()
-#    kin_interface.initialize()
 
     'Kinematics Optimizer'
     kin_optimizer = KinematicsOptimizer()
     kin_optimizer.initialize(planner_setting, kin_interface)
+    kin_optimizer.optimize(ini_state, dyn_optimizer.dynamicsSequence(), True)
 ################################################################
 ################################################################
     

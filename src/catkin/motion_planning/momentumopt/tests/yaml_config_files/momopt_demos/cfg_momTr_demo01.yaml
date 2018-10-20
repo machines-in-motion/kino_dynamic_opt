@@ -51,6 +51,7 @@ planner_variables:
   #########################
   
   num_dofs: 50
+  num_act_dofs: 50
 
   #######################
   # Dynamics parameters #
@@ -113,6 +114,13 @@ planner_variables:
   w_dfrc_leg:      [ 0.000,  0.000,  0.000]
   w_amom_track:    [ 1.000,  1.000,  1.000]
   w_lmom_track:    [ 0.100,  0.100,  0.100]
+
+  ######################
+  # Kinematics weights #
+  ######################
+
+  max_convergence_iters: 50
+  convergence_tolerance:  1e-4
 
   #######################
   # Storage information #

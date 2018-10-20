@@ -97,6 +97,7 @@ void init_kinematics(py::module &m)
   // binding of kinematics optimizer
   py::class_<KinematicsOptimizer>(m, "KinematicsOptimizer")
     .def(py::init<>())
-    .def("initialize", &KinematicsOptimizer::initialize);
+    .def("initialize", &KinematicsOptimizer::initialize)
+    .def("optimize", &KinematicsOptimizer::optimize, py::arg("ini_state"), py::arg("dyn_sequence"), py::arg("is_not_first_kindyn_iteration") = false);
 
 }

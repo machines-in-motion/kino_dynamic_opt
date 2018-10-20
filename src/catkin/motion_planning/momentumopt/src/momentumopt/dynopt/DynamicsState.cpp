@@ -28,14 +28,26 @@ namespace momentumopt {
       amomd_(Eigen::Vector3d::Zero()),
       lmomd_(Eigen::Vector3d::Zero())
   {
+    eff_positions_.clear();
+    eff_velocities_.clear();
+    eff_orientations_.clear();
+    eff_accelerations_.clear();
+
+
 	for (int eff_id=0; eff_id<Problem::n_endeffs_; eff_id++)
 	{
-      eefs_ids_[eff_id] = 0;
-      cnts_ids_[eff_id] = -1;
-      eefs_activation_[eff_id] = false;
-	  eefs_frcs_[eff_id] = Eigen::Vector3d::Zero();
-	  eefs_trqs_[eff_id] = Eigen::Vector3d::Zero();
-	  eefs_cops_[eff_id] = Eigen::Vector3d::Zero();
+      eff_ids_[eff_id] = 0;
+      cnt_ids_[eff_id] = -1;
+      eff_activations_[eff_id] = false;
+
+      eff_cops_.push_back(Eigen::Vector3d::Zero());
+	  eff_forces_.push_back(Eigen::Vector3d::Zero());
+	  eff_torques_.push_back(Eigen::Vector3d::Zero());
+
+	  eff_positions_.push_back(Eigen::Vector3d::Zero());
+	  eff_velocities_.push_back(Eigen::Vector3d::Zero());
+	  eff_accelerations_.push_back(Eigen::Vector3d::Zero());
+	  eff_orientations_.push_back(Eigen::Quaternion<double>::Identity());
 	}
   }
 
@@ -49,13 +61,14 @@ namespace momentumopt {
     text << "  lmomd   " << this->linearMomentumRate().transpose() << "\n";
     text << "  amomd   " << this->angularMomentumRate().transpose() << "\n";
 
-	for (int eff_id=0; eff_id<Problem::n_endeffs_; eff_id++)
-	{
+	for (int eff_id=0; eff_id<Problem::n_endeffs_; eff_id++) {
 	  text << "  eff_id " << eff_id << "\n";
       text << "    act  " << this->endeffectorActivation(eff_id) << "\n";
       text << "    cop  " << this->endeffectorCoP(eff_id).transpose() << "\n";
       text << "    frc  " << this->endeffectorForce(eff_id).transpose() << "\n";
       text << "    trq  " << this->endeffectorTorque(eff_id).transpose() << "\n";
+      text << "    pos  " << this->endeffectorPosition(eff_id).transpose() << "\n";
+      text << "    ori  " << this->endeffectorOrientation(eff_id).coeffs().transpose() << "\n";
 	}
 	return text.str();
   }
@@ -72,6 +85,8 @@ namespace momentumopt {
 	  for (int eff_id=0; eff_id<Problem::n_endeffs_; eff_id++) {
 		Eigen::VectorXd eef_cfg = readParameter<Eigen::VectorXd>(ini_robo_cfg["eef_pose"], "eef_"+Problem::idToEndeffectorString(eff_id));
 		this->endeffectorActivation(eff_id) = int(eef_cfg(0));
+		this->endeffectorPosition(eff_id) = eef_cfg.segment<3>(1);
+		this->endeffectorOrientation(eff_id) = Eigen::Quaternion<double>(eef_cfg[4],eef_cfg[5],eef_cfg[6],eef_cfg[7]);
 		readParameter(ini_robo_cfg["eef_ctrl"], "eef_frc_"+Problem::idToEndeffectorString(eff_id), this->endeffectorForce(eff_id));
 	  }
 	} catch (std::runtime_error& e) {

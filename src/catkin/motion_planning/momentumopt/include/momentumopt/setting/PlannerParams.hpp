@@ -25,8 +25,10 @@ namespace momentumopt {
     PlannerIntParam_NumDofs,
 	PlannerIntParam_NumTimesteps,
 	PlannerIntParam_NumViapoints,
+    PlannerIntParam_NumActiveDofs,
 	PlannerIntParam_MaxNumTimeIterations,
 	PlannerIntParam_NumActiveEndeffectors,
+    PlannerIntParam_MaxKinConvergenceIterations,
   };
 
   /*! Available boolean variables used by the planner */
@@ -34,6 +36,9 @@ namespace momentumopt {
     // Planner parameters
 	PlannerBoolParam_IsTimeHorizonFixed,
 	PlannerBoolParam_IsFrictionConeLinear,
+
+    // Kinematics parameters
+    PlannerBoolParam_LoadKinematics,
 
 	// Storage information
 	PlannerBoolParam_StoreData,
@@ -60,6 +65,9 @@ namespace momentumopt {
 	PlannerDoubleParam_WeightLegTorque,
     PlannerDoubleParam_WeightTimePenalty,
 	PlannerDoubleParam_WeightTimeRegularization,
+
+	// Kinematics parameters
+    PlannerDoubleParam_KinConvergenceTolerance,
   };
 
   /*! Available string variables used by the planner */
@@ -74,6 +82,9 @@ namespace momentumopt {
 
   /*! Available vector variables used by the planner */
   enum PlannerIntVectorParam {
+    // Kinematics parameters
+    PlannerIntVectorParam_ActiveDofs,
+
   };
 
   /*! Available vector variables used by the planner */
@@ -101,6 +112,23 @@ namespace momentumopt {
     PlannerVectorParam_WeightFinalAngularMomentum,
 	PlannerVectorParam_WeightDynamicTrackingLinearMomentum,
 	PlannerVectorParam_WeightDynamicTrackingAngularMomentum,
+
+	// Kinematics parameters
+	PlannerVectorParam_MinJointAngles,
+	PlannerVectorParam_MaxJointAngles,
+	PlannerVectorParam_KinematicDefaultJointPositions,
+
+    // Kinematics optimization weights
+	PlannerVectorParam_WeightJointVelocity,
+	PlannerVectorParam_WeightJointAcceleration,
+	PlannerVectorParam_WeightKinematicTrackingCenterOfMass,
+	PlannerVectorParam_WeightKinematicDefaultJointPositions,
+    PlannerVectorParam_WeightKinematicTrackingLinearMomentum,
+    PlannerVectorParam_WeightKinematicTrackingAngularMomentum,
+    PlannerVectorParam_WeightKinematicTrackingLinearMomentumRate,
+    PlannerVectorParam_WeightKinematicTrackingAngularMomentumRate,
+	PlannerVectorParam_WeightKinematicTrackingEndeffectorPosition,
+
   };
 
   /*! Available array variables used by the planner */

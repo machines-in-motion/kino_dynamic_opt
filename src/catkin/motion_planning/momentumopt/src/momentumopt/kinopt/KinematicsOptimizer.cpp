@@ -14,66 +14,261 @@ namespace momentumopt {
     planner_setting_ = &planner_setting;
     kin_interface_->internalInitialization(planner_setting);
 
-    KinematicsState kin_state(this->getSetting().get(PlannerIntParam_NumDofs));
-    kin_state = kin_interface_->updateJacobians(kin_state);
-    std::cout << kin_state << std::endl;
+    current_state_ = new KinematicsState(this->getSetting().get(PlannerIntParam_NumDofs));
 
-//    std::cout << "centroidalMomentumMatrix" << std::endl;
-//    std::cout << kin_interface_->centroidalMomentumMatrix() << std::endl;
-//
-//    std::cout << "endeffectorJacobians" << std::endl;
-//    for (int eff_id=0; eff_id<Problem::n_endeffs_; eff_id++) {
-//    	  std::cout << eff_id << std::endl;
-//      std::cout << kin_interface_->endeffectorJacobian(eff_id) << std::endl;
-//    }
+    kinematicsSequence().resize(this->getSetting().get(PlannerIntParam_NumTimesteps), this->getSetting().get(PlannerIntParam_NumDofs));
+    if (!this->getSetting().get(PlannerBoolParam_UseDefaultSolverSetting)) { model_.configSetting(this->getSetting().get(PlannerStringParam_ConfigFile)); }
+    else                                                                   { model_.configSetting(this->getSetting().get(PlannerStringParam_DefaultSolverSettingFile)); }
 
-//    model_.getSetting().initialize(this->getSetting().get(PlannerStringParam_ConfigFile));
-//    kinematicsSequence().resize(this->getSetting().get(PlannerIntParam_NumTimesteps));
-//
-//    nonlinear_terms_.resize(this->getSetting().get(PlannerIntParam_NumDofs)+6);
-//    base_jacobian_.resize(6,this->getSetting().get(PlannerIntParam_NumDofs)+6);
-//	centroidal_momentum_matrix_.resize(6,this->getSetting().get(PlannerIntParam_NumDofs)+6);
-//	for (int eff_id=0; eff_id<Problem::n_endeffs_; eff_id++)
-//	  endeffector_jacobian_[eff_id].resize(6,this->getSetting().get(PlannerIntParam_NumDofs)+6);
-//    inertia_matrix_.resize(this->getSetting().get(PlannerIntParam_NumDofs)+6, this->getSetting().get(PlannerIntParam_NumDofs)+6);
-//
-//    this->initializeKinematicVariables();
-//    eef_rot_kin_optimizer_.initialize(kin_interface_);
-//    kin_interface_->initialize(this->getSetting().get(PlannerIntVectorParam_RotationDofsForEndeffector));
+    //nonlinear_terms_.resize(this->getSetting().get(PlannerIntParam_NumDofs)+6);
+    //base_jacobian_.resize(6,this->getSetting().get(PlannerIntParam_NumDofs)+6);
+    //inertia_matrix_.resize(this->getSetting().get(PlannerIntParam_NumDofs)+6, this->getSetting().get(PlannerIntParam_NumDofs)+6);
+
+    this->initializeKinematicVariables();
+    //eef_rot_kin_optimizer_.initialize(kin_interface_);
+    //kin_interface_->initialize(this->getSetting().get(PlannerIntVectorParam_RotationDofsForEndeffector));
   }
 
-//  void KinematicsOptimizer::initializeKinematicVariables()
-//  {
-//    num_vars_ = 0.;
-//    double inf_value = SolverSetting::inf;
-//
-//    // center of mass, linear and angular momentum
-//    com_.initialize('C', 3, 1, -inf_value, inf_value, num_vars_);
-//    comd_.initialize('C', 3, 1, -inf_value, inf_value, num_vars_);
-//    lmom_.initialize('C', 3, 1, -inf_value, inf_value, num_vars_);
-//    amom_.initialize('C', 3, 1, -inf_value, inf_value, num_vars_);
-//    base_ang_vel_.initialize('C', 3, 1, -inf_value, inf_value, num_vars_);
-//
-//    // end-effector positions and velocities
-//    for (int eff=0; eff<Problem::n_endeffs_; eff++) {
-//      eef_pos_[eff].initialize('C', 3, 1, -inf_value, inf_value, num_vars_);
-//      eef_vel_[eff].initialize('C', 3, 1, -inf_value, inf_value, num_vars_);
-//      //eef_ang_vel_[eff].initialize('C', 3, 1, -inf_value, inf_value, num_vars_);
-//    }
-//
-//    // joint positions, velocities and accelerations
-//    jnt_q_.initialize('C', this->getSetting().get(PlannerIntParam_NumActiveDofs), 1, -inf_value, inf_value, num_vars_);
-//    jnt_qd_.initialize('C', this->getSetting().get(PlannerIntParam_NumActiveDofs), 1, -inf_value, inf_value, num_vars_);
-//    total_qd_.initialize('C', this->getSetting().get(PlannerIntParam_NumActiveDofs), 1, -inf_value, inf_value, num_vars_);
-//    total_qdd_.initialize('C', this->getSetting().get(PlannerIntParam_NumActiveDofs), 1, -inf_value, inf_value, num_vars_);
-//  }
-//
-//  void KinematicsOptimizer::optimizePosture(DynamicsState& current_state, const DynamicsState& desired_state, bool is_not_initial_state, bool include_torque_limits)
-//  {
-//    DynamicsState start_state = current_state;
-//    double cur_error, prev_error = SolverSetting::inf;
-//
-//	for (int iter_id=0; iter_id<this->getSetting().get(PlannerIntParam_MaxNumKinematicIterations); iter_id++) {
+  void KinematicsOptimizer::initializeKinematicVariables()
+  {
+    num_vars_ = 0.;
+    double inf_value = SolverSetting::inf;
+
+    // center of mass, linear and angular momentum
+    com_.initialize('C', 3, 1, -inf_value, inf_value, num_vars_);
+    comd_.initialize('C', 3, 1, -inf_value, inf_value, num_vars_);
+    lmom_.initialize('C', 3, 1, -inf_value, inf_value, num_vars_);
+    amom_.initialize('C', 3, 1, -inf_value, inf_value, num_vars_);
+
+    // end-effector positions and velocities
+    for (int eff_id=0; eff_id<Problem::n_endeffs_; eff_id++) {
+      eef_pos_[eff_id].initialize('C', 3, 1, -inf_value, inf_value, num_vars_);
+      eef_vel_[eff_id].initialize('C', 3, 1, -inf_value, inf_value, num_vars_);
+    }
+
+    // joint positions, velocities and accelerations
+    jnt_q_.initialize('C', this->getSetting().get(PlannerIntParam_NumActiveDofs), 1, -inf_value, inf_value, num_vars_);
+    jnt_qd_.initialize('C', this->getSetting().get(PlannerIntParam_NumActiveDofs), 1, -inf_value, inf_value, num_vars_);
+    total_qd_.initialize('C', this->getSetting().get(PlannerIntParam_NumActiveDofs), 1, -inf_value, inf_value, num_vars_);
+    total_qdd_.initialize('C', this->getSetting().get(PlannerIntParam_NumActiveDofs), 1, -inf_value, inf_value, num_vars_);
+  }
+
+  void KinematicsOptimizer::optimizePosture(KinematicsState& current_state, const DynamicsState& desired_state, bool is_not_initial_state, bool include_torque_limits)
+  {
+    KinematicsState start_state = current_state;
+    double cur_error, prev_error = SolverSetting::inf;
+
+	for (int iter_id=0; iter_id<this->getSetting().get(PlannerIntParam_MaxKinConvergenceIterations); iter_id++) {
+      current_state = kin_interface_->updateJacobians(current_state);
+
+      // computing error norm and convergence check
+      cur_error = 0.0;
+      for (int axis_id=0; axis_id<0; axis_id++) {
+        cur_error += this->getSetting().get(PlannerVectorParam_WeightKinematicTrackingCenterOfMass)[axis_id]*
+                     std::pow(current_state.centerOfMass()[axis_id]-desired_state.centerOfMass()[axis_id], 2.0);
+        for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++) {
+          cur_error += this->getSetting().get(PlannerVectorParam_WeightKinematicTrackingEndeffectorPosition)[axis_id]*
+                       std::pow(current_state.endeffectorPosition(eff_id)[axis_id]-desired_state.endeffectorPosition(eff_id)[axis_id], 2.0);
+        }
+      }
+
+      if (cur_error<this->getSetting().get(PlannerDoubleParam_KinConvergenceTolerance) ||
+          std::abs(prev_error-cur_error)<this->getSetting().get(PlannerDoubleParam_KinConvergenceTolerance))
+      { break; }
+      prev_error = cur_error;
+
+	  try
+      {
+        // add variables to model
+        vars_.clear();
+        for (int var_id=0; var_id<num_vars_; var_id++)
+          vars_.push_back(Var());
+
+        model_.clean();
+        addVariableToModel(com_, model_, vars_);
+        addVariableToModel(comd_, model_, vars_);
+        addVariableToModel(lmom_, model_, vars_);
+        addVariableToModel(amom_, model_, vars_);
+
+        addVariableToModel(jnt_q_, model_, vars_);
+        addVariableToModel(jnt_qd_, model_, vars_);
+        addVariableToModel(total_qd_, model_, vars_);
+        addVariableToModel(total_qdd_, model_, vars_);
+
+        for (int eff_id=0; eff_id<Problem::n_endeffs_; eff_id++) {
+          addVariableToModel(eef_pos_[eff_id], model_, vars_);
+          addVariableToModel(eef_vel_[eff_id], model_, vars_);
+        }
+
+        // PROBLEM OBJECTIVE
+        DCPQuadExpr quadobj;
+        for (int axis_id=0; axis_id<3; axis_id++) {
+
+          // penalty on tracking of center of mass, linear and angular momenta
+          quadobj.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightKinematicTrackingCenterOfMass)[axis_id],
+                             LinExpr(desired_state.centerOfMass()[axis_id]) - vars_[com_.id(axis_id,0)]);
+          if (is_not_initial_state) {
+            quadobj.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightKinematicTrackingLinearMomentum)[axis_id],
+                               LinExpr(desired_state.linearMomentum()[axis_id]) - vars_[lmom_.id(axis_id,0)]);
+            quadobj.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightKinematicTrackingAngularMomentum)[axis_id],
+                               LinExpr(desired_state.angularMomentum()[axis_id]) - vars_[amom_.id(axis_id,0)]);
+            quadobj.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightKinematicTrackingLinearMomentumRate)[axis_id],
+                               LinExpr(vars_[lmom_.id(axis_id,0)], 1.0/desired_state.time())-LinExpr(start_state.linearMomentum()[axis_id]/desired_state.time()) );
+            quadobj.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightKinematicTrackingAngularMomentumRate)[axis_id],
+                               LinExpr(vars_[amom_.id(axis_id,0)], 1.0/desired_state.time())-LinExpr(start_state.angularMomentum()[axis_id]/desired_state.time()) );
+          }
+
+          //// penalty for tracking a desired base orientation
+          //Eigen::Vector3d base_angular_velocity = requiredAngularVelocity(desired_state.baseOrientation(), current_state.baseOrientation(), desired_state.time(), this->getSetting().get(PlannerBoolParam_AngularVelocityInBodyCoordinates));
+          //quadexpr.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightKinematicTrackingBaseOrientation)[axis_id], base_angular_velocity[axis_id] - vars_[base_ang_vel_.id(axis_id,0)]);
+
+          // penalty for tracking desired endeffector positions and orientations
+          for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++)
+            if (!desired_state.endeffectorActivation(eff_id)) {
+              //double weight_scale = desired_state.endeffectorActivationWeight(eff_id);
+              //Eigen::Vector3d eff_angular_velocity = requiredAngularVelocity(desired_state.endeffectorOrientation(eff_id), current_state.endeffectorOrientation(eff_id), desired_state.time(), this->getSetting().get(PlannerBoolParam_AngularVelocityInBodyCoordinates));
+              ////quadexpr.addQuaTerm(weight_scale*this->getSetting().get(PlannerVectorParam_WeightKinematicTrackingEndeffectorOrientation)[axis_id], eff_angular_velocity[axis_id] - vars_[eef_ang_vel_[eff_id].id(axis_id,0)]);
+              quadobj.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightKinematicTrackingEndeffectorPosition)[axis_id],
+                                 LinExpr(desired_state.endeffectorPosition(eff_id)[axis_id]) - vars_[eef_pos_[eff_id].id(axis_id,0)]);
+            }
+        }
+
+        // penalty on joint default posture
+        for (int dof_id=6; dof_id<this->getSetting().get(PlannerIntParam_NumActiveDofs); dof_id++)
+          quadobj.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightKinematicDefaultJointPositions)[dof_id-6],
+                             LinExpr(this->getSetting().get(PlannerVectorParam_KinematicDefaultJointPositions)[this->getSetting().get(PlannerIntVectorParam_ActiveDofs)[dof_id]]-6) - vars_[jnt_q_.id(dof_id,0)]);
+
+        // penalty on joint velocities
+        for (int dof_id=0; dof_id<this->getSetting().get(PlannerIntParam_NumActiveDofs); dof_id++)
+          quadobj.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightJointVelocity)[dof_id], vars_[total_qd_.id(dof_id,0)]);
+
+        // penalty on joint accelerations
+        for (int dof_id=0; dof_id<this->getSetting().get(PlannerIntParam_NumActiveDofs); dof_id++)
+          quadobj.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightJointAcceleration)[dof_id], vars_[total_qdd_.id(dof_id,0)]);
+
+        model_.setObjective(quadobj, 0.0);
+
+        // PROBLEM CONSTRAINTS
+        for (int axis_id=0; axis_id<3; axis_id++) {
+          // center of mass, linear and angular momenta
+          lin_cons_ = LinExpr(vars_[com_.id(axis_id,0)]) - LinExpr(current_state.centerOfMass()[axis_id]) - LinExpr(vars_[comd_.id(axis_id,0)], desired_state.time()/this->getSetting().get(PlannerDoubleParam_RobotMass));
+          model_.addLinConstr(lin_cons_, "=",  0.0);
+
+          lin_cons_ = LinExpr(vars_[comd_.id(axis_id,0)], -1.0);
+          for (int dof_id=0; dof_id<this->getSetting().get(PlannerIntParam_NumActiveDofs)+6; dof_id++) {
+            if (dof_id<6) { lin_cons_ += LinExpr(vars_[jnt_qd_.id(dof_id,0)], kin_interface_->centroidalMomentumMatrix()(axis_id, dof_id)); }
+            else          { lin_cons_ += LinExpr(vars_[jnt_qd_.id(dof_id,0)], kin_interface_->centroidalMomentumMatrix()(axis_id, 6+this->getSetting().get(PlannerIntVectorParam_ActiveDofs)[dof_id])); }
+          }
+          model_.addLinConstr(lin_cons_, "=",  0.0);
+
+          lin_cons_ = LinExpr(vars_[lmom_.id(axis_id,0)], -1.0);
+          for (int dof_id=0; dof_id<this->getSetting().get(PlannerIntParam_NumActiveDofs)+6; dof_id++)
+            if (dof_id<6) { lin_cons_ += LinExpr(vars_[total_qd_.id(dof_id,0)], kin_interface_->centroidalMomentumMatrix()(axis_id, dof_id)); }
+            else          { lin_cons_ += LinExpr(vars_[total_qd_.id(dof_id,0)], kin_interface_->centroidalMomentumMatrix()(axis_id, 6+this->getSetting().get(PlannerIntVectorParam_ActiveDofs)[dof_id])); }
+          model_.addLinConstr(lin_cons_, "=",  0.0);
+
+          lin_cons_ = LinExpr(vars_[amom_.id(axis_id,0)], -1.0);
+          for (int dof_id=0; dof_id<this->getSetting().get(PlannerIntParam_NumActiveDofs)+6; dof_id++)
+            if (dof_id<6) { lin_cons_ += LinExpr(vars_[total_qd_.id(dof_id,0)], kin_interface_->centroidalMomentumMatrix()(3+axis_id, dof_id)); }
+            else          { lin_cons_ += LinExpr(vars_[total_qd_.id(dof_id,0)], kin_interface_->centroidalMomentumMatrix()(3+axis_id, 6+this->getSetting().get(PlannerIntVectorParam_ActiveDofs)[dof_id])); }
+          model_.addLinConstr(lin_cons_, "=",  0.0);
+
+          // end-effector positions, velocities and angular velocities
+          for (int eff_id=0; eff_id<Problem::n_endeffs_; eff_id++) {
+            lin_cons_ = LinExpr(vars_[eef_pos_[eff_id].id(axis_id,0)]) - LinExpr(current_state.endeffectorPosition(eff_id)[axis_id]) - LinExpr(vars_[eef_vel_[eff_id].id(axis_id,0)], desired_state.time());
+            model_.addLinConstr(lin_cons_, "=",  0.0);
+
+            lin_cons_ = LinExpr(vars_[eef_vel_[eff_id].id(axis_id,0)], -1.0);
+            for (int dof_id=0; dof_id<this->getSetting().get(PlannerIntParam_NumActiveDofs)+6; dof_id++)
+              if (dof_id<6) { lin_cons_ += LinExpr(vars_[jnt_qd_.id(dof_id,0)], kin_interface_->endeffectorJacobian(eff_id)(axis_id, dof_id)); }
+              else          { lin_cons_ += LinExpr(vars_[jnt_qd_.id(dof_id,0)], kin_interface_->endeffectorJacobian(eff_id)(axis_id, 6+this->getSetting().get(PlannerIntVectorParam_ActiveDofs)[dof_id])); }
+            model_.addLinConstr(lin_cons_, "=",  0.0);
+
+            if (desired_state.endeffectorActivation(eff_id)) {
+              //if (is_not_initial_state) { model_.addLinConstr(vars_[eef_ang_vel_[eff_id].id(axis_id,0)], "=", 0.0); }
+              model_.addLinConstr(LinExpr(desired_state.endeffectorPosition(eff_id)[axis_id]) - LinExpr(vars_[eef_pos_[eff_id].id(axis_id,0)]), "=",  0.0);
+            }
+          }
+        }
+
+        // joint positions
+        for (int dof_id=0; dof_id<this->getSetting().get(PlannerIntParam_NumActiveDofs); dof_id++) {
+          lin_cons_ = LinExpr(vars_[jnt_q_.id(dof_id,0)]) - (LinExpr(current_state.robotPosture().jointPositions()(this->getSetting().get(PlannerIntVectorParam_ActiveDofs)[dof_id]))+LinExpr(vars_[jnt_qd_.id(dof_id+6,0)],desired_state.time()));
+          model_.addLinConstr(lin_cons_, "=",  0.0);
+        }
+
+        // joint velocities
+        for (int dof_id=0; dof_id<this->getSetting().get(PlannerIntParam_NumActiveDofs)+6; dof_id++) {
+          if (dof_id>0 && dof_id<3) { // Base linear velocity
+            //lin_cons_ = LinExpr(vars_[total_qd_.id(dof_id,0)]) - (LinExpr(vars_[base_position_.id(dof_id,0)], 1.0/desired_state.time()) - LinExpr(start_state.robotPosture().basePosition()[dof_id]/desired_state.time()));
+          } else if (dof_id>3 && dof_id<6) { // Base angular velocity
+            // ToDo: properly compute total angular velocity
+          } else { // joint velocities
+            lin_cons_ = LinExpr(vars_[total_qd_.id(dof_id,0)]) - (LinExpr(vars_[jnt_q_.id(dof_id,0)], 1.0/desired_state.time()));
+          }
+          //lin_cons_ = vars_[total_qd_.id(dof_id,0)] - (vars_[jnt_q_.id(dof_id-6,0)] - start_state.robotPosture().jointPositions()[this->getSetting().get(PlannerIntVectorParam_ActiveDofs)[dof_id-6]])/desired_state.time();
+          model_.addLinConstr(lin_cons_, "=",  0.0);
+        }
+
+        // joint accelerations
+        for (int dof_id=0; dof_id<this->getSetting().get(PlannerIntParam_NumActiveDofs)+6; dof_id++) {
+          if (dof_id<6) { lin_cons_ = LinExpr(vars_[total_qdd_.id(dof_id,0)]) - (LinExpr(vars_[total_qd_.id(dof_id,0)], 1.0/desired_state.time()) - LinExpr(start_state.robotVelocity().generalizedJointVelocities()[dof_id]/desired_state.time())); }
+          else          { lin_cons_ = LinExpr(vars_[total_qdd_.id(dof_id,0)]) - (LinExpr(vars_[total_qd_.id(dof_id,0)], 1.0/desired_state.time()) - LinExpr(start_state.robotVelocity().jointVelocities()[this->getSetting().get(PlannerIntVectorParam_ActiveDofs)[dof_id-6]]/desired_state.time())); }
+          model_.addLinConstr(lin_cons_, "=",  0.0);
+        }
+
+        // joint limits
+        for (int dof_id=0; dof_id<this->getSetting().get(PlannerIntParam_NumActiveDofs); dof_id++) {
+          //if (this->getSetting().get(PlannerIntVectorParam_ActiveDofs)[dof_id] < this->getSetting().get(PlannerIntParam_NumDofs)) {
+          model_.addLinConstr(LinExpr(vars_[jnt_q_.id(dof_id,0)]), ">", LinExpr(this->getSetting().get(PlannerVectorParam_MinJointAngles)[this->getSetting().get(PlannerIntVectorParam_ActiveDofs)[dof_id]]));
+          model_.addLinConstr(LinExpr(vars_[jnt_q_.id(dof_id,0)]), "<", LinExpr(this->getSetting().get(PlannerVectorParam_MaxJointAngles)[this->getSetting().get(PlannerIntVectorParam_ActiveDofs)[dof_id]]));
+          //}
+        }
+
+        // Write problem in standard conic form and solve it
+        exitcode_ = model_.optimize();
+
+        solution_.resize(num_vars_, 1);  solution_.setZero();
+        for (int var_id=0; var_id<num_vars_; var_id++)
+          solution_(var_id) = vars_[var_id].get(SolverDoubleParam_X);
+
+        saveSolution(com_);
+        saveSolution(comd_);
+        saveSolution(lmom_);
+        saveSolution(amom_);
+        saveSolution(jnt_q_);
+        saveSolution(jnt_qd_);
+        saveSolution(total_qd_);
+        saveSolution(total_qdd_);
+        for (int eff_id=0; eff_id<Problem::n_endeffs_; eff_id++) {
+          saveSolution(eef_pos_[eff_id]);
+          saveSolution(eef_vel_[eff_id]);
+        }
+
+        // storing results
+        lmom_.getGuessValue(mat_guess_);   current_state.linearMomentum() = mat_guess_.col(0);
+        amom_.getGuessValue(mat_guess_);   current_state.angularMomentum() = mat_guess_.col(0);
+
+      }
+      catch(...)
+      {
+        std::cout << "Exception during posture-generation optimization" << std::endl;
+      }
+
+//      // computing resulting state
+//      Eigen::Vector3d base_angular_velocity = Eigen::Vector3d(vars_[base_ang_vel_.id(0,0)].get(SolverDoubleParam_X),
+//                                                              vars_[base_ang_vel_.id(1,0)].get(SolverDoubleParam_X),
+//                                                              vars_[base_ang_vel_.id(2,0)].get(SolverDoubleParam_X));
+//      current_state_.baseOrientation() = integrateAngularVelocity(current_state_.baseOrientation(), base_angular_velocity, desired_state.time(), this->getSetting().get(PlannerBoolParam_AngularVelocityInBodyCoordinates));
+//      for (int dof_id=0; dof_id<this->getSetting().get(PlannerIntParam_NumActiveDofs); dof_id++) {
+//        current_state.jointPositions()[this->getSetting().get(PlannerIntVectorParam_ActiveDofs)[dof_id]] = vars_[jnt_q_.id(dof_id,0)].get(SolverDoubleParam_X);
+//        current_state.jointVelocities()[this->getSetting().get(PlannerIntVectorParam_ActiveDofs)[dof_id]] = vars_[total_qd_.id(dof_id,0)].get(SolverDoubleParam_X);
+//        current_state.jointAccelerations()[this->getSetting().get(PlannerIntVectorParam_ActiveDofs)[dof_id]] = vars_[total_qdd_.id(dof_id,0)].get(SolverDoubleParam_X);
+//      }
+
+
+
+
 //	  kin_interface_->updateJacobianAndState(centroidal_momentum_matrix_, base_jacobian_, endeffector_jacobian_, current_state);
 //
 //      // computing error norm
@@ -304,7 +499,7 @@ namespace momentumopt {
 //          current_state.endeffectorPosition(eff_id)[axis_id] = vars_[eef_pos_[eff_id].id(axis_id,0)].get(SolverDoubleParam_X);
 //          current_state.endeffectorVelocity(eff_id)[axis_id] = vars_[eef_vel_[eff_id].id(axis_id,0)].get(SolverDoubleParam_X);
 //        }
-//	}
+	}
 //
 //	// optimization of end-effector rotations with a non convex solver
 //	if (this->getSetting().get(PlannerBoolParam_UseNoncvxEndeffectorOrientationOpt)) {
@@ -313,10 +508,14 @@ namespace momentumopt {
 //      for (int dof_id=0; dof_id<this->getSetting().get(PlannerIntVectorParam_RotationDofsForEndeffector).size(); dof_id++)
 //        current_state.jointPositions()[this->getSetting().get(PlannerIntVectorParam_RotationDofsForEndeffector)(dof_id)] = kin_interface_->optimalVector()[dof_id];
 //	}
-//  }
-//
-//  void KinematicsOptimizer::optimize(const DynamicsState& ini_state, const DynamicsSequence& ref_sequence, bool is_not_first_kindyn_iteration)
-//  {
+  }
+
+  void KinematicsOptimizer::optimize(const DynamicsState& ini_state, const DynamicsSequence& dyn_sequence, bool is_not_first_kindyn_iteration)
+  {
+    std::cout << "BeforeOptimize" << std::endl;
+    this->optimizePosture(*current_state_, ini_state, false, is_not_first_kindyn_iteration);
+    std::cout << "AfterOptimize" << std::endl;
+
 //    ini_state_ = ini_state;
 //    if (this->getSetting().get(PlannerBoolParam_OptimizeInitialPosture))
 //      this->optimizePosture(ini_state_, ini_state, false, is_not_first_kindyn_iteration);
@@ -330,35 +529,35 @@ namespace momentumopt {
 //
 //    if (this->getSetting().get(PlannerBoolParam_DisplayMotion)) { this->displayMotion(); }
 //    if (this->getSetting().get(PlannerBoolParam_StoreData)) { this->storeSolution(); }
-//  }
-//
-//  void KinematicsOptimizer::addVariableToModel(const OptimizationVariable& opt_var, Model& model, std::vector<Var>& vars)
-//  {
-//    opt_var.getValues(mat_lb_, mat_ub_, mat_guess_, size_, variable_type_);
-//    for (int col_id=0; col_id<opt_var.getNumCols(); col_id++)
-//      for (int row_id=0; row_id<opt_var.getNumRows(); row_id++)
-//        switch (variable_type_) {
-//          case 'C': { vars[opt_var.id(row_id,col_id)] = model.addVar(VarType::Continuous, double(mat_lb_(row_id,col_id)), double(mat_ub_(row_id,col_id)), double(mat_guess_(row_id,col_id))); break; }
-//          case 'B': { vars[opt_var.id(row_id,col_id)] = model.addVar(VarType::Binary, int(mat_lb_(row_id,col_id)), int(mat_ub_(row_id,col_id)), double(mat_guess_(row_id,col_id))); break; }
-//          default: { throw std::runtime_error("At addVariableToModel, variable type not handled"); }
-//        }
-//
-//    for (int col_id=0; col_id<opt_var.getNumCols(); col_id++)
-//      for (int row_id=0; row_id<opt_var.getNumRows(); row_id++)
-//        vars[opt_var.id(row_id,col_id)].set(SolverDoubleParam_X, mat_guess_(row_id,col_id));
-//  }
-//
-//  void KinematicsOptimizer::saveSolution(OptimizationVariable& opt_var)
-//  {
-//	mat_guess_.resize(opt_var.getNumRows(), opt_var.getNumCols());
-//	mat_guess_.setZero();
-//    for (int col_id=0; col_id<opt_var.getNumCols(); col_id++) {
-//      for (int row_id=0; row_id<opt_var.getNumRows(); row_id++)
-//    	    mat_guess_(row_id,col_id) = solution_(opt_var.id(row_id,col_id));
-//    }
-//    opt_var.setGuessValue(mat_guess_);
-//  }
-//
+  }
+
+  void KinematicsOptimizer::addVariableToModel(const OptimizationVariable& opt_var, Model& model, std::vector<Var>& vars)
+  {
+    opt_var.getValues(mat_lb_, mat_ub_, mat_guess_, size_, variable_type_);
+    for (int col_id=0; col_id<opt_var.getNumCols(); col_id++)
+      for (int row_id=0; row_id<opt_var.getNumRows(); row_id++)
+        switch (variable_type_) {
+          case 'C': { vars[opt_var.id(row_id,col_id)] = model.addVar(VarType::Continuous, double(mat_lb_(row_id,col_id)), double(mat_ub_(row_id,col_id)), double(mat_guess_(row_id,col_id))); break; }
+          case 'B': { vars[opt_var.id(row_id,col_id)] = model.addVar(VarType::Binary, int(mat_lb_(row_id,col_id)), int(mat_ub_(row_id,col_id)), double(mat_guess_(row_id,col_id))); break; }
+          default: { throw std::runtime_error("At addVariableToModel, variable type not handled"); }
+        }
+
+    for (int col_id=0; col_id<opt_var.getNumCols(); col_id++)
+      for (int row_id=0; row_id<opt_var.getNumRows(); row_id++)
+        vars[opt_var.id(row_id,col_id)].set(SolverDoubleParam_X, mat_guess_(row_id,col_id));
+  }
+
+  void KinematicsOptimizer::saveSolution(OptimizationVariable& opt_var)
+  {
+	mat_guess_.resize(opt_var.getNumRows(), opt_var.getNumCols());
+	mat_guess_.setZero();
+    for (int col_id=0; col_id<opt_var.getNumCols(); col_id++) {
+      for (int row_id=0; row_id<opt_var.getNumRows(); row_id++)
+    	    mat_guess_(row_id,col_id) = solution_(opt_var.id(row_id,col_id));
+    }
+    opt_var.setGuessValue(mat_guess_);
+  }
+
 //  void KinematicsOptimizer::displayMotion()
 //  {
 //	DynamicsState state0, state1, state2 = ini_state_;

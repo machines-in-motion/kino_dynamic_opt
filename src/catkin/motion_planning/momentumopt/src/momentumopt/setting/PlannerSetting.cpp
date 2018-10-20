@@ -34,7 +34,18 @@ namespace momentumopt {
 	  YAML::Node planner_vars = planner_cfg[planner_vars_yaml.c_str()];
 
 	  // Kinematics parameters
-	  readParameter(planner_vars, "num_dofs", num_dofs_);
+	  readParameter(planner_vars, "load_kinematics", load_kinematics_);
+      if (load_kinematics_) {
+	    readParameter(planner_vars, "num_dofs", num_dofs_);
+	    readParameter(planner_vars, "min_joint_limits", min_joint_limits_);
+        readParameter(planner_vars, "max_joint_limits", max_joint_limits_);
+        readParameter(planner_vars, "default_joint_positions", default_joint_positions_);
+
+        Eigen::VectorXi temp_active_dofs = readParameter<Eigen::VectorXi>(planner_vars, "active_dofs");
+        active_dofs_ = Eigen::VectorXi(temp_active_dofs.size()+6).setZero();
+        for (int dof_id=0; dof_id<6; dof_id++) { active_dofs_[dof_id] = dof_id; }
+        for (int dof_id=0; dof_id<temp_active_dofs.size(); dof_id++) { active_dofs_[6+dof_id] = 6+temp_active_dofs[dof_id]; }
+      }
 
 	  // Dynamics parameters
 	  readParameter(planner_vars, "num_com_viapoints", num_com_viapoints_);
@@ -99,12 +110,28 @@ namespace momentumopt {
     	    readParameter(planner_vars, "w_time_penalty", w_time_penalty_);
       }
 
+      // Kinematics weights
+      if (load_kinematics_) {
+	    readParameter(planner_vars, "w_kin_com", w_kin_com_);
+	    readParameter(planner_vars, "w_kin_lmom", w_kin_lmom_);
+	    readParameter(planner_vars, "w_kin_amom", w_kin_amom_);
+	    readParameter(planner_vars, "w_kin_lmomd", w_kin_lmomd_);
+	    readParameter(planner_vars, "w_kin_amomd", w_kin_amomd_);
+	    readParameter(planner_vars, "w_kin_eff_pos", w_kin_eff_pos_);
+	    readParameter(planner_vars, "w_kin_joint_vel", w_kin_joint_vel_);
+	    readParameter(planner_vars, "w_kin_joint_acc", w_kin_joint_acc_);
+	    readParameter(planner_vars, "w_kin_default_joints", w_kin_default_joints_);
+	    readParameter(planner_vars, "max_convergence_iters", max_convergence_iters_);
+	    readParameter(planner_vars, "convergence_tolerance", convergence_tolerance_);
+      }
+
       // Storage information
       readParameter(planner_vars, "store_data", store_data_);
 
       // Solver setting
       readParameter(planner_vars, "use_default_solver_setting", use_default_solver_setting_);
 
+      num_act_dofs_ = active_dofs_.size();
       mass_times_gravity_ = robot_mass_ * gravity_;
       gravity_vector_ = Eigen::Vector3d(0., 0., -gravity_);
       num_timesteps_ = std::floor(time_horizon_/time_step_);
@@ -121,6 +148,8 @@ namespace momentumopt {
     {
       // Kinematics parameters
       case PlannerIntParam_NumDofs : { return num_dofs_; }
+      case PlannerIntParam_NumActiveDofs : { return num_act_dofs_; }
+      case PlannerIntParam_MaxKinConvergenceIterations : { return max_convergence_iters_; }
 
       // Dynamics parameters
       case PlannerIntParam_NumTimesteps : { return num_timesteps_; }
@@ -143,6 +172,9 @@ namespace momentumopt {
       case PlannerBoolParam_IsTimeHorizonFixed : { return is_time_horizon_fixed_; }
       case PlannerBoolParam_IsFrictionConeLinear : { return is_friction_cone_linear_; }
 
+      // Kinematics parameters
+      case PlannerBoolParam_LoadKinematics : { return load_kinematics_; }
+
       // Storage information
       case PlannerBoolParam_StoreData : { return store_data_; }
 
@@ -158,6 +190,9 @@ namespace momentumopt {
   {
     switch (param)
     {
+      // Kinematics parameters
+      case PlannerDoubleParam_KinConvergenceTolerance : { return convergence_tolerance_; }
+
       // Dynamics parameters
       case PlannerDoubleParam_TimeStep : { return time_step_; }
       case PlannerDoubleParam_TimeHorizon : { return time_horizon_; }
@@ -204,6 +239,9 @@ namespace momentumopt {
   {
     switch (param)
 	{
+      // Kinematics parameters
+      case PlannerIntVectorParam_ActiveDofs : { return active_dofs_; }
+
       // Not handled parameters
       default: { throw std::runtime_error("PlannerSetting::get PlannerVectorParam invalid"); break; }
 	}
@@ -216,6 +254,11 @@ namespace momentumopt {
       // Dynamics parameters
       case PlannerVectorParam_ExternalForce : { return external_force_; }
       case PlannerVectorParam_CenterOfMassMotion : { return com_displacement_; }
+
+      // Kinematics parameters
+      case PlannerVectorParam_MinJointAngles : { return min_joint_limits_; }
+      case PlannerVectorParam_MaxJointAngles : { return max_joint_limits_; }
+      case PlannerVectorParam_KinematicDefaultJointPositions: { return default_joint_positions_; }
 
       // Configuration parameters
       case PlannerVectorParam_TimeRange : { return time_range_; }
@@ -238,6 +281,17 @@ namespace momentumopt {
       case PlannerVectorParam_WeightFinalAngularMomentum : { return w_amom_final_; }
       case PlannerVectorParam_WeightDynamicTrackingLinearMomentum : { return w_lmom_track_; }
       case PlannerVectorParam_WeightDynamicTrackingAngularMomentum : { return w_amom_track_; }
+
+      // Kinematics optimization weights
+      case PlannerVectorParam_WeightJointVelocity : { return w_kin_joint_vel_; }
+      case PlannerVectorParam_WeightJointAcceleration : { return w_kin_joint_acc_; }
+      case PlannerVectorParam_WeightKinematicTrackingCenterOfMass : { return w_kin_com_; }
+      case PlannerVectorParam_WeightKinematicTrackingLinearMomentum : { return w_kin_lmom_; }
+      case PlannerVectorParam_WeightKinematicTrackingAngularMomentum : { return w_kin_amom_; }
+      case PlannerVectorParam_WeightKinematicTrackingLinearMomentumRate : { return w_kin_lmomd_; }
+      case PlannerVectorParam_WeightKinematicTrackingAngularMomentumRate : { return w_kin_amomd_; }
+      case PlannerVectorParam_WeightKinematicTrackingEndeffectorPosition : { return w_kin_eff_pos_; }
+      case PlannerVectorParam_WeightKinematicDefaultJointPositions: { return w_kin_default_joints_; }
 
       // Not handled parameters
       default: { throw std::runtime_error("PlannerSetting::get PlannerVectorParam invalid"); break; }
@@ -275,6 +329,8 @@ namespace momentumopt {
     {
       // Kinematics parameters
       case PlannerIntParam_NumDofs : { return num_dofs_; }
+      case PlannerIntParam_NumActiveDofs : { return num_act_dofs_; }
+      case PlannerIntParam_MaxKinConvergenceIterations : { return max_convergence_iters_; }
 
       // Dynamics parameters
       case PlannerIntParam_NumTimesteps : { return num_timesteps_; }
@@ -297,6 +353,9 @@ namespace momentumopt {
       case PlannerBoolParam_IsTimeHorizonFixed : { return is_time_horizon_fixed_; }
       case PlannerBoolParam_IsFrictionConeLinear : { return is_friction_cone_linear_; }
 
+      // Kinematics parameters
+      case PlannerBoolParam_LoadKinematics : { return load_kinematics_; }
+
       // Storage information
       case PlannerBoolParam_StoreData : { return store_data_; }
 
@@ -312,6 +371,9 @@ namespace momentumopt {
   {
     switch (param)
     {
+      // Kinematics parameters
+      case PlannerDoubleParam_KinConvergenceTolerance : { return convergence_tolerance_; }
+
       // Dynamics parameters
       case PlannerDoubleParam_TimeStep : { return time_step_; }
       case PlannerDoubleParam_TimeHorizon : { return time_horizon_; }
@@ -358,6 +420,9 @@ namespace momentumopt {
   {
     switch (param)
 	{
+      // Kinematics parameters
+      case PlannerIntVectorParam_ActiveDofs : { return active_dofs_; }
+
       // Not handled parameters
       default: { throw std::runtime_error("PlannerSetting::get PlannerIntVectorParam invalid"); break; }
 	}
@@ -370,6 +435,11 @@ namespace momentumopt {
       // Dynamics parameters
       case PlannerVectorParam_ExternalForce : { return external_force_; }
       case PlannerVectorParam_CenterOfMassMotion : { return com_displacement_; }
+
+      // Kinematics parameters
+      case PlannerVectorParam_MinJointAngles : { return min_joint_limits_; }
+      case PlannerVectorParam_MaxJointAngles : { return max_joint_limits_; }
+      case PlannerVectorParam_KinematicDefaultJointPositions: { return default_joint_positions_; }
 
       // Configuration parameters
       case PlannerVectorParam_TimeRange : { return time_range_; }
@@ -392,6 +462,17 @@ namespace momentumopt {
       case PlannerVectorParam_WeightFinalAngularMomentum : { return w_amom_final_; }
       case PlannerVectorParam_WeightDynamicTrackingLinearMomentum : { return w_lmom_track_; }
       case PlannerVectorParam_WeightDynamicTrackingAngularMomentum : { return w_amom_track_; }
+
+      // Kinematics optimization weights
+      case PlannerVectorParam_WeightJointVelocity : { return w_kin_joint_vel_; }
+      case PlannerVectorParam_WeightJointAcceleration : { return w_kin_joint_acc_; }
+      case PlannerVectorParam_WeightKinematicTrackingCenterOfMass : { return w_kin_com_; }
+      case PlannerVectorParam_WeightKinematicTrackingLinearMomentum : { return w_kin_lmom_; }
+      case PlannerVectorParam_WeightKinematicTrackingAngularMomentum : { return w_kin_amom_; }
+      case PlannerVectorParam_WeightKinematicTrackingLinearMomentumRate : { return w_kin_lmomd_; }
+      case PlannerVectorParam_WeightKinematicTrackingAngularMomentumRate : { return w_kin_amomd_; }
+      case PlannerVectorParam_WeightKinematicTrackingEndeffectorPosition : { return w_kin_eff_pos_; }
+      case PlannerVectorParam_WeightKinematicDefaultJointPositions: { return w_kin_default_joints_; }
 
       // Not handled parameters
       default: { throw std::runtime_error("PlannerSetting::get PlannerVectorParam invalid"); break; }
