@@ -135,9 +135,9 @@ ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 # optional libraries #
 ######################
 
-if (GUROBI_FOUND)
+if (IPOPT_FOUND)
   set(solver_LIBS ${solver_LIBS} ${IPOPT_LIBRARIES})
-endif (GUROBI_FOUND)
+endif (IPOPT_FOUND)
 
 if (GUROBI_FOUND)
   set(solver_LIBS ${solver_LIBS} ${GUROBI_LIBRARIES})

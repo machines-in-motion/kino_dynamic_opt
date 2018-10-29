@@ -31,7 +31,7 @@ namespace momentumopt {
   class PlannerSetting
   {
     public:
-	  PlannerSetting(){}
+	  PlannerSetting() : num_dofs_(0) {}
 	  ~PlannerSetting(){}
 
 	  void initialize(const std::string& cfg_file, const std::string& planner_vars_yaml = "planner_variables");
@@ -65,8 +65,8 @@ namespace momentumopt {
 	  std::string cfg_file_, save_dynamics_file_, default_solver_setting_file_;
 
 	  /*! helper integer variables for the optimization problem */
-      int num_com_viapoints_, num_act_eefs_, num_timesteps_, max_time_iterations_, num_dofs_, num_act_dofs_,
-          max_convergence_iters_;
+      int num_com_viapoints_, num_act_eefs_, num_timesteps_, max_time_iterations_, num_dofs_,
+          num_act_dofs_, num_extended_act_dofs_, max_convergence_iters_;
 
       /*! helper boolean variables for the optimization problem */
       bool store_data_, is_time_horizon_fixed_, is_friction_cone_linear_, use_default_solver_setting_,
@@ -86,7 +86,7 @@ namespace momentumopt {
                       w_kin_com_, w_kin_lmom_, w_kin_amom_, w_kin_lmomd_, w_kin_amomd_, w_kin_eff_pos_;
       Eigen::VectorXd default_joint_positions_, w_kin_default_joints_, w_kin_joint_vel_, w_kin_joint_acc_,
                       min_joint_limits_, max_joint_limits_;
-      Eigen::VectorXi active_dofs_;
+      Eigen::VectorXi active_dofs_, extended_active_dofs_;
 
       /*! via points for center of mass motion */
       std::vector<Eigen::VectorXd> com_viapoints_;

@@ -144,9 +144,6 @@ namespace momentumopt {
       /*! implementation of robot specific functions needed by the optimizer */
       KinematicsInterface* kin_interface_;
 
-//      /*! lbfgs solver for dealing with end-effector rotations */
-//      solver::LbfgsSolver eef_rot_kin_optimizer_;
-
       /*! type for optimization variable: continuous 'C' or binary 'B' */
       char variable_type_;
 
@@ -155,16 +152,17 @@ namespace momentumopt {
 
       /*! helper optimization variables for the optimization problem */
       std::array<solver::OptimizationVariable, Problem::n_endeffs_> eef_pos_, eef_vel_, eef_ang_vel_;
-      solver::OptimizationVariable total_qd_, total_qdd_, jnt_q_, jnt_qd_, com_, comd_, lmom_, amom_, base_ang_vel_;
+      solver::OptimizationVariable jnt_q_, jnt_qd_, total_qd_, total_qdd_, com_, comd_, lmom_, amom_,
+                                   base_position_, base_ang_vel_;
 
       /*! helper matrices and vectors for the optimization problem */
       solver::OptimizationVariable::OptVector solution_;
       solver::OptimizationVariable::OptMatrix mat_guess_, mat_lb_, mat_ub_;
 //
 //      /*! helper matrices and vectors for the optimization problem */
-//      Eigen::VectorXd nonlinear_terms_;
+//      Eigen::MatrixXd centroidal_momentum_matrix_, base_jacobian_;
 //      std::array<Eigen::MatrixXd, Problem::n_endeffs_> endeffector_jacobian_;
-//      Eigen::MatrixXd inertia_matrix_, centroidal_momentum_matrix_, base_jacobian_;
+
   };
 
 }

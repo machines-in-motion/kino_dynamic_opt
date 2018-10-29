@@ -21,8 +21,8 @@ namespace momentumopt {
 
   // DynamicsState class function implementations
   DynamicsState::DynamicsState()
-    : dtime_(0.0),
-	  com_(Eigen::Vector3d::Zero()),
+    : dtime_(0.1),
+      com_(Eigen::Vector3d::Zero()),
       amom_(Eigen::Vector3d::Zero()),
       lmom_(Eigen::Vector3d::Zero()),
       amomd_(Eigen::Vector3d::Zero()),

@@ -41,10 +41,10 @@ namespace momentumopt {
         readParameter(planner_vars, "max_joint_limits", max_joint_limits_);
         readParameter(planner_vars, "default_joint_positions", default_joint_positions_);
 
-        Eigen::VectorXi temp_active_dofs = readParameter<Eigen::VectorXi>(planner_vars, "active_dofs");
-        active_dofs_ = Eigen::VectorXi(temp_active_dofs.size()+6).setZero();
-        for (int dof_id=0; dof_id<6; dof_id++) { active_dofs_[dof_id] = dof_id; }
-        for (int dof_id=0; dof_id<temp_active_dofs.size(); dof_id++) { active_dofs_[6+dof_id] = 6+temp_active_dofs[dof_id]; }
+        readParameter(planner_vars, "active_dofs", active_dofs_);
+        extended_active_dofs_ = Eigen::VectorXi(active_dofs_.size()+6).setZero();
+        for (int dof_id=0; dof_id<6; dof_id++) { extended_active_dofs_[dof_id] = dof_id; }
+        for (int dof_id=0; dof_id<active_dofs_.size(); dof_id++) { extended_active_dofs_[6+dof_id] = 6+active_dofs_[dof_id]; }
       }
 
 	  // Dynamics parameters
@@ -135,6 +135,7 @@ namespace momentumopt {
       mass_times_gravity_ = robot_mass_ * gravity_;
       gravity_vector_ = Eigen::Vector3d(0., 0., -gravity_);
       num_timesteps_ = std::floor(time_horizon_/time_step_);
+      num_extended_act_dofs_ = extended_active_dofs_.size();
     }
     catch (std::runtime_error& e)
     {
@@ -149,6 +150,7 @@ namespace momentumopt {
       // Kinematics parameters
       case PlannerIntParam_NumDofs : { return num_dofs_; }
       case PlannerIntParam_NumActiveDofs : { return num_act_dofs_; }
+      case PlannerIntParam_NumExtendedActiveDofs : { return num_extended_act_dofs_; }
       case PlannerIntParam_MaxKinConvergenceIterations : { return max_convergence_iters_; }
 
       // Dynamics parameters
@@ -241,6 +243,7 @@ namespace momentumopt {
 	{
       // Kinematics parameters
       case PlannerIntVectorParam_ActiveDofs : { return active_dofs_; }
+      case PlannerIntVectorParam_ExtendedActiveDofs : { return extended_active_dofs_; }
 
       // Not handled parameters
       default: { throw std::runtime_error("PlannerSetting::get PlannerVectorParam invalid"); break; }
@@ -330,6 +333,7 @@ namespace momentumopt {
       // Kinematics parameters
       case PlannerIntParam_NumDofs : { return num_dofs_; }
       case PlannerIntParam_NumActiveDofs : { return num_act_dofs_; }
+      case PlannerIntParam_NumExtendedActiveDofs : { return num_extended_act_dofs_; }
       case PlannerIntParam_MaxKinConvergenceIterations : { return max_convergence_iters_; }
 
       // Dynamics parameters
@@ -422,6 +426,7 @@ namespace momentumopt {
 	{
       // Kinematics parameters
       case PlannerIntVectorParam_ActiveDofs : { return active_dofs_; }
+      case PlannerIntVectorParam_ExtendedActiveDofs : { return extended_active_dofs_; }
 
       // Not handled parameters
       default: { throw std::runtime_error("PlannerSetting::get PlannerIntVectorParam invalid"); break; }

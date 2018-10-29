@@ -27,6 +27,7 @@ namespace momentumopt {
 	PlannerIntParam_NumViapoints,
     PlannerIntParam_NumActiveDofs,
 	PlannerIntParam_MaxNumTimeIterations,
+	PlannerIntParam_NumExtendedActiveDofs,
 	PlannerIntParam_NumActiveEndeffectors,
     PlannerIntParam_MaxKinConvergenceIterations,
   };
@@ -84,6 +85,7 @@ namespace momentumopt {
   enum PlannerIntVectorParam {
     // Kinematics parameters
     PlannerIntVectorParam_ActiveDofs,
+	PlannerIntVectorParam_ExtendedActiveDofs,
 
   };
 

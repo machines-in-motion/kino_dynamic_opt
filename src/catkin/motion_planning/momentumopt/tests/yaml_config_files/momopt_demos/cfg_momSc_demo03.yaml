@@ -50,8 +50,7 @@ planner_variables:
   # Kinematics parameters #
   #########################
   
-  num_dofs: 50
-  num_act_dofs: 50
+  load_kinematics: False
 
   #######################
   # Dynamics parameters #
@@ -93,13 +92,6 @@ planner_variables:
   cop_range_rh: [-0.03,  0.03, -0.03,  0.03]
   cop_range_lh: [-0.03,  0.03, -0.03,  0.03]
   max_eef_lengths: [0.82,  0.82,  0.60,  0.60]
-
-  ######################
-  # Kinematics weights #
-  ######################
-
-  max_convergence_iters: 50
-  convergence_tolerance:  1e-4
 
   ####################
   # Dynamics weights #
