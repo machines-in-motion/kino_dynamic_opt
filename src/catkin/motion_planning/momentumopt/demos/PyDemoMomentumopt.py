@@ -37,24 +37,23 @@ class PinocchioKinematicsInterface(KinematicsInterface):
         'Generalized joint positions and velocities'
         self.q = np.matrix(np.squeeze(np.asarray(kin_state.robot_posture.generalized_joint_positions()))).transpose()
         self.dq = np.matrix(np.squeeze(np.asarray(kin_state.robot_velocity.generalized_joint_velocities))).transpose()
-
+        
         'Update of jacobians'
+        self.robot.computeJointJacobians(self.q);
         self.robot.framesForwardKinematics(self.q)
         for eff_id in range(0, len(self.eff_names)):
             self.endeffector_jacobians[eff_id] = self.robot.getFrameJacobian(self.robot.model.getFrameId(self.eff_names[eff_id]), pin.ReferenceFrame.WORLD)
 
-        pin.ccrba(self.robot.model, self.robot.data, self.q, self.dq)
+        self.robot.centroidalMomentum(self.q, self.dq)
         self.centroidal_momentum_matrix = self.robot.data.Ag
-
+        
         'Update of kinematics state'
         kin_state.com = self.robot.com(self.q)
         kin_state.lmom = self.robot.data.hg.vector[:3]
         kin_state.amom = self.robot.data.hg.vector[3:]
-
+        
         for eff_id in range(0, len(self.eff_names)):
             kin_state.endeffector_positions[eff_id] = self.robot.data.oMf[self.robot.model.getFrameId(self.eff_names[eff_id])].translation
-
-        return kin_state
 
 
 'Main function for optimization demo'
@@ -95,7 +94,7 @@ def main(argv):
     contact_plan.initialize(planner_setting)
     contact_plan.optimize(ini_state, terrain_description)
       
-    'optimize motion'
+    #'optimize motion'
     dyn_optimizer = DynamicsOptimizer()
     dyn_optimizer.initialize(planner_setting)
     dyn_optimizer.optimize(ini_state, contact_plan, kin_sequence)
@@ -103,17 +102,17 @@ def main(argv):
     #print dyn_optimizer.solveTime()
     #print dyn_optimizer.dynamicsSequence().dynamics_states[planner_setting.get(PlannerIntParam_NumTimesteps)-1]
      
-################################################################
-################################################################
-    'Kinematics Interface'
-    kin_interface = PinocchioKinematicsInterface()
+    ################################################################
+    ################################################################
+    #'Kinematics Interface'
+    #kin_interface = PinocchioKinematicsInterface()
 
-    'Kinematics Optimizer'
-    kin_optimizer = KinematicsOptimizer()
-    kin_optimizer.initialize(planner_setting, kin_interface)
-    kin_optimizer.optimize(ini_state, dyn_optimizer.dynamicsSequence(), True)
-################################################################
-################################################################
+    #'Kinematics Optimizer'
+    #kin_optimizer = KinematicsOptimizer()
+    #kin_optimizer.initialize(planner_setting, kin_interface)
+    #kin_optimizer.optimize(ini_state, dyn_optimizer.dynamicsSequence(), True)
+    ################################################################
+    ################################################################
     
 
     print('Done...')

@@ -54,9 +54,22 @@ namespace momentumopt {
     KinematicsState start_state = current_state;
     double cur_error, prev_error = SolverSetting::inf;
 
+    std::cout << "Desired State" << std::endl << desired_state << std::endl;
+
 	for (int iter_id=0; iter_id<this->getSetting().get(PlannerIntParam_MaxKinConvergenceIterations); iter_id++) {
-      std::cout << "iter_id " << iter_id << std::endl;
+      std::cout << "IterationID " << iter_id << std::endl;
       current_state = kin_interface_->updateJacobians(current_state);
+      std::cout << "current_state" << std::endl << current_state << std::endl;
+
+      std::cout << "centroidal momentum matrix" << std::endl;
+      std::cout << kin_interface_->centroidalMomentumMatrix() << std::endl;
+
+      std::cout << "endeffector jacobian" << std::endl;
+      for (int eff_id=0; eff_id<4; eff_id++) {
+        std::cout << kin_interface_->endeffectorJacobian(eff_id) << std::endl;
+        std::cout << "=========================================" << std::endl;
+      }
+      int abc; std::cin >> abc;
 
       // computing error norm and convergence check
       cur_error = 0.0;
@@ -69,7 +82,7 @@ namespace momentumopt {
         }
       }
 
-      std::cout << "cur_error " << cur_error << std::endl;
+      std::cout << "  cur_error " << cur_error << std::endl;
       if (cur_error<this->getSetting().get(PlannerDoubleParam_KinConvergenceTolerance) ||
           std::abs(prev_error-cur_error)<this->getSetting().get(PlannerDoubleParam_KinConvergenceTolerance))
       { break; }
@@ -248,19 +261,19 @@ namespace momentumopt {
         std::cout << "Exception during posture-generation optimization" << std::endl;
       }
 
-      std::cout << "FinalCenterOfMass" << std::endl;
+      std::cout << "    FinalCenterOfMass" << std::endl;
       com_.getGuessValue(mat_guess_);
-      std::cout << mat_guess_.transpose() << std::endl;
+      std::cout << "    " << mat_guess_.transpose() << std::endl;
 
-      std::cout << "FinalBasePosition" << std::endl;
-      base_position_.getGuessValue(mat_guess_);
-      std::cout << mat_guess_.transpose() << std::endl;
-      std::cout << current_state.robotPosture().basePosition().transpose() << std::endl;
+      std::cout << "FinalJointVelocities" << std::endl;
+      total_qd_.getGuessValue(mat_guess_);
+      std::cout << "    " << mat_guess_.transpose() << std::endl;
 
       std::cout << "FinalJointPositions" << std::endl;
       jnt_q_.getGuessValue(mat_guess_);
-      std::cout << mat_guess_.transpose() << std::endl;
-      std::cout << "Done Printing Joint Positions" << std::endl;
+      std::cout << "    " << mat_guess_.transpose() << std::endl;
+
+      int age; std::cin >> age;
 
 
       // computing resulting state

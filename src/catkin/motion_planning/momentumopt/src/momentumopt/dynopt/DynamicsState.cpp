@@ -54,21 +54,21 @@ namespace momentumopt {
   std::string DynamicsState::toString() const
   {
 	std::stringstream text;
-    text << "  dt      " << this->time() << "\n";
+    //text << "  dt      " << this->time() << "\n";
     text << "  com     " << this->centerOfMass().transpose() << "\n";
-    text << "  lmom    " << this->linearMomentum().transpose() << "\n";
-    text << "  amom    " << this->angularMomentum().transpose() << "\n";
-    text << "  lmomd   " << this->linearMomentumRate().transpose() << "\n";
-    text << "  amomd   " << this->angularMomentumRate().transpose() << "\n";
+    //text << "  lmom    " << this->linearMomentum().transpose() << "\n";
+    //text << "  amom    " << this->angularMomentum().transpose() << "\n";
+    //text << "  lmomd   " << this->linearMomentumRate().transpose() << "\n";
+    //text << "  amomd   " << this->angularMomentumRate().transpose() << "\n";
 
 	for (int eff_id=0; eff_id<Problem::n_endeffs_; eff_id++) {
 	  text << "  eff_id " << eff_id << "\n";
-      text << "    act  " << this->endeffectorActivation(eff_id) << "\n";
-      text << "    cop  " << this->endeffectorCoP(eff_id).transpose() << "\n";
-      text << "    frc  " << this->endeffectorForce(eff_id).transpose() << "\n";
-      text << "    trq  " << this->endeffectorTorque(eff_id).transpose() << "\n";
+      //text << "    act  " << this->endeffectorActivation(eff_id) << "\n";
+      //text << "    cop  " << this->endeffectorCoP(eff_id).transpose() << "\n";
+      //text << "    frc  " << this->endeffectorForce(eff_id).transpose() << "\n";
+      //text << "    trq  " << this->endeffectorTorque(eff_id).transpose() << "\n";
       text << "    pos  " << this->endeffectorPosition(eff_id).transpose() << "\n";
-      text << "    ori  " << this->endeffectorOrientation(eff_id).coeffs().transpose() << "\n";
+      //text << "    ori  " << this->endeffectorOrientation(eff_id).coeffs().transpose() << "\n";
 	}
 	return text.str();
   }

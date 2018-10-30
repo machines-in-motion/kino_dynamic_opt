@@ -76,21 +76,21 @@ namespace momentumopt {
   {
 	std::stringstream text;
     text << "  com     " << this->centerOfMass().transpose() << "\n";
-    text << "  lmom    " << this->linearMomentum().transpose() << "\n";
-    text << "  amom    " << this->angularMomentum().transpose() << "\n";
+    //text << "  lmom    " << this->linearMomentum().transpose() << "\n";
+    //text << "  amom    " << this->angularMomentum().transpose() << "\n";
 
 	for (int eff_id=0; eff_id<Problem::n_endeffs_; eff_id++)
 	{
 	  text << "  eff_id " << eff_id << "\n";
       text << "    pos  " << this->endeffectorPosition(eff_id).transpose() << "\n";
-      text << "    vel  " << this->endeffectorVelocity(eff_id).transpose() << "\n";
-      text << "    acc  " << this->endeffectorAcceleration(eff_id).transpose() << "\n";
-      text << "    ori  " << this->endeffectorOrientation(eff_id).coeffs().transpose() << "\n";
+      //text << "    vel  " << this->endeffectorVelocity(eff_id).transpose() << "\n";
+      //text << "    acc  " << this->endeffectorAcceleration(eff_id).transpose() << "\n";
+      //text << "    ori  " << this->endeffectorOrientation(eff_id).coeffs().transpose() << "\n";
 	}
 
     text << "  jnt_pos  \n" << this->robotPosture() << "\n";
-    text << "  jnt_vel  \n" << this->robotVelocity() << "\n";
-    text << "  jnt_acc  \n" << this->robotAcceleration() << "\n";
+    //text << "  jnt_vel  \n" << this->robotVelocity() << "\n";
+    //text << "  jnt_acc  \n" << this->robotAcceleration() << "\n";
 
 	return text.str();
   }

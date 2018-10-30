@@ -213,10 +213,10 @@ class Graphics:
 
                 for eff_id in range(0, 4):
                     eef_cnts = list()
-                    for cnt_id in range(0, cfg_pars['cntopt_params']['num_contacts'][eff_id]):
-                        eef_cnts.append(CntState(cfg_pars['cntopt_params']['effcnt_'+self.id_to_eff_str_map(eff_id)]['cnt'+str(cnt_id)]))
+                    for cnt_id in range(0, len(cfg_pars['contact_plan']['effcnt_'+self.id_to_eff_str_map(eff_id)])):
+                        eef_cnts.append(CntState(cfg_pars['contact_plan']['effcnt_'+self.id_to_eff_str_map(eff_id)][cnt_id]))
                     self.effs_cnts.append(eef_cnts)                    
-
+                print 'done'
             except yaml.YAMLError as exc:
                 print(exc)
 
@@ -280,6 +280,9 @@ class Graphics:
         CoM_motion = Axes3D(fig1)
         CoM_motion.plot(xs=comx, ys=comy, zs=comz, linewidth=com_linewidth, color=com_linecolor)
         CoM_motion.plot(xs=comrefx, ys=comrefy, zs=comrefz, linewidth=comref_linewidth, color=comref_linecolor, linestyle='--')
+        CoM_motion.plot(xs=[comx[0]], ys=[comy[0]], zs=[comz[0]], linewidth=com_linewidth, color='green', marker='o', markersize='10')
+        CoM_motion.plot(xs=[comx[-1]], ys=[comy[-1]], zs=[comz[-1]], linewidth=com_linewidth, color='firebrick', marker='^', markersize='8')
+
         for eff_id in range(0, 4):
             for cnt_id in range(0, len(self.effs_cnts[eff_id])):
                 cnt_pos = self.effs_cnts[eff_id][cnt_id].pos
@@ -311,7 +314,7 @@ class Graphics:
         lmomy_y_size = [-25.0/self.robot_mass, 25.0/self.robot_mass]
         lmomz_y_size = [-25.0/self.robot_mass, 25.0/self.robot_mass]
         amom_y_size  = [-10.0/self.robot_mass, 10.0/self.robot_mass]
-        mom_x_size = [1.0, time[len(time)-1]]
+        mom_x_size = [time[0], time[len(time)-1]]
         mom_axis_color = '#8C8E87'
         mom_grid_color = '#ACADA9'
         mom_axis_tick_color = '#434440'
@@ -329,7 +332,7 @@ class Graphics:
         frc_y_ysize = [-0.20, 0.20]
         frc_z_ysize = [-0.01, 1.02]
         frc_legend_frame_linewidth = 1
-        frc_xsize = [1.0, time[len(time)-1]]
+        frc_xsize = [time[0], time[len(time)-1]]
         frc_grid_color = '#ACADA9'
         frc_axis_color = '#8C8E87'
         frc_legend_color = '#8C8E87'

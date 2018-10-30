@@ -678,7 +678,7 @@ namespace momentumopt {
         qcqp_cfg["dynopt_params"]["n_act_eefs"] = this->getSetting().get(PlannerIntParam_NumActiveEndeffectors);
         qcqp_cfg["dynopt_params"]["ini_com"] = ini_state_.centerOfMass();
         qcqp_cfg["dynopt_params"]["time_horizon"] = this->getSetting().get(PlannerDoubleParam_TimeHorizon);
-        qcqp_cfg["cntopt_params"] = cfg_pars["contact_plan"];
+        qcqp_cfg["contact_plan"] = cfg_pars["contact_plan"];
 
         com_.getGuessValue(mat_guess_);   qcqp_cfg["dynopt_params"]["com_motion"] = mat_guess_;
         lmom_.getGuessValue(mat_guess_);  qcqp_cfg["dynopt_params"]["lin_mom"] = mat_guess_;
