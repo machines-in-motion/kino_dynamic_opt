@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<package>
+  <name>Eigen</name>
+  <version>3.3.4</version>
+  <description>Eigen</description>
+  <author email="aherzog@tuebingen.mpg.de">Alexander Herzog</author>
+  <maintainer email="aherzog@tuebingen.mpg.de">Alexander Herzog</maintainer>
+  <license>TODO</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  
+  <export>
+  </export>
+</package>
