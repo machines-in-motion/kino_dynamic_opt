@@ -19,7 +19,6 @@ set(CATKIN_PKGS ${CATKIN_PKGS}
   pybind11
 )
 
-#find_package(Eigen3 REQUIRED)
 find_package(catkin REQUIRED COMPONENTS ${CATKIN_PKGS})
 find_package(Boost REQUIRED COMPONENTS system program_options filesystem)
 
