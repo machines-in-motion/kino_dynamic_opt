@@ -1,16 +1,16 @@
 '''
  Copyright [2017] Max Planck Society. All rights reserved.
- 
+
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
- 
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
- 
+
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
@@ -39,19 +39,19 @@ class CntState:
         self.tend = pars[1]
         self.pos  = np.matrix(pars[2:5]).transpose()
         self.ori = quat2mat(pars[5:9])
-        
+
     def display(self):
-        print "time", self.tini, "--", self.tend
-        print "pos ", self.pos
-        print "ori ", self.ori
-        print "---------------------------------"
+        print("time", self.tini, "--", self.tend)
+        print("pos ", self.pos)
+        print("ori ", self.ori)
+        print("---------------------------------")
 
 'Base class to show motion'
 class Graphics:
     'Initialization'
     def __init__(self):
         self.effs_cnts = list()
-        
+
     'Helper functions'
     def id_to_eff_str_map(self, id):
         if (id == 0):
@@ -63,12 +63,12 @@ class Graphics:
         elif (id == 3):
             return 'lh'
         else:
-            print 'Err: id not handled'
-            
+            print('Err: id not handled')
+
     def nice_timesteps_plot(self, axis, timesteps1, timesteps2):
         axis.plot(timesteps1, color='royalblue')
         axis.plot(timesteps2, color='lightseagreen')
- 
+
         shading = 0.2
         tick_size = 10
         grid_color = '#ACADA9'
@@ -77,7 +77,7 @@ class Graphics:
         ylim = [0.05, 0.30]
         xlim = [1,len(timesteps1)-1]
         linecolors = {0: 'cornflowerblue', 1: 'darkorange', 2: 'seagreen', 3: 'gold'}
- 
+
         time_spec = np.squeeze(np.asarray(np.linspace(1, len(timesteps1), len(timesteps1))))
         time_vec  = np.squeeze(np.asarray(np.linspace(self.time_step, self.time_horizon, len(timesteps1))))
         for eef_id in range(0,4):
@@ -87,7 +87,7 @@ class Graphics:
                     if (time_vec[id] >= self.effs_cnts[eef_id][cnt_id].tini and time_vec[id] < self.effs_cnts[eef_id][cnt_id].tend):
                         trueData[id] = 1
             axis.fill_between(time_spec, ylim[0], ylim[1], where=trueData>0.5, facecolor=linecolors[eef_id], alpha=shading)
-        
+
         axis.grid(True)
         axis.set_xlim(xlim)
         axis.set_ylim(ylim)
@@ -98,7 +98,7 @@ class Graphics:
 
         axis.yaxis.tick_right()
         for t in axis.axes.get_yticklabels():
-            t.set_horizontalalignment('right')  
+            t.set_horizontalalignment('right')
             t.set_x(1.04)
         axis.spines["top"].set_color(axis_color)
         axis.spines["left"].set_color(axis_color)
@@ -109,10 +109,10 @@ class Graphics:
 
     def nice_mom_plot(self, axis, datax, datay, line_color, line_width, line_style, grid_color, axis_color, xlim, ylim, xmsg, ymsg, label_size, label_color, show_xlabel, tick_size, tick_color, remove_Xticks, remove_Yticks, linecolors, shading, linelabel, showLabel):
         axis.plot(datax, datay, color=line_color, linewidth=line_width, linestyle=line_style, label=linelabel)
-        
+
         if (showLabel is True):
             leg = axis.legend(bbox_to_anchor=(0., -0.30, 1., .102), loc=3, ncol=2, mode="expand", borderaxespad=0.)
-        
+
         time_vec = np.squeeze(np.asarray(np.linspace(self.time_step, self.time_horizon, len(datax))))
         for eef_id in range(0,4):
             trueData = np.zeros(len(datax))
@@ -121,7 +121,7 @@ class Graphics:
                     if (time_vec[id] >= self.effs_cnts[eef_id][cnt_id].tini and time_vec[id] < self.effs_cnts[eef_id][cnt_id].tend):
                         trueData[id] = 1
             axis.fill_between(datax, ylim[0], ylim[1], where=trueData>0.5, facecolor=linecolors[eef_id], alpha=shading)
-    
+
         axis.grid(True)
         axis.set_xlim(xlim)
         axis.set_ylim(ylim)
@@ -136,7 +136,7 @@ class Graphics:
         else:
             axis.yaxis.tick_right()
             for t in axis.axes.get_yticklabels():
-                t.set_horizontalalignment('right')  
+                t.set_horizontalalignment('right')
                 t.set_x(1.15)
 
         axis.spines["top"].set_color(axis_color)
@@ -147,7 +147,7 @@ class Graphics:
         axis.set_ylabel(ymsg, fontsize=label_size, color=label_color)
         if (show_xlabel is True):
             axis.set_xlabel(xmsg, fontsize=label_size, color=label_color)
-    
+
     def nice_frc_plot(self, axis, datax, datay, linecolors, linestyles, linelabels, addlabels, line_width, grid_color, tick_size, tick_color, axis_color, xlim, ylim, xmsg, ymsg, label_size, label_color, legend_textsize, legend_color, legend_fcolor, legend_flinewidth, legend_fbgcolor, shading):
         axis.grid(True)
         axis.set_xlim(xlim)
@@ -165,11 +165,11 @@ class Graphics:
         axis.set_ylabel(ymsg, fontsize=label_size, color=label_color)
         axis.yaxis.tick_right()
         for t in axis.axes.get_yticklabels():
-            t.set_horizontalalignment('right')  
+            t.set_horizontalalignment('right')
             t.set_x(1.15)
         if (addlabels is True):
             axis.axes.xaxis.set_ticklabels([])
-        
+
         time_vec = np.squeeze(np.asarray(np.linspace(self.time_step, self.time_horizon, len(datax))))
         for eef_id in range(0,4):
             trueData = np.zeros(len(datax))
@@ -179,11 +179,11 @@ class Graphics:
                         trueData[id] = 1
             axis.fill_between(datax, ylim[0], ylim[1], where=trueData>0.5, facecolor=linecolors[eef_id], alpha=shading)
 
-        
+
         for id in range(0, len(datay)):
             if (addlabels is False):
                 axis.plot(datax, datay[id], color=linecolors[id], linewidth=line_width, linestyle=linestyles[id])
-            else:        
+            else:
                 axis.plot(datax, datay[id], label=linelabels[id], color=linecolors[id], linewidth=line_width, linestyle=linestyles[id])
 
         if (addlabels is True):
@@ -200,7 +200,7 @@ class Graphics:
                 self.n_act_eefs = cfg_pars['dynopt_params']['n_act_eefs']
                 self.time_horizon = cfg_pars['dynopt_params']['time_horizon']
                 self.time_vec = np.matrix(cfg_pars['dynopt_params']['time_vec'])
-                
+
                 self.com = np.matrix(cfg_pars['dynopt_params']['com_motion'])
                 self.com_ref = np.matrix(cfg_pars['dynopt_params']['com_motion_ref'])
                 self.lmom = np.matrix(cfg_pars['dynopt_params']['lin_mom'])/self.robot_mass
@@ -209,18 +209,18 @@ class Graphics:
                 self.amom_ref = np.matrix(cfg_pars['dynopt_params']['ang_mom_ref'])/self.robot_mass
                 self.eef_frcs = list()
                 for eff_id in range(0, self.n_act_eefs):
-                    self.eef_frcs.insert(eff_id, np.matrix(cfg_pars['dynopt_params']['eef_frc_'+str(eff_id)]))    
+                    self.eef_frcs.insert(eff_id, np.matrix(cfg_pars['dynopt_params']['eef_frc_'+str(eff_id)]))
 
                 for eff_id in range(0, 4):
                     eef_cnts = list()
                     for cnt_id in range(0, len(cfg_pars['contact_plan']['effcnt_'+self.id_to_eff_str_map(eff_id)])):
                         eef_cnts.append(CntState(cfg_pars['contact_plan']['effcnt_'+self.id_to_eff_str_map(eff_id)][cnt_id]))
-                    self.effs_cnts.append(eef_cnts)                    
-                print 'done'
+                    self.effs_cnts.append(eef_cnts)
+                print('done')
             except yaml.YAMLError as exc:
                 print(exc)
 
-        'Build arrays of data to be displayed' 
+        'Build arrays of data to be displayed'
         comx = np.squeeze(np.asarray(self.com[0,:]))
         comy = np.squeeze(np.asarray(self.com[1,:]))
         comz = np.squeeze(np.asarray(self.com[2,:]))
@@ -240,7 +240,7 @@ class Graphics:
         amomrefx = np.squeeze(np.asarray(self.amom_ref[0,:]))
         amomrefy = np.squeeze(np.asarray(self.amom_ref[1,:]))
         amomrefz = np.squeeze(np.asarray(self.amom_ref[2,:]))
-        
+
         time = np.squeeze(np.asarray(self.time_vec[0,:]))
         timesteps1 = np.squeeze(np.asarray( np.zeros((len(time),1)) ))
         timesteps2 = np.squeeze(np.asarray( np.zeros((len(time),1)) ))
@@ -274,7 +274,7 @@ class Graphics:
         endeffectors = {0: 'RF', 1: 'LF', 2: 'RH', 3: 'LH'}
         colors = {0: 'red', 1: 'magenta', 2: 'blue', 3: 'cyan'}
         linecolors = {0: 'cornflowerblue', 1: 'sandybrown', 2: 'seagreen', 3: 'gold'}
-        
+
         'Figure1: Center of mass motion'
         fig1 = plt.figure()
         CoM_motion = Axes3D(fig1)
@@ -289,7 +289,7 @@ class Graphics:
                 cnt_pos = np.squeeze(np.asarray(cnt_pos))
                 cnt_ori = self.effs_cnts[eff_id][cnt_id].ori[:,2]
                 CoM_motion.text(cnt_pos[0]+offset, cnt_pos[1]+offset, cnt_pos[2]+offset, endeffectors[eff_id]+str(cnt_id), color=colors[eff_id])
-                  
+
                 point  = np.array([cnt_pos[0], cnt_pos[1], cnt_pos[2]])
                 normal = np.array([cnt_ori[0,0], cnt_ori[1,0], cnt_ori[2,0]])
                 d = -point.dot(normal)
@@ -298,18 +298,18 @@ class Graphics:
                 CoM_motion.plot_wireframe(xx, yy, z, color=colors[eff_id], linewidth=1.5)
                 CoM_motion.plot_surface(xx, yy, z, edgecolors=colors[eff_id], color=colors[eff_id], alpha = 0.5)
                 CoM_motion.scatter(xs=cnt_pos[0], ys=cnt_pos[1], zs=cnt_pos[2], zdir='z', s=50, c=colors[eff_id], depthshade=True)
-         
+
         CoM_motion.tick_params(labelsize=com_axis_tick_size, colors=com_axis_tick_color)
         CoM_motion.set_xlabel('Lateral direction', fontsize=com_axis_label_size, color=com_axis_label_color)
         CoM_motion.set_ylabel('Forward direction', fontsize=com_axis_label_size, color=com_axis_label_color)
-        CoM_motion.set_zlabel('Vertical direction', fontsize=com_axis_label_size, color=com_axis_label_color)        
+        CoM_motion.set_zlabel('Vertical direction', fontsize=com_axis_label_size, color=com_axis_label_color)
 
         'Figure2: Linear and angular momenta, forces and timesteps'
         mom_line_width = 2
         momref_line_width = 2
         mom_axis_tick_size = 10
         mom_axis_label_size = 10
-        
+
         lmomx_y_size = [-50.0/self.robot_mass, 50.0/self.robot_mass]
         lmomy_y_size = [-25.0/self.robot_mass, 25.0/self.robot_mass]
         lmomz_y_size = [-25.0/self.robot_mass, 25.0/self.robot_mass]
@@ -340,10 +340,10 @@ class Graphics:
         frc_axis_label_color = '#373834'
         frc_legend_frame_color = '#ACADA9'
         frc_legend_frame_background_color = '#EAECEF'
-        
+
         fig1 = plt.figure(figsize=(10,5))
         gs = gridspec.GridSpec(4, 3)
-        
+
         lmom_x1 = plt.subplot(gs[0,0])
         lmom_y1 = plt.subplot(gs[0,1])
         lmom_z1 = plt.subplot(gs[0,2])
