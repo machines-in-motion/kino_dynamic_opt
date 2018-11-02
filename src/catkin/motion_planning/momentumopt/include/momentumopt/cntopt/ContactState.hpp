@@ -58,6 +58,10 @@ namespace momentumopt {
       Eigen::Vector3d& contactPosition() { return position_; }
       Eigen::Quaternion<double>& contactOrientation() { return orientation_; }
 
+      void contactActivationTime(const double& time_ini) { time_ini_ = time_ini; }
+      void contactDeactivationTime(const double& time_end) { time_end_ = time_end; }
+      void contactPosition(const Eigen::Vector3d& position) { position_ = position; }
+
       const int& terrainId() const { return terrain_id_; }
       const int& optimizationId() const { return optimization_id_; }
       const ContactType& contactType() const { return contact_type_; }
@@ -90,6 +94,9 @@ namespace momentumopt {
   class ContactSequence
   {
     public:
+	  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+    public:
       ContactSequence(){}
       ~ContactSequence(){}
 
@@ -98,12 +105,12 @@ namespace momentumopt {
       void loadFromFile(const std::string cfg_file, const std::string contact_plan_name = "contact_plan");
       std::vector<ContactState>& endeffectorContacts(int eff_id) { return endeffector_contacts_[eff_id]; }
       const std::vector<ContactState>& endeffectorContacts(int eff_id) const { return endeffector_contacts_[eff_id]; }
+      void endeffectorContacts(int eff_id, const std::vector<ContactState>& endeffector_contacts) { endeffector_contacts_[eff_id] = endeffector_contacts; }
 
       std::string toString() const;
       friend std::ostream& operator<<(std::ostream &os, const ContactSequence& obj) { return os << obj.toString(); }
 
     private:
-      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
       int num_optimization_contacts_;
       std::array<std::vector<ContactState>, Problem::n_endeffs_> endeffector_contacts_;
   };

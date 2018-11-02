@@ -24,10 +24,30 @@
 namespace py = pybind11;
 using namespace momentumopt;
 
+PYBIND11_MAKE_OPAQUE(std::vector<ContactState>);
+
 void init_contacts(py::module &m)
 {
+  // binding of stl containers
+  py::bind_vector<std::vector<ContactState>>(m, "CntStateVector");
+
+  // binding of contacts state
+  py::class_<ContactState>(m, "ContactState")
+    .def(py::init<>())
+    .def_property("start_time", (const double& (ContactState::*)(void) const) &ContactState::contactActivationTime, (void (ContactState::*)(const double&)) &ContactState::contactActivationTime)
+    .def_property("end_time", (const double& (ContactState::*)(void) const) &ContactState::contactDeactivationTime, (void (ContactState::*)(const double&)) &ContactState::contactDeactivationTime)
+    .def_property("position", (const Eigen::Vector3d& (ContactState::*)(void) const) &ContactState::contactPosition, (void (ContactState::*)(const Eigen::Vector3d&)) &ContactState::contactPosition)
+    .def("__repr__", [](const ContactState &cnt_state) { return cnt_state.toString(); } );
+
+  // binding of contacts sequence
+  py::class_<ContactSequence>(m, "ContactSequence")
+    .def(py::init<>())
+    .def("contact_states", (const std::vector<ContactState>& (ContactSequence::*)(int) const) &ContactSequence::endeffectorContacts)
+	.def("__repr__", [](const ContactSequence &cnt_seq) { return cnt_seq.toString(); } );
+
   py::class_<ContactPlanInterface, ContactPlanFromFile>(m, "ContactPlanFromFile")
     .def(py::init<>())
     .def("initialize", &ContactPlanInterface::initialize)
-    .def("optimize", &ContactPlanInterface::optimize);
+    .def("optimize", &ContactPlanInterface::optimize)
+    .def("contactSequence", (const ContactSequence& (ContactPlanInterface::*)(void) const) &ContactPlanInterface::contactSequence);
 }

@@ -58,6 +58,7 @@ class PinocchioKinematicsInterface(KinematicsInterface):
 
 'Main function for optimization demo'
 def main(argv):
+
     cfg_file = ''
     try:
         opts, args = getopt.getopt(argv,"hi:",["ifile="])
@@ -93,7 +94,7 @@ def main(argv):
     contact_plan = ContactPlanFromFile()
     contact_plan.initialize(planner_setting)
     contact_plan.optimize(ini_state, terrain_description)
-      
+
     #'optimize motion'
     dyn_optimizer = DynamicsOptimizer()
     dyn_optimizer.initialize(planner_setting)
@@ -101,6 +102,8 @@ def main(argv):
   
     #print dyn_optimizer.solveTime()
     #print dyn_optimizer.dynamicsSequence().dynamics_states[planner_setting.get(PlannerIntParam_NumTimesteps)-1]
+    #print contact_plan.contactSequence().contact_states(0)[0].position
+
      
     ################################################################
     ################################################################
