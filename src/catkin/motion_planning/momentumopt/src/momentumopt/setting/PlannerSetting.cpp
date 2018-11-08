@@ -57,6 +57,7 @@ namespace momentumopt {
 	  readParameter(planner_vars, "time_step", time_step_);
 	  readParameter(planner_vars, "n_act_eefs", num_act_eefs_);
 	  readParameter(planner_vars, "time_horizon", time_horizon_);
+    readParameter(planner_vars, "min_rel_height", min_rel_height_);
 	  readParameter(planner_vars, "external_force", external_force_);
       readParameter(planner_vars, "com_displacement", com_displacement_);
       if (readParameter<std::string>(planner_vars, "heuristic").compare("TrustRegion")==0) { heuristic_ = Heuristic::TrustRegion; }
@@ -198,6 +199,7 @@ namespace momentumopt {
       // Dynamics parameters
       case PlannerDoubleParam_TimeStep : { return time_step_; }
       case PlannerDoubleParam_TimeHorizon : { return time_horizon_; }
+      case PlannerDoubleParam_MinRelHeight : { return min_rel_height_; }
 
       // Time optimization parameters
       case PlannerDoubleParam_MaxTimeResidualTolerance : { return max_time_residual_tolerance_; }
@@ -381,6 +383,7 @@ namespace momentumopt {
       // Dynamics parameters
       case PlannerDoubleParam_TimeStep : { return time_step_; }
       case PlannerDoubleParam_TimeHorizon : { return time_horizon_; }
+      case PlannerDoubleParam_MinRelHeight : { return min_rel_height_; }
 
       // Time optimization parameters
       case PlannerDoubleParam_MaxTimeResidualTolerance : { return max_time_residual_tolerance_; }

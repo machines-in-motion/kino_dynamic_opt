@@ -56,6 +56,7 @@ namespace momentumopt {
 	PlannerDoubleParam_RobotMass,
 	PlannerDoubleParam_RobotWeight,
 	PlannerDoubleParam_TimeHorizon,
+    PlannerDoubleParam_MinRelHeight,
 	PlannerDoubleParam_MassTimesGravity,
 	PlannerDoubleParam_FrictionCoefficient,
 	PlannerDoubleParam_MaxTimeResidualTolerance,

@@ -26,9 +26,9 @@
 namespace py = pybind11;
 using namespace momentumopt;
 
-PYBIND11_MAKE_OPAQUE(std::vector<KinematicsState>);
-PYBIND11_MAKE_OPAQUE(std::vector<Eigen::MatrixXd>);
-PYBIND11_MAKE_OPAQUE(std::vector<Eigen::Vector3d>);
+PYBIND11_MAKE_OPAQUE(std::vector<KinematicsState>)
+PYBIND11_MAKE_OPAQUE(std::vector<Eigen::MatrixXd>)
+PYBIND11_MAKE_OPAQUE(std::vector<Eigen::Vector3d>)
 
 void init_kinematics(py::module &m)
 {

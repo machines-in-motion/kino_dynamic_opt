@@ -25,7 +25,7 @@
 namespace py = pybind11;
 using namespace momentumopt;
 
-PYBIND11_MAKE_OPAQUE(std::vector<DynamicsState>);
+PYBIND11_MAKE_OPAQUE(std::vector<DynamicsState>)
 
 void init_dynamics(py::module &m)
 {
@@ -42,6 +42,7 @@ void init_dynamics(py::module &m)
     .def_property("lmomd", (const Eigen::Vector3d& (DynamicsState::*)(void) const) &DynamicsState::linearMomentumRate, (void (DynamicsState::*)(const Eigen::Vector3d&)) &DynamicsState::linearMomentumRate)
     .def_property("amomd", (const Eigen::Vector3d& (DynamicsState::*)(void) const) &DynamicsState::angularMomentumRate, (void (DynamicsState::*)(const Eigen::Vector3d&)) &DynamicsState::angularMomentumRate)
 	.def("fillInitialRobotState", &DynamicsState::fillInitialRobotState, py::arg("cfg_file"), py::arg("robot_state") = "initial_robot_configuration")
+    .def("eff", (const Eigen::Vector3d& (DynamicsState::*)(int) const) &DynamicsState::endeffectorPosition)
     .def("__repr__", [](const DynamicsState &dyn_state) { return dyn_state.toString(); } );
 
   // binding of dynamics sequence

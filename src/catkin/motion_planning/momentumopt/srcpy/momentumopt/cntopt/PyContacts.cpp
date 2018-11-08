@@ -24,7 +24,7 @@
 namespace py = pybind11;
 using namespace momentumopt;
 
-PYBIND11_MAKE_OPAQUE(std::vector<ContactState>);
+PYBIND11_MAKE_OPAQUE(std::vector<ContactState>)
 
 void init_contacts(py::module &m)
 {

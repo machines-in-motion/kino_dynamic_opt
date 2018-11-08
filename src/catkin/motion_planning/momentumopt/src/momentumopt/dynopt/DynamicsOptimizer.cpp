@@ -263,6 +263,16 @@ namespace momentumopt {
 
       model_.setObjective(quad_objective_, 0.0);
 
+      // center of mass above endeffector positions
+      for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++) {
+        model_.addLinConstr(LinExpr(vars_[com_.id(2,time_id)]) - LinExpr(this->contactLocation(0, 0, 2)), ">", this->getSetting().get(PlannerDoubleParam_MinRelHeight));
+        //for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++) {
+        //  if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id)) {
+        //      model_.addLinConstr(vars_[com_.id(2,time_id)] - this->contactLocation(time_id, eff_id, 2), ">", this->getSetting().get(PlannerDoubleParam_MinRelHeight));
+        //  }
+        //}
+      }
+
       // constant time horizon with time adaptation
       if (this->getSetting().get(PlannerBoolParam_IsTimeHorizonFixed) && this->getSetting().heuristic() == Heuristic::TimeOptimization) {
         lin_cons_ = 0.0;

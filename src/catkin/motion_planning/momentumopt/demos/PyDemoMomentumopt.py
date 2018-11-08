@@ -23,6 +23,10 @@ from pinocchio.utils import *
 from pinocchio.robot_wrapper import RobotWrapper
 import os, sys, getopt, numpy as np, pinocchio as pin
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from src.momentumopt.kinoptpy.kinematics_optimizer import KinematicsOptimizer
+
+
 'Kinematics Interface using Pinocchio'
 class PinocchioKinematicsInterface(KinematicsInterface):
     def __init__(self):
@@ -102,22 +106,23 @@ def main(argv):
     dyn_optimizer.initialize(planner_setting)
     dyn_optimizer.optimize(ini_state, contact_plan, kin_sequence)
 
-    #print dyn_optimizer.solveTime()
-    #print dyn_optimizer.dynamicsSequence().dynamics_states[planner_setting.get(PlannerIntParam_NumTimesteps)-1]
-    #print contact_plan.contactSequence().contact_states(0)[0].position
+    # print dyn_optimizer.solveTime()
+    # print dyn_optimizer.dynamicsSequence().dynamics_states[planner_setting.get(PlannerIntParam_NumTimesteps)-1]
+    # print contact_plan.contactSequence().contact_states(0)[0].position
 
-    ################################################################
-    ################################################################
-    #'Kinematics Interface'
-    #kin_interface = PinocchioKinematicsInterface()
+    # 'Kinematics Interface'
+    # kin_interface = PinocchioKinematicsInterface()
 
-    #'Kinematics Optimizer'
-    #kin_optimizer = KinematicsOptimizer()
-    #kin_optimizer.initialize(planner_setting, kin_interface)
-    #kin_optimizer.optimize(ini_state, dyn_optimizer.dynamicsSequence(), True)
-    ################################################################
-    ################################################################
+    'Kinematics Optimizer'
+    kin_optimizer = KinematicsOptimizer()
+    kin_optimizer.initialize(planner_setting)
+    kin_optimizer.optimize(ini_state, contact_plan.contactSequence(), dyn_optimizer.dynamicsSequence())
 
+    #print "Second Dynamic Iteration"
+    #dyn_optimizer.optimize(ini_state, contact_plan, kin_optimizer.kinematics_sequence, True)
+
+    #print "Second Kinematic Iteration"
+    #kin_optimizer.optimize(ini_state, contact_plan.contactSequence(), dyn_optimizer.dynamicsSequence())
 
     print('Done...')
 

@@ -75,7 +75,7 @@ namespace momentumopt {
       /*! helper double variables for the optimization problem */
       double gravity_, time_step_, robot_mass_, time_horizon_, friction_coeff_, max_time_residual_tolerance_,
              min_time_residual_improvement_, mass_times_gravity_, w_trq_arm_, w_trq_leg_, w_time_penalty_, w_time_,
-             convergence_tolerance_;
+             convergence_tolerance_, min_rel_height_;
 
       /*! helper vector variables for the optimization problem */
       Eigen::Vector2d time_range_, torque_range_;
