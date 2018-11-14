@@ -1,6 +1,6 @@
 from numpy import *
-from cvxopt import matrix, spmatrix
-from cvxopt.solvers import options, qp
+# from cvxopt import matrix, spmatrix
+# from cvxopt.solvers import options, qp
 # from cvxpy import Constant, Minimize, Problem, Variable, quad_form
 from quadprog import solve_qp
 
@@ -55,15 +55,15 @@ class QpSolver():
                 qp_C = -vstack([A, G]).T
                 qp_b = -hstack([b, h])
                 meq = A.shape[0]
-                # print "EQUALITY AND INEQUALITY CONSTRAINTS"
+                # print("EQUALITY AND INEQUALITY CONSTRAINTS")
             else:   # no equality constraint
                 qp_C = -G.T
                 qp_b = -h
                 meq = 0
-                # print "NO EQUALITY CONSTRAINT"
+                # print("NO EQUALITY CONSTRAINT")
             return solve_qp(qp_G, qp_a, qp_C, qp_b, meq)[0]
         else:
-            # print "UNCONSTRAINED OPTIMIZATION"
+            # print("UNCONSTRAINED OPTIMIZATION")
             return solve_qp(qp_G, qp_a)[0]
 
     def cvxopt_solve_qp(self, P, q, G=None, h=None, A=None, b=None):

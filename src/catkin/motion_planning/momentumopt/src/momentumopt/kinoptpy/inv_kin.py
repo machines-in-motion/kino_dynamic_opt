@@ -3,7 +3,7 @@ import pinocchio as se3
 # from pinocchio.robot_wrapper import RobotWrapper
 from pinocchio.utils import *
 from numpy.linalg import pinv
-from qp import QpSolver
+from src.momentumopt.kinoptpy.qp import QpSolver
 
 class InverseKinematics:
   def __init__(self, dt, nq):

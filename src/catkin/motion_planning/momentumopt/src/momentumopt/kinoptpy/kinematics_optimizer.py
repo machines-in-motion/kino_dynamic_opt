@@ -4,13 +4,12 @@ import pdb
 
 import pinocchio as se3
 from pinocchio.utils import *
-from qp import QpSolver
-
 from pymomentum import *
-from min_jerk_traj import generate_eff_traj
-from quadruped.quadruped_wrapper import QuadrupedWrapper
-from inv_kin import InverseKinematics
-from utils import norm, display_motion
+
+from src.momentumopt.kinoptpy.min_jerk_traj import generate_eff_traj
+from src.momentumopt.kinoptpy.quadruped.quadruped_wrapper import QuadrupedWrapper
+from src.momentumopt.kinoptpy.inv_kin import InverseKinematics
+from src.momentumopt.kinoptpy.utils import norm, display_motion
 
 
 class Contact:
@@ -244,7 +243,7 @@ class KinematicsOptimizer:
 
         for t in range(len(self.time)):
             i = 0
-            print "time =", self.time[t]
+            print("time =", self.time[t])
             desired_velocities, jacobians = self.create_tasks(t, com_motion, contacts, eff_traj_poly)
 
             # Set weightsfor tasks
@@ -271,8 +270,8 @@ class KinematicsOptimizer:
 
             while norm(desired_velocities, ik.weights) > self.eps and i < self.max_iterations: 
                 if i % self.max_iterations == 0 and i > 0:
-                    print "Error:", norm(desired_velocities)
-                    print "Used iterations:", i
+                    print("Error:", norm(desired_velocities))
+                    print("Used iterations:", i)
                 # x_current, y_current, z_current, w_current = np.squeeze(np.array(self.robot.q.copy()[3:7]), 1)
                 # delta_q_ang_vel = se3.log3(self.Rquat(x=x_before, y=y_before, z=z_before, w=w_before).transpose() * R_before)
                 G, h = self.create_constraints(z_floor, ik.dt)
@@ -280,13 +279,13 @@ class KinematicsOptimizer:
                 # q_dot += q_sol
                 self.robot.update_configuration(np.transpose(np.matrix(q_sol)) * ik.dt)
                 i += 1
-                # print i
+                # print(i)
 
             # q_after = self.robot.q.copy()
             # self.robot.set_configuration(q_before)
             # self.robot.update_configuration(np.transpose(np.matrix(q_dot)) * ik.dt)
-            # # print q_after
-            # print q_after - self.robot.q
+            # # print(q_after)
+            # print(q_after - self.robot.q)
 
             # pdb.set_trace()
             # self.robot.set_configuration(q_after)
@@ -302,7 +301,7 @@ class KinematicsOptimizer:
                     self.ik_motion[joint_identifier][t, :] = np.squeeze(self.transformations_dict[joint_identifier](), 1)
                     
 
-            print "Finished after iteration:", i
+            print("Finished after iteration:", i)
             q_traj.append(self.robot.q)
             ik.delete_tasks()
             self.robot.display(self.robot.q)
