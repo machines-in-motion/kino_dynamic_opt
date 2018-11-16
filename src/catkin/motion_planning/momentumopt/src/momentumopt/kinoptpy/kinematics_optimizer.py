@@ -7,7 +7,7 @@ from pinocchio.utils import *
 from pymomentum import *
 
 from src.momentumopt.kinoptpy.min_jerk_traj import generate_eff_traj
-from src.momentumopt.kinoptpy.quadruped.quadruped_wrapper import QuadrupedWrapper
+from src.quadruped.quadruped_wrapper import QuadrupedWrapper
 from src.momentumopt.kinoptpy.inv_kin import InverseKinematics
 from src.momentumopt.kinoptpy.utils import norm, display_motion
 
@@ -48,9 +48,19 @@ def set_new_goal(goal_position):
     new_pos = np.zeros((3, 1))
     for i in range(3):
         new_pos[i, 0] = goal_position[i]
-        # new_pos[i, 0] = contacts[eff][phase].position()[i]
 
     return new_pos
+
+
+def create_time_vector(dynamics_sequence):
+    num_time_steps = len(dynamics_sequence.dynamics_states)
+    # Create time vector
+    time = np.zeros((num_time_steps))
+    time[0] = dynamics_sequence.dynamics_states[0].dt
+    for i in range(num_time_steps - 1):
+        time[i + 1] = time[i] + dynamics_sequence.dynamics_states[i].dt
+
+    return time
 
 
 class KinematicsOptimizer:
@@ -64,7 +74,7 @@ class KinematicsOptimizer:
         self.num_time_steps = planner_setting.get(PlannerIntParam_NumTimesteps)
 
         # Load the robot from URDF-model
-        urdf = str(os.path.dirname(os.path.abspath(__file__)) + '/quadruped/quadruped.urdf')
+        urdf = str(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + '/urdf/quadruped.urdf')
         self.robot = QuadrupedWrapper(urdf)
         self.max_iterations = max_iterations
         self.eps = eps
@@ -180,11 +190,7 @@ class KinematicsOptimizer:
         self.robot.viewer.gui.applyConfiguration('world/floor',[0.0, 0.0, z_floor,  0.0, 0.0, 0.0, 1.0])
         self.robot.viewer.gui.refresh()
 
-        # Create time vector
-        self.time = np.zeros((self.num_time_steps))
-        self.time[0] = dynamics_sequence.dynamics_states[0].dt
-        for i in range(self.num_time_steps - 1):
-            self.time[i + 1] = self.time[i] + dynamics_sequence.dynamics_states[i].dt
+        self.time = create_time_vector(dynamics_sequence)
 
         # Get COM motion
         com_motion = np.zeros((self.num_time_steps, 3))
@@ -228,11 +234,15 @@ class KinematicsOptimizer:
         ik = InverseKinematics(self.dt, self.robot.nq)
         q_traj = []
 
+        num_uncontrolled_joints = self.robot.q.shape[0] - self.robot.num_ctrl_joints
+
         # Initialize dictionary for motion of all joints and COM
         self.ik_motion = {}
         self.ik_motion["COM"] = np.zeros((len(self.time), 3))
         self.ik_motion["LMOM"] = np.zeros((len(self.time), 3))
         self.ik_motion["AMOM"] = np.zeros((len(self.time), 3))
+        self.ik_motion["joint_configurations"] = np.zeros((len(self.time), self.robot.num_ctrl_joints))
+        self.ik_motion["joint_velocities"] = np.zeros((len(self.time), self.robot.num_ctrl_joints))
         for eff in self.robot.effs:
             for joint in self.robot.joints_list:
                 joint_identifier = eff + "_" + joint
@@ -295,20 +305,24 @@ class KinematicsOptimizer:
             self.ik_motion["COM"][t, :] = np.squeeze(self.transformations_dict["COM"](), 1)
             self.ik_motion["LMOM"][t, :] = np.squeeze(self.robot.data.hg.vector[:3], 1)
             self.ik_motion["AMOM"][t, :] = np.squeeze(self.robot.data.hg.vector[3:], 1)
+            self.ik_motion["joint_configurations"][t, :] = np.squeeze(np.array(self.robot.q[num_uncontrolled_joints:]), 1)
+            if t == 0:
+                q_1 = self.robot.q
+            else:
+                q_1 = q_traj[-1]
+            q_vel = se3.difference(self.robot.model, q_1, self.robot.q)
+            self.ik_motion["joint_velocities"][t, :] = np.squeeze(np.array(q_vel[num_uncontrolled_joints - 1:]), 1)
             for eff in self.robot.effs:
                 for joint in self.robot.joints_list:
                     joint_identifier = eff + "_" + joint
                     self.ik_motion[joint_identifier][t, :] = np.squeeze(self.transformations_dict[joint_identifier](), 1)
                     
-
             print("Finished after iteration:", i)
             q_traj.append(self.robot.q)
             ik.delete_tasks()
             self.robot.display(self.robot.q)
 
-        display_motion(self.robot, q_traj, self.time)
-
-        # pdb.set_trace()
+        # display_motion(self.robot, q_traj, self.time)
 
         q_matrix = np.zeros((len(q_traj), q_traj[0].shape[0]))
         for i in range(len(q_traj)):
@@ -316,13 +330,16 @@ class KinematicsOptimizer:
 
         self.populate_sequence()
 
-        self.plot_motion(com_motion, lmom, amom, eff_traj_poly, z_floor)
+        # self.plot_motion(com_motion, lmom, amom, eff_traj_poly, z_floor)
 
     def populate_sequence(self):
         for time_id in range(self.num_time_steps):
-            self.kinematics_sequence.kinematics_states[time_id].com = self.ik_motion["COM"][time_id, :]
-            self.kinematics_sequence.kinematics_states[time_id].lmom = self.ik_motion["LMOM"][time_id, :]
-            self.kinematics_sequence.kinematics_states[time_id].amom = self.ik_motion["AMOM"][time_id, :]
+            kinematic_state = self.kinematics_sequence.kinematics_states[time_id]
+            kinematic_state.com = self.ik_motion["COM"][time_id, :]
+            kinematic_state.lmom = self.ik_motion["LMOM"][time_id, :]
+            kinematic_state.amom = self.ik_motion["AMOM"][time_id, :]
+            kinematic_state.robot_posture.joint_positions = self.ik_motion["joint_configurations"][time_id, :]
+            kinematic_state.robot_velocity.joint_velocities = self.ik_motion["joint_velocities"][time_id, :]
 
     def plot_motion(self, com_motion, lmom, amom, eff_traj_poly, z_floor):
         import matplotlib.pyplot as plt

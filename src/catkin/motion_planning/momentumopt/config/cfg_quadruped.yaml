@@ -46,7 +46,7 @@ planner_variables:
   # Kinematics parameters #
   #########################
   
-  load_kinematics: False
+  load_kinematics: True
   num_dofs: 8
   active_dofs: [0, 1, 2, 3, 4, 5, 6, 7]
   min_joint_limits: [-2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5]

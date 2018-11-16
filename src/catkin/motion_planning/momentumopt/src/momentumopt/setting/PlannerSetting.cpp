@@ -37,14 +37,14 @@ namespace momentumopt {
 	  readParameter(planner_vars, "load_kinematics", load_kinematics_);
       if (load_kinematics_) {
 	    readParameter(planner_vars, "num_dofs", num_dofs_);
-	    readParameter(planner_vars, "min_joint_limits", min_joint_limits_);
-        readParameter(planner_vars, "max_joint_limits", max_joint_limits_);
-        readParameter(planner_vars, "default_joint_positions", default_joint_positions_);
+	    // readParameter(planner_vars, "min_joint_limits", min_joint_limits_);
+     //    readParameter(planner_vars, "max_joint_limits", max_joint_limits_);
+     //    readParameter(planner_vars, "default_joint_positions", default_joint_positions_);
 
-        readParameter(planner_vars, "active_dofs", active_dofs_);
-        extended_active_dofs_ = Eigen::VectorXi(active_dofs_.size()+6).setZero();
-        for (int dof_id=0; dof_id<6; dof_id++) { extended_active_dofs_[dof_id] = dof_id; }
-        for (int dof_id=0; dof_id<active_dofs_.size(); dof_id++) { extended_active_dofs_[6+dof_id] = 6+active_dofs_[dof_id]; }
+     //    readParameter(planner_vars, "active_dofs", active_dofs_);
+     //    extended_active_dofs_ = Eigen::VectorXi(active_dofs_.size()+6).setZero();
+     //    for (int dof_id=0; dof_id<6; dof_id++) { extended_active_dofs_[dof_id] = dof_id; }
+     //    for (int dof_id=0; dof_id<active_dofs_.size(); dof_id++) { extended_active_dofs_[6+dof_id] = 6+active_dofs_[dof_id]; }
       }
 
 	  // Dynamics parameters
@@ -113,17 +113,17 @@ namespace momentumopt {
 
       // Kinematics weights
       if (load_kinematics_) {
-	    readParameter(planner_vars, "w_kin_com", w_kin_com_);
-	    readParameter(planner_vars, "w_kin_lmom", w_kin_lmom_);
-	    readParameter(planner_vars, "w_kin_amom", w_kin_amom_);
-	    readParameter(planner_vars, "w_kin_lmomd", w_kin_lmomd_);
-	    readParameter(planner_vars, "w_kin_amomd", w_kin_amomd_);
-	    readParameter(planner_vars, "w_kin_eff_pos", w_kin_eff_pos_);
-	    readParameter(planner_vars, "w_kin_joint_vel", w_kin_joint_vel_);
-	    readParameter(planner_vars, "w_kin_joint_acc", w_kin_joint_acc_);
-	    readParameter(planner_vars, "w_kin_default_joints", w_kin_default_joints_);
-	    readParameter(planner_vars, "max_convergence_iters", max_convergence_iters_);
-	    readParameter(planner_vars, "convergence_tolerance", convergence_tolerance_);
+	    // readParameter(planner_vars, "w_kin_com", w_kin_com_);
+	    // readParameter(planner_vars, "w_kin_lmom", w_kin_lmom_);
+	    // readParameter(planner_vars, "w_kin_amom", w_kin_amom_);
+	    // readParameter(planner_vars, "w_kin_lmomd", w_kin_lmomd_);
+	    // readParameter(planner_vars, "w_kin_amomd", w_kin_amomd_);
+	    // readParameter(planner_vars, "w_kin_eff_pos", w_kin_eff_pos_);
+	    // readParameter(planner_vars, "w_kin_joint_vel", w_kin_joint_vel_);
+	    // readParameter(planner_vars, "w_kin_joint_acc", w_kin_joint_acc_);
+	    // readParameter(planner_vars, "w_kin_default_joints", w_kin_default_joints_);
+	    // readParameter(planner_vars, "max_convergence_iters", max_convergence_iters_);
+	    // readParameter(planner_vars, "convergence_tolerance", convergence_tolerance_);
       }
 
       // Storage information

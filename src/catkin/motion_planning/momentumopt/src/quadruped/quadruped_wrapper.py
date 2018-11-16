@@ -1,3 +1,5 @@
+import os
+
 import pinocchio as se3
 from pinocchio.robot_wrapper import RobotWrapper
 from pinocchio.utils import *
@@ -5,7 +7,8 @@ from pinocchio.utils import *
 class QuadrupedWrapper(RobotWrapper):
 
     def __init__(self, urdf, dt=0.01, q=None):
-        RobotWrapper.__init__(self, urdf, root_joint=se3.JointModelFreeFlyer())
+        package_dirs = [os.path.dirname(os.path.dirname(os.path.abspath(__file__)))]
+        RobotWrapper.__init__(self, urdf, root_joint=se3.JointModelFreeFlyer(), package_dirs=package_dirs)
 
         # Create data again after setting frames
         self.data = self.model.createData()
@@ -33,7 +36,7 @@ class QuadrupedWrapper(RobotWrapper):
 
         # The free flyer has an idenitity placement
         identity_placement = np.matrix(se3.utils.se3ToXYZQUAT(se3.SE3.Identity())).T
-        self.q[:7] = identity_placement
+        self.q[:identity_placement.shape[0]] = identity_placement
 
         self.num_ctrl_joints = self.q.shape[0] - identity_placement.shape[0]
 
@@ -157,34 +160,6 @@ class QuadrupedWrapper(RobotWrapper):
         self.id_frame_fr_hfe = self.model.getFrameId("FR_HFE")
         self.id_frame_fr_kfe = self.model.getFrameId("FR_KFE")
 
-        frame_base = self.model.frames[self.id_frame_base]
-        frame_bl_end = self.model.frames[self.id_frame_bl_end]
-        frame_bl_hfe = self.model.frames[self.id_frame_bl_hfe]
-        frame_bl_kfe = self.model.frames[self.id_frame_bl_kfe]
-        frame_fl_end = self.model.frames[self.id_frame_fl_end]
-        frame_fl_hfe = self.model.frames[self.id_frame_fl_hfe]
-        frame_fl_kfe = self.model.frames[self.id_frame_fl_kfe]
-        frame_br_end = self.model.frames[self.id_frame_br_end]
-        frame_br_hfe = self.model.frames[self.id_frame_br_hfe]
-        frame_br_kfe = self.model.frames[self.id_frame_br_kfe]
-        frame_fr_end = self.model.frames[self.id_frame_fr_end]
-        frame_fr_hfe = self.model.frames[self.id_frame_fr_hfe]
-        frame_fr_kfe = self.model.frames[self.id_frame_fr_kfe]
-
-        self.viewer.gui.addXYZaxis('world/framebasis',[1.,0.,0.,1.],.03,.1)
-        self.viewer.gui.addXYZaxis('world/frameblend',[1.,0.,0.,1.],.03,.1)
-        self.viewer.gui.addXYZaxis('world/frameblhfe',[1.,0.,0.,1.],.03,.1)
-        self.viewer.gui.addXYZaxis('world/frameblkfe',[1.,0.,0.,1.],.03,.1)
-        self.viewer.gui.addXYZaxis('world/frameflend',[1.,0.,0.,1.],.03,.1)
-        self.viewer.gui.addXYZaxis('world/frameflhfe',[1.,0.,0.,1.],.03,.1)
-        self.viewer.gui.addXYZaxis('world/frameflkfe',[1.,0.,0.,1.],.03,.1)
-        self.viewer.gui.addXYZaxis('world/framebrend',[1.,0.,0.,1.],.03,.1)
-        self.viewer.gui.addXYZaxis('world/framebrhfe',[1.,0.,0.,1.],.03,.1)
-        self.viewer.gui.addXYZaxis('world/framebrkfe',[1.,0.,0.,1.],.03,.1)
-        self.viewer.gui.addXYZaxis('world/framefrend',[1.,0.,0.,1.],.03,.1)
-        self.viewer.gui.addXYZaxis('world/framefrhfe',[1.,0.,0.,1.],.03,.1)
-        self.viewer.gui.addXYZaxis('world/framefrkfe',[1.,0.,0.,1.],.03,.1)
-
         # Add 3D modelling parts manually, because they are somehow not displayed
         # TODO: Why can Gepetto not visualize directly from URDF-model
         self.viewer.gui.addBox('world/basis',.1,.2,.025,[1.0,1.0,1.0,1])
@@ -196,6 +171,19 @@ class QuadrupedWrapper(RobotWrapper):
         self.viewer.gui.addCylinder('world/flshank',.02,.16,[0.4,0.4,0.4, 1.])
         self.viewer.gui.addCylinder('world/frfemoral',.02,.16,[0.4,0.4,0.4, 1.])
         self.viewer.gui.addCylinder('world/frshank',.02,.16,[0.4,0.4,0.4, 1.])
+
+        self.viewer.gui.addSphere('world/blhip',.03,[1.0,0.0,0.0, 1.])
+        self.viewer.gui.addSphere('world/blknee',.03,[1.0,0.0,0.0, 1.])
+        self.viewer.gui.addSphere('world/bleff',.03,[1.0,0.0,0.0, 1.])
+        self.viewer.gui.addSphere('world/brhip',.03,[1.0,0.0,0.0, 1.])
+        self.viewer.gui.addSphere('world/brknee',.03,[1.0,0.0,0.0, 1.])
+        self.viewer.gui.addSphere('world/breff',.03,[1.0,0.0,0.0, 1.])
+        self.viewer.gui.addSphere('world/flhip',.03,[1.0,0.0,0.0, 1.])
+        self.viewer.gui.addSphere('world/flknee',.03,[1.0,0.0,0.0, 1.])
+        self.viewer.gui.addSphere('world/fleff',.03,[1.0,0.0,0.0, 1.])
+        self.viewer.gui.addSphere('world/frhip',.03,[1.0,0.0,0.0, 1.])
+        self.viewer.gui.addSphere('world/frknee',.03,[1.0,0.0,0.0, 1.])
+        self.viewer.gui.addSphere('world/freff',.03,[1.0,0.0,0.0, 1.])
 
         self.viewer.gui.setStaticTransform('world/blfemoral',[ 0.00, 0.0,-0.08, 0.0,0.0,0.0,1.0])
         self.viewer.gui.setStaticTransform('world/blshank',[ 0.00, 0.0,-0.08, 0.0,0.0,0.0,1.0])
@@ -210,7 +198,6 @@ class QuadrupedWrapper(RobotWrapper):
         RobotWrapper.display(self,q)
         se3.updateFramePlacements(self.model,self.data)
 
-        # M1 = self.data.oMi[1]
         self.viewer.gui.applyConfiguration('world/basis', se3ToXYZQUAT(self.data.oMf[self.id_frame_base]))
         self.viewer.gui.applyConfiguration('world/blfemoral', se3ToXYZQUAT(self.data.oMf[self.id_frame_bl_hfe]))
         self.viewer.gui.applyConfiguration('world/blshank', se3ToXYZQUAT(self.data.oMf[self.id_frame_bl_kfe]))
@@ -220,20 +207,19 @@ class QuadrupedWrapper(RobotWrapper):
         self.viewer.gui.applyConfiguration('world/flshank', se3ToXYZQUAT(self.data.oMf[self.id_frame_fl_kfe]))
         self.viewer.gui.applyConfiguration('world/frfemoral', se3ToXYZQUAT(self.data.oMf[self.id_frame_fr_hfe]))
         self.viewer.gui.applyConfiguration('world/frshank', se3ToXYZQUAT(self.data.oMf[self.id_frame_fr_kfe]))
-        
-        self.viewer.gui.applyConfiguration('world/framebasis',se3ToXYZQUAT(self.data.oMf[self.id_frame_base]))
-        self.viewer.gui.applyConfiguration('world/frameblend',se3ToXYZQUAT(self.data.oMf[self.id_frame_bl_end]))  
-        self.viewer.gui.applyConfiguration('world/frameblhfe',se3ToXYZQUAT(self.data.oMf[self.id_frame_bl_hfe]))
-        self.viewer.gui.applyConfiguration('world/frameblkfe',se3ToXYZQUAT(self.data.oMf[self.id_frame_bl_kfe]))
-        self.viewer.gui.applyConfiguration('world/frameflend',se3ToXYZQUAT(self.data.oMf[self.id_frame_fl_end]))
-        self.viewer.gui.applyConfiguration('world/frameflhfe',se3ToXYZQUAT(self.data.oMf[self.id_frame_fl_hfe]))
-        self.viewer.gui.applyConfiguration('world/frameflkfe',se3ToXYZQUAT(self.data.oMf[self.id_frame_fl_kfe]))
-        self.viewer.gui.applyConfiguration('world/framebrend',se3ToXYZQUAT(self.data.oMf[self.id_frame_br_end]))
-        self.viewer.gui.applyConfiguration('world/framebrhfe',se3ToXYZQUAT(self.data.oMf[self.id_frame_br_hfe]))
-        self.viewer.gui.applyConfiguration('world/framebrkfe',se3ToXYZQUAT(self.data.oMf[self.id_frame_br_kfe]))
-        self.viewer.gui.applyConfiguration('world/framefrend',se3ToXYZQUAT(self.data.oMf[self.id_frame_fr_end]))
-        self.viewer.gui.applyConfiguration('world/framefrhfe',se3ToXYZQUAT(self.data.oMf[self.id_frame_fr_hfe]))
-        self.viewer.gui.applyConfiguration('world/framefrkfe',se3ToXYZQUAT(self.data.oMf[self.id_frame_fr_kfe]))
+
+        self.viewer.gui.applyConfiguration('world/blhip', se3ToXYZQUAT(self.data.oMf[self.id_frame_bl_hfe]))
+        self.viewer.gui.applyConfiguration('world/blknee', se3ToXYZQUAT(self.data.oMf[self.id_frame_bl_kfe]))
+        self.viewer.gui.applyConfiguration('world/bleff', se3ToXYZQUAT(self.data.oMf[self.id_frame_bl_end]))
+        self.viewer.gui.applyConfiguration('world/brhip', se3ToXYZQUAT(self.data.oMf[self.id_frame_br_hfe]))
+        self.viewer.gui.applyConfiguration('world/brknee', se3ToXYZQUAT(self.data.oMf[self.id_frame_br_kfe]))
+        self.viewer.gui.applyConfiguration('world/breff', se3ToXYZQUAT(self.data.oMf[self.id_frame_br_end]))
+        self.viewer.gui.applyConfiguration('world/flhip', se3ToXYZQUAT(self.data.oMf[self.id_frame_fl_hfe]))
+        self.viewer.gui.applyConfiguration('world/flknee', se3ToXYZQUAT(self.data.oMf[self.id_frame_fl_kfe]))
+        self.viewer.gui.applyConfiguration('world/fleff', se3ToXYZQUAT(self.data.oMf[self.id_frame_fl_end]))
+        self.viewer.gui.applyConfiguration('world/frhip', se3ToXYZQUAT(self.data.oMf[self.id_frame_fr_hfe]))
+        self.viewer.gui.applyConfiguration('world/frknee', se3ToXYZQUAT(self.data.oMf[self.id_frame_fr_kfe]))
+        self.viewer.gui.applyConfiguration('world/freff', se3ToXYZQUAT(self.data.oMf[self.id_frame_fr_end]))
         
         self.viewer.gui.refresh()
 
