@@ -30,7 +30,7 @@ class PDController(object):
 
 
 def desired_state(specification, time_vector, optimized_sequence):
-    
+
     def desired_state_eval(t):
         closest_idx = np.argmin(abs(time_vector - t))
         # Determine interval
@@ -87,7 +87,7 @@ class MotionExecutor():
         urdf = str(os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/urdf/quadruped.urdf')
         self.robot = QuadrupedWrapper(urdf)
 
-        self.joint_map = {} 
+        self.joint_map = {}
         self.joint_map_inv = {}
         for ji in range(num_joints):
             self.joint_map[p.getJointInfo(self.robotId, ji)[1].decode('UTF-8')] = ji
@@ -141,7 +141,7 @@ class MotionExecutor():
         print(p.getPhysicsEngineParameters())
 
     def bullet2pin(self, joint_id):
-        return self.pin_joint_map[self.joint_map_inv[joint_id]] 
+        return self.pin_joint_map[self.joint_map_inv[joint_id]]
 
     def execute_motion(self):
         controllers = [PDController(self.robotId, id, 5.0, 0.2) for id in self.controlled_joints]
@@ -159,19 +159,19 @@ class MotionExecutor():
                     pinocchio_index = self.bullet2pin(self.controlled_joints[i])
                     torques.append(c.control(self.init_config[pinocchio_index], 0.0))
 
-                if loop % 100 == 0:
-                    print(torques)
+                # if loop % 100 == 0:
+                #     print(torques)
 
                 # self.sim.send_joint_command(torques)
                 # self.sim.step()
 
                 p.stepSimulation()
+                # sleep(0.001)
 
                 loop += 1
-                sleep(0.001)
 
         except KeyboardInterrupt:
-            print("Keyboard interrupt") 
+            print("Keyboard interrupt")
 
         desired_pos = desired_state("POSITION", self.time_vector, self.optimized_sequence)
         desired_vel = desired_state("VELOCITY", self.time_vector, self.optimized_sequence)
@@ -187,12 +187,13 @@ class MotionExecutor():
         t_vec = np.zeros((max_num_iterations))
 
         loop = 0
-        t_0 = time()
+        # t_0 = time()
 
         # Apply gains for trajectory tracking
         try:
-            while time() - t_0 < time_horizon or loop < max_num_iterations:
-                t = time() - t_0
+            # while time() - t_0 < time_horizon or loop < max_num_iterations:
+            while loop < max_num_iterations:
+                t = loop / 1e3
 
                 torques = []
                 des_pos = desired_pos(t)
@@ -202,23 +203,21 @@ class MotionExecutor():
                     pinocchio_index = self.bullet2pin(self.controlled_joints[i])
 
                     torques.append(c.control(des_pos[pinocchio_index], des_vel[pinocchio_index]))
-                    actual_pos_arr[loop, i], actual_vel_arr[loop, i], nothing, nothing = p.getJointState(self.robotId, self.controlled_joints[i]) 
-                
+                    actual_pos_arr[loop, i], actual_vel_arr[loop, i], _, _ = p.getJointState(self.robotId, self.controlled_joints[i])
+
                 # self.sim.send_joint_command(torques)
 
-                if loop % 100 == 0:
-                    print(torques)
-                
+                # if loop % 100 == 0:
+                #     print(torques)
+
                 desired_pos_arr[loop, :] = des_pos
                 desired_vel_arr[loop, :] = des_vel
                 t_vec[loop] = t
 
-                # self.sim.step()
-
                 p.stepSimulation()
+                # sleep(0.001)
 
                 loop += 1
-                sleep(0.001)
 
             print(loop)
 
@@ -246,4 +245,4 @@ class MotionExecutor():
             plt.show()
 
         except KeyboardInterrupt:
-            print("Keyboard interrupt") 
+            print("Keyboard interrupt")
