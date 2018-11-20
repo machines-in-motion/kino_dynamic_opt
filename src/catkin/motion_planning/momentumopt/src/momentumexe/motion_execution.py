@@ -8,6 +8,7 @@ import pybullet as p
 from src.quadruped.quadruped_wrapper import QuadrupedWrapper
 # from src.momentumexe.simulator import Simulator
 
+
 np.set_printoptions(precision=2, suppress=True)
 
 
@@ -67,16 +68,16 @@ class MotionExecutor():
     def __init__(self, optimized_sequence, time_vector):
         self.optimized_sequence = optimized_sequence
         self.time_vector = time_vector
-        physicsClient = p.connect(p.GUI)
-        # physicsClient = p.connect(p.DIRECT)
+
+        # physicsClient = p.connect(p.GUI)
+        physicsClient = p.connect(p.DIRECT)
+
         urdf_base_string = str(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         planeId = p.loadURDF(urdf_base_string + "/urdf/plane_with_restitution.urdf")
-        print(p.getDynamicsInfo(planeId, -1))
         cubeStartPos = [0,0,0.30]
         cubeStartOrientation = p.getQuaternionFromEuler([0,0,0])
         self.robotId = p.loadURDF(urdf_base_string + "/urdf/quadruped.urdf",cubeStartPos, cubeStartOrientation, flags=p.URDF_USE_INERTIA_FROM_FILE)
         cubePos, cubeOrn = p.getBasePositionAndOrientation(self.robotId)
-        print(cubePos)
 
         useRealTimeSimulation = False
 
@@ -94,7 +95,7 @@ class MotionExecutor():
             self.joint_map_inv[ji] = p.getJointInfo(self.robotId, ji)[1].decode('UTF-8')
             p.changeDynamics(self.robotId,ji,linearDamping=.04, angularDamping=0.04, restitution=0.0, lateralFriction=0.5)
 
-        print(self.joint_map)
+        # print(self.joint_map)
 
         FL_HFE = self.joint_map['FL_HFE']
         FL_KFE = self.joint_map['FL_KFE']
@@ -143,6 +144,44 @@ class MotionExecutor():
     def bullet2pin(self, joint_id):
         return self.pin_joint_map[self.joint_map_inv[joint_id]] 
 
+    def calculate_actual_trajectories(self, num_loops, t_vec, joint_configurations, base_states):
+        print("Determining actual COM, LMOM and AMOM trajectories...")
+        com_trajectory = np.zeros((num_loops, 3))
+        lmom_trajectory = np.zeros((num_loops, 3))
+        amom_trajectory = np.zeros((num_loops, 3))
+
+        q_new = self.robot.q.copy()
+        q_previous = self.robot.q.copy()
+        num_uncontrolled_joints = q_new.shape[0] - len(self.controlled_joints)
+
+        for loop in range(num_loops):
+            q_new[:num_uncontrolled_joints] = np.reshape(base_states[loop], (num_uncontrolled_joints, 1))
+
+            q_offset_index = num_uncontrolled_joints - 2
+            for i in range(len(self.controlled_joints)):
+                joint_state = joint_configurations[loop, i]
+                bullet_name = self.joint_map_inv[self.controlled_joints[i]]
+                joint_id = self.robot.model.getJointId(bullet_name)
+
+                q_new[q_offset_index + joint_id, 0] = joint_state
+
+            self.robot.set_configuration(q_new)
+
+            if loop == 0:
+                q_previous = q_new.copy()
+                q_dot = self.robot.get_difference(q_previous, q_new)
+            else:
+                q_dot = self.robot.get_difference(q_previous, q_new) / (t_vec[loop] - t_vec[loop - 1]) 
+            
+            self.robot.centroidalMomentum(q_new, q_dot)
+            q_previous = q_new.copy()
+            com_trajectory[loop, :] = np.squeeze(np.array(self.robot.com(q_new)), 1)
+            lmom_trajectory[loop, :] = np.squeeze(self.robot.data.hg.vector[:3], 1)
+            amom_trajectory[loop, :] = np.squeeze(self.robot.data.hg.vector[3:], 1)
+
+        print("...Done.")
+        return com_trajectory, lmom_trajectory, amom_trajectory
+
     def execute_motion(self):
         controllers = [PDController(self.robotId, id, 5.0, 0.2) for id in self.controlled_joints]
 
@@ -158,9 +197,6 @@ class MotionExecutor():
                 for i, c in enumerate(controllers):
                     pinocchio_index = self.bullet2pin(self.controlled_joints[i])
                     torques.append(c.control(self.init_config[pinocchio_index], 0.0))
-
-                if loop % 100 == 0:
-                    print(torques)
 
                 # self.sim.send_joint_command(torques)
                 # self.sim.step()
@@ -183,16 +219,21 @@ class MotionExecutor():
         desired_vel_arr = np.zeros((max_num_iterations, len(self.controlled_joints)))
         actual_pos_arr = np.zeros((max_num_iterations, len(self.controlled_joints)))
         actual_vel_arr = np.zeros((max_num_iterations, len(self.controlled_joints)))
+        base_states = np.zeros((max_num_iterations, 7))
 
         t_vec = np.zeros((max_num_iterations))
 
         loop = 0
-        t_0 = time()
+        # t_0 = time()
 
         # Apply gains for trajectory tracking
         try:
-            while time() - t_0 < time_horizon or loop < max_num_iterations:
-                t = time() - t_0
+            print("Executing motion...")
+            # while time() - t_0 < time_horizon and loop < max_num_iterations:
+            # t_0 = time()
+            while loop < max_num_iterations:
+                t = loop / 1e3
+                # t = time() - t_0
 
                 torques = []
                 des_pos = desired_pos(t)
@@ -202,15 +243,15 @@ class MotionExecutor():
                     pinocchio_index = self.bullet2pin(self.controlled_joints[i])
 
                     torques.append(c.control(des_pos[pinocchio_index], des_vel[pinocchio_index]))
-                    actual_pos_arr[loop, i], actual_vel_arr[loop, i], nothing, nothing = p.getJointState(self.robotId, self.controlled_joints[i]) 
+                    actual_pos_arr[loop, i], actual_vel_arr[loop, i], _, _ = p.getJointState(self.robotId, self.controlled_joints[i]) 
                 
                 # self.sim.send_joint_command(torques)
-
-                if loop % 100 == 0:
-                    print(torques)
                 
                 desired_pos_arr[loop, :] = des_pos
                 desired_vel_arr[loop, :] = des_vel
+                base_state_and_orientation = p.getBasePositionAndOrientation(self.robotId)
+                base_states[loop, :3] = base_state_and_orientation[0]
+                base_states[loop, 3:] = base_state_and_orientation[1]
                 t_vec[loop] = t
 
                 # self.sim.step()
@@ -218,32 +259,93 @@ class MotionExecutor():
                 p.stepSimulation()
 
                 loop += 1
-                sleep(0.001)
+                # sleep(0.001)
 
-            print(loop)
+            print("...Finished execution.")
 
-            import matplotlib.pyplot as plt
+            actual_com, actual_lmom, actual_amom = self.calculate_actual_trajectories(loop, t_vec, actual_pos_arr, base_states)
 
-            print(self.controlled_joints)
-            print(self.joint_map)
-            joint_index = 0
-            bullet_name = self.joint_map_inv[self.controlled_joints[joint_index]]
-            bullet_index = self.joint_map[bullet_name]
-            print("Bullet joint name: ", bullet_name)
-            print("Bullet joint id: ", self.joint_map[bullet_name])
-            pin_index = self.pin_joint_map[bullet_name]
-            pin_name = self.pin_joint_map_inv[pin_index]
-            print("Pinocchio joint name: ", pin_name)
-            print("Pinocchio joint id: ", pin_index)
+            desired_com = np.zeros((len(self.time_vector), 3))
+            desired_lmom = np.zeros((len(self.time_vector), 3))
+            desired_amom = np.zeros((len(self.time_vector), 3))
+            for t in range(len(self.time_vector)):
+                desired_com[t, :] = self.optimized_sequence.kinematics_states[t].com
+                desired_lmom[t, :] = self.optimized_sequence.kinematics_states[t].lmom
+                desired_amom[t, :] = self.optimized_sequence.kinematics_states[t].amom
 
-            plt.plot(t_vec[:loop], desired_pos_arr[:loop, pin_index], "r", label="Desired")
-            plt.plot(t_vec[:loop], actual_pos_arr[:loop, joint_index], "b", label="Actual")
-            plt.title(bullet_name)
-            plt.legend()
-            plt.ylabel("theta [rad]")
-            plt.xlabel("t [s]")
+            # Apply delta to desired_com, because of different initial positions
+            desired_com += actual_com[0, :] - desired_com[0, :] 
 
-            plt.show()
+            actual_trajectories = {"joint_configs": actual_pos_arr, "joint_velocities": actual_vel_arr,
+                                   "COM": actual_com, "LMOM": actual_lmom, "AMOM": actual_amom}
+            desired_trajectories = {"joint_configs": desired_pos_arr, "joint_velocities": desired_vel_arr, 
+                                    "COM": desired_com, "LMOM": desired_lmom, "AMOM": desired_amom}
+
+            self.plot_execution(t_vec, loop, desired_trajectories, actual_trajectories)
 
         except KeyboardInterrupt:
             print("Keyboard interrupt") 
+
+
+    def plot_execution(self, t_vec, used_loops, desired_trajectories, actual_trajectories):
+        import matplotlib.pyplot as plt
+
+        joint_types = self.robot.joints_list.copy() 
+        del joint_types[joint_types.index("END")]
+        joint_positions = self.robot.effs
+
+        joint_states = ["joint_configs", "joint_velocities"]
+
+        for joint_state in joint_states:
+            if joint_state == "joint_configs":
+                specification = " configuration"
+            else:
+                specification = " velocity"
+            for joint_type in joint_types:
+                fig, axes = plt.subplots(2, 2, sharex='col')
+                i = 0
+                for joint_pos in joint_positions:
+                    joint_name = joint_pos + "_" + joint_type
+                    pin_index = self.pin_joint_map[joint_name]
+                    joint_index = np.where(np.array(self.controlled_joints) == self.joint_map[joint_name])[0][0]
+
+                    idx_1, idx_2 = np.unravel_index([i], (2, 2))
+                    ax = axes[idx_1[0], idx_2[0]]
+                    ax.plot(t_vec[:used_loops], desired_trajectories[joint_state][:used_loops, pin_index], "r", label="Desired")
+                    ax.plot(t_vec[:used_loops], actual_trajectories[joint_state][:used_loops, joint_index], "b", label="Actual")
+                    ax.set_title(joint_pos)
+                    ax.legend()
+                    if joint_state == "joint_configs":
+                        ax.set_ylabel("theta [rad]")
+                    else:
+                        ax.set_ylabel("theta_dot [rad / s]")
+                    i += 1
+
+                axes[1, 0].set_xlabel("t [s]")
+                axes[1, 1].set_xlabel("t [s]")
+                fig.suptitle(joint_type + specification)
+
+        momentums = ["LMOM", "AMOM", "COM"]
+        coords = ["y", "z"]
+
+        for momentum in momentums:
+            fig, axes = plt.subplots(2, 1, sharex='col')
+
+            for i, coord in enumerate(coords):
+                coord_index = i + 1
+                axes[i].plot(self.time_vector, desired_trajectories[momentum][:, coord_index], "r", label="Desired " + momentum)
+                axes[i].plot(t_vec[:used_loops], actual_trajectories[momentum][:used_loops, coord_index], "b", label="Actual " + momentum)
+                axes[i].legend()
+                if momentum == "COM":
+                    axes[i].set_ylabel(coord + " [m]")
+                elif momentum == "LMOM":
+                    axes[i].set_ylabel("p_" + coord + " [kg * m / s]")
+                elif momentum == "AMOM":
+                    axes[i].set_ylabel("L_" + coord + " [kg * m^2 / s]")
+                else:
+                    raise ValueError("Momentum %s is not available." %momentum)
+
+            axes[-1].set_xlabel("t [s]")
+            fig.suptitle(momentum) 
+
+        plt.show()
