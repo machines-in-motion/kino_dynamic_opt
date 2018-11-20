@@ -82,7 +82,7 @@ namespace momentumopt {
         readParameter(contact_plan, ("effcnt_" + Problem::idToEndeffectorString(eff_id)).c_str(), contacts);
 
         this->endeffectorContacts(eff_id).clear();
-        for (int cnt_id=0; cnt_id<contacts.size(); cnt_id++)
+        for (unsigned int cnt_id=0; cnt_id<contacts.size(); cnt_id++)
           this->endeffectorContacts(eff_id).push_back(ContactState(contacts[cnt_id], num_optimization_contacts_++));
       }
     } catch (std::runtime_error& e) {
@@ -92,14 +92,75 @@ namespace momentumopt {
 
   std::string ContactSequence::toString() const
   {
-	std::stringstream text;
-	for (int eff_id=0; eff_id<Problem::n_endeffs_; eff_id++) {
-	  text << "eff_id " << eff_id << "\n";
-      for (int cnt_id=0; cnt_id<endeffector_contacts_[eff_id].size(); cnt_id++) {
+    std::stringstream text;
+    for (unsigned int eff_id=0; eff_id<Problem::n_endeffs_; eff_id++) {
+      text << "eff_id " << eff_id << "\n";
+      for (unsigned int cnt_id=0; cnt_id<endeffector_contacts_[eff_id].size(); cnt_id++) {
         text << "  cnt_id " << cnt_id << "\n";
         text << endeffector_contacts_[eff_id][cnt_id];
       }
 	}
 	return text.str();
   }
+
+  // ViapointState functions implementation
+  ViapointState::ViapointState()
+    : viapoint_id_(-2),
+      optimization_id_(-1),
+      position_(Eigen::Vector3d::Zero()),
+      orientation_(Eigen::Quaternion<double>::Identity())
+  {
+  }
+
+  ViapointState::ViapointState(const Eigen::VectorXd& parameters, const int optimization_id)
+  {
+    viapoint_id_ = parameters(0);
+    optimization_id_ = optimization_id;
+    position_ = parameters.segment<3>(1);
+    orientation_ = Eigen::Quaternion<double>(parameters(4), parameters(5), parameters(6), parameters(7));
+  }
+
+  std::string ViapointState::toString() const
+  {
+    std::stringstream text;
+    text << "    position     " << position_.transpose() << "\n";
+    text << "    orientation  " << orientation_.coeffs().transpose() << "\n";
+    return text.str();
+  }
+
+  // ViapointSequence functions implementation
+  void ViapointSequence::loadFromFile(const std::string cfg_file, const std::string contact_plan_name)
+  {
+    try {
+      YAML::Node contact_cfg = YAML::LoadFile(cfg_file.c_str());
+      YAML::Node contact_plan = contact_cfg[contact_plan_name.c_str()];
+
+      num_optimization_viapoints_ = 0;
+      std::vector<Eigen::VectorXd> viapoints;
+      for (int eff_id=0; eff_id<Problem::n_endeffs_; eff_id++) {
+        viapoints.clear();
+        readParameter(contact_plan, ("effvia_" + Problem::idToEndeffectorString(eff_id)).c_str(), viapoints);
+
+        this->endeffectorViapoints(eff_id).clear();
+        for (unsigned int via_id=0; via_id<viapoints.size(); via_id++)
+          this->endeffectorViapoints(eff_id).push_back(ViapointState(viapoints[via_id], num_optimization_viapoints_++));
+      }
+    } catch (std::runtime_error& e) {
+      std::cout << "Error reading parameter ["<< e.what() << "] at file: [" << __FILE__ << "]" << std::endl << std::endl;
+    }
+  }
+
+  std::string ViapointSequence::toString() const
+  {
+	std::stringstream text;
+	for (int eff_id=0; eff_id<Problem::n_endeffs_; eff_id++) {
+	  text << "eff_id " << eff_id << "\n";
+      for (int via_id=0; via_id<(int)endeffector_viapoints_[eff_id].size(); via_id++) {
+        text << "  via_id " << via_id << "\n";
+        text << endeffector_viapoints_[eff_id][via_id];
+      }
+	}
+	return text.str();
+  }
+
 }

@@ -31,15 +31,22 @@ void init_params(py::module &m)
     .value("PlannerIntParam_NumDofs", PlannerIntParam_NumDofs)
     .value("PlannerIntParam_NumTimesteps", PlannerIntParam_NumTimesteps)
     .value("PlannerIntParam_NumViapoints", PlannerIntParam_NumViapoints)
+	.value("PlannerIntParam_NumActiveDofs", PlannerIntParam_NumActiveDofs)
+	.value("PlannerIntParam_NumSubsamples", PlannerIntParam_NumSubsamples)
+	.value("PlannerIntParam_KinDynIterations", PlannerIntParam_KinDynIterations)
 	.value("PlannerIntParam_MaxNumTimeIterations", PlannerIntParam_MaxNumTimeIterations)
+	.value("PlannerIntParam_NumExtendedActiveDofs", PlannerIntParam_NumExtendedActiveDofs)
 	.value("PlannerIntParam_NumActiveEndeffectors", PlannerIntParam_NumActiveEndeffectors)
+	.value("PlannerIntParam_MaxKinConvergenceIterations", PlannerIntParam_MaxKinConvergenceIterations)
     .export_values();
 
   // binding boolean parameters
   py::enum_<PlannerBoolParam>(m, "PlannerBoolParam")
+    .value("PlannerBoolParam_StoreData", PlannerBoolParam_StoreData)
+	.value("PlannerBoolParam_DisplayMotion", PlannerBoolParam_DisplayMotion)
+	.value("PlannerBoolParam_LoadKinematics", PlannerBoolParam_LoadKinematics)
     .value("PlannerBoolParam_IsTimeHorizonFixed", PlannerBoolParam_IsTimeHorizonFixed)
     .value("PlannerBoolParam_IsFrictionConeLinear", PlannerBoolParam_IsFrictionConeLinear)
-	.value("PlannerBoolParam_StoreData", PlannerBoolParam_StoreData)
 	.value("PlannerBoolParam_UseDefaultSolverSetting", PlannerBoolParam_UseDefaultSolverSetting)
     .export_values();
 
@@ -50,24 +57,33 @@ void init_params(py::module &m)
 	.value("PlannerDoubleParam_RobotMass", PlannerDoubleParam_RobotMass)
 	.value("PlannerDoubleParam_RobotWeight", PlannerDoubleParam_RobotWeight)
     .value("PlannerDoubleParam_TimeHorizon", PlannerDoubleParam_TimeHorizon)
-    .value("PlannerDoubleParam_MassTimesGravity", PlannerDoubleParam_MassTimesGravity)
-	.value("PlannerDoubleParam_FrictionCoefficient", PlannerDoubleParam_FrictionCoefficient)
-	.value("PlannerDoubleParam_MaxTimeResidualTolerance", PlannerDoubleParam_MaxTimeResidualTolerance)
-    .value("PlannerDoubleParam_MinTimeResidualImprovement", PlannerDoubleParam_MinTimeResidualImprovement)
-    .value("PlannerDoubleParam_WeightArmTorque", PlannerDoubleParam_WeightArmTorque)
+	.value("PlannerDoubleParam_MinRelHeight", PlannerDoubleParam_MinRelHeight)
+	.value("PlannerDoubleParam_WeightArmTorque", PlannerDoubleParam_WeightArmTorque)
 	.value("PlannerDoubleParam_WeightLegTorque", PlannerDoubleParam_WeightLegTorque)
+	.value("PlannerDoubleParam_MassTimesGravity", PlannerDoubleParam_MassTimesGravity)
 	.value("PlannerDoubleParam_WeightTimePenalty", PlannerDoubleParam_WeightTimePenalty)
+	.value("PlannerDoubleParam_FrictionCoefficient", PlannerDoubleParam_FrictionCoefficient)
+	.value("PlannerDoubleParam_KinConvergenceTolerance", PlannerDoubleParam_KinConvergenceTolerance)
+	.value("PlannerDoubleParam_MaxTimeResidualTolerance", PlannerDoubleParam_MaxTimeResidualTolerance)
 	.value("PlannerDoubleParam_WeightTimeRegularization", PlannerDoubleParam_WeightTimeRegularization)
+    .value("PlannerDoubleParam_MinTimeResidualImprovement", PlannerDoubleParam_MinTimeResidualImprovement)
     .export_values();
 
   // binding string parameters
   py::enum_<PlannerStringParam>(m, "PlannerStringParam")
     .value("PlannerStringParam_ConfigFile", PlannerStringParam_ConfigFile)
     .value("PlannerStringParam_SaveDynamicsFile", PlannerStringParam_SaveDynamicsFile)
+	.value("PlannerStringParam_SaveKinematicsFile", PlannerStringParam_SaveKinematicsFile)
 	.value("PlannerStringParam_DefaultSolverSettingFile", PlannerStringParam_DefaultSolverSettingFile)
     .export_values();
 
-  // binding Eigen vector parameters
+  // binding Eigen::VectorXi vector parameters
+  py::enum_<PlannerIntVectorParam>(m, "PlannerIntVectorParam")
+    .value("PlannerIntVectorParam_ActiveDofs", PlannerIntVectorParam_ActiveDofs)
+	.value("PlannerIntVectorParam_ExtendedActiveDofs", PlannerIntVectorParam_ExtendedActiveDofs)
+	.export_values();
+
+  // binding Eigen::VectorXd vector parameters
   py::enum_<PlannerVectorParam>(m, "PlannerVectorParam")
     .value("PlannerVectorParam_TimeRange", PlannerVectorParam_TimeRange)
     .value("PlannerVectorParam_TorqueRange", PlannerVectorParam_TorqueRange)
@@ -75,6 +91,7 @@ void init_params(py::module &m)
 	.value("PlannerVectorParam_GravityVector", PlannerVectorParam_GravityVector)
 	.value("PlannerVectorParam_CenterOfMassMotion", PlannerVectorParam_CenterOfMassMotion)
 	.value("PlannerVectorParam_MaxEndeffectorLengths", PlannerVectorParam_MaxEndeffectorLengths)
+
     .value("PlannerVectorParam_WeightArmForce", PlannerVectorParam_WeightArmForce)
     .value("PlannerVectorParam_WeightLegForce", PlannerVectorParam_WeightLegForce)
 	.value("PlannerVectorParam_WeightArmForceRate", PlannerVectorParam_WeightArmForceRate)
@@ -89,5 +106,21 @@ void init_params(py::module &m)
 	.value("PlannerVectorParam_WeightFinalAngularMomentum", PlannerVectorParam_WeightFinalAngularMomentum)
 	.value("PlannerVectorParam_WeightDynamicTrackingLinearMomentum", PlannerVectorParam_WeightDynamicTrackingLinearMomentum)
 	.value("PlannerVectorParam_WeightDynamicTrackingAngularMomentum", PlannerVectorParam_WeightDynamicTrackingAngularMomentum)
+
+    .value("PlannerVectorParam_MinJointAngles", PlannerVectorParam_MinJointAngles)
+	.value("PlannerVectorParam_MaxJointAngles", PlannerVectorParam_MaxJointAngles)
+	.value("PlannerVectorParam_KinematicDefaultJointPositions", PlannerVectorParam_KinematicDefaultJointPositions)
+
+	.value("PlannerVectorParam_WeightJointVelocity", PlannerVectorParam_WeightJointVelocity)
+	.value("PlannerVectorParam_WeightJointAcceleration", PlannerVectorParam_WeightJointAcceleration)
+	.value("PlannerVectorParam_WeightKinematicTrackingCenterOfMass", PlannerVectorParam_WeightKinematicTrackingCenterOfMass)
+	.value("PlannerVectorParam_WeightKinematicDefaultJointPositions", PlannerVectorParam_WeightKinematicDefaultJointPositions)
+	.value("PlannerVectorParam_WeightKinematicTrackingLinearMomentum", PlannerVectorParam_WeightKinematicTrackingLinearMomentum)
+	.value("PlannerVectorParam_WeightKinematicTrackingAngularMomentum", PlannerVectorParam_WeightKinematicTrackingAngularMomentum)
+	.value("PlannerVectorParam_WeightKinematicTrackingBaseOrientation", PlannerVectorParam_WeightKinematicTrackingBaseOrientation)
+	.value("PlannerVectorParam_WeightKinematicTrackingLinearMomentumRate", PlannerVectorParam_WeightKinematicTrackingLinearMomentumRate)
+	.value("PlannerVectorParam_WeightKinematicTrackingAngularMomentumRate", PlannerVectorParam_WeightKinematicTrackingAngularMomentumRate)
+	.value("PlannerVectorParam_WeightKinematicTrackingEndeffectorPosition", PlannerVectorParam_WeightKinematicTrackingEndeffectorPosition)
+
     .export_values();
 }

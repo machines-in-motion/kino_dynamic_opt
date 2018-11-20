@@ -66,11 +66,12 @@ namespace momentumopt {
 
 	  /*! helper integer variables for the optimization problem */
       int num_com_viapoints_, num_act_eefs_, num_timesteps_, max_time_iterations_, num_dofs_,
-          num_act_dofs_, num_extended_act_dofs_, max_convergence_iters_;
+          num_act_dofs_, num_extended_act_dofs_, max_convergence_iters_, num_subsamples_,
+		  kd_iterations_;
 
       /*! helper boolean variables for the optimization problem */
       bool store_data_, is_time_horizon_fixed_, is_friction_cone_linear_, use_default_solver_setting_,
-           load_kinematics_;
+           load_kinematics_, display_motion_;
 
       /*! helper double variables for the optimization problem */
       double gravity_, time_step_, robot_mass_, time_horizon_, friction_coeff_, max_time_residual_tolerance_,
@@ -82,7 +83,7 @@ namespace momentumopt {
       Eigen::Vector3d external_force_, com_displacement_;
       Eigen::Vector3d w_com_, w_lmom_, w_lmomd_, w_lmom_final_, w_amom_, w_amomd_, w_amom_final_,
 	                  w_com_via_, w_frc_arm_, w_frc_leg_, w_dfrc_arm_, w_dfrc_leg_, gravity_vector_,
-                      w_lmom_track_, w_amom_track_,
+                      w_lmom_track_, w_amom_track_, w_kin_base_ori_,
                       w_kin_com_, w_kin_lmom_, w_kin_amom_, w_kin_lmomd_, w_kin_amomd_, w_kin_eff_pos_;
       Eigen::VectorXd default_joint_positions_, w_kin_default_joints_, w_kin_joint_vel_, w_kin_joint_acc_,
                       min_joint_limits_, max_joint_limits_;

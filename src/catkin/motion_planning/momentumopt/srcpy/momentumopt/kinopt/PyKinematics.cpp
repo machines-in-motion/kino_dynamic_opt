@@ -92,12 +92,13 @@ void init_kinematics(py::module &m)
     .def_property("centroidal_momentum_matrix", (const Eigen::MatrixXd& (KinematicsInterface::*)(void) const) &KinematicsInterface::centroidalMomentumMatrix, (void (KinematicsInterface::*)(const Eigen::MatrixXd&)) &KinematicsInterface::centroidalMomentumMatrix)
     .def_property("endeffector_jacobians", (const std::vector<Eigen::MatrixXd>& (KinematicsInterface::*)(void) const) &KinematicsInterface::endeffectorJacobians, (void (KinematicsInterface::*)(const std::vector<Eigen::MatrixXd>&)) &KinematicsInterface::endeffectorJacobians)
 	.def("initialize", &KinematicsInterface::initialize)
+    .def("displayPosture", &KinematicsInterface::displayPosture)
     .def("updateJacobians", &KinematicsInterface::updateJacobians);
 
   // binding of kinematics optimizer
   py::class_<KinematicsOptimizer>(m, "KinematicsOptimizer")
     .def(py::init<>())
     .def("initialize", &KinematicsOptimizer::initialize)
-    .def("optimize", &KinematicsOptimizer::optimize, py::arg("ini_state"), py::arg("dyn_sequence"), py::arg("is_not_first_kindyn_iteration") = false);
-
+    .def("kinematicsSequence", (const KinematicsSequence& (KinematicsOptimizer::*)(void) const) &KinematicsOptimizer::kinematicsSequence)
+    .def("optimize", &KinematicsOptimizer::optimize, py::arg("ini_state"), py::arg("contact_plan"), py::arg("dyn_sequence"), py::arg("is_not_first_kindyn_iteration") = false);
 }
