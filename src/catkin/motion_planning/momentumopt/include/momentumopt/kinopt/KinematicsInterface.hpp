@@ -41,8 +41,8 @@ namespace momentumopt {
 
       // pure virtual functions to be implemented
       virtual void initialize(PlannerSetting& planner_setting) = 0;
-      virtual KinematicsState updateJacobians(const KinematicsState& kin_state) = 0;
-
+      virtual KinematicsState updateJacobians(KinematicsState& kin_state) = 0;
+      virtual void displayPosture(const KinematicsState& kin_state, double time_step) = 0;
 
 //      // pure virtual functions to be implemented
 //      virtual void displayPosture(const DynamicsState& state, double time_step) = 0;

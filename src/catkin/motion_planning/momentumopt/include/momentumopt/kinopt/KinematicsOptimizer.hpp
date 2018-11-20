@@ -12,6 +12,7 @@
 #include <momentumopt/setting/PlannerSetting.hpp>
 //#include <momentumopt/cntopt/ContactPlanFromFile.hpp>
 #include <momentumopt/kinopt/KinematicsInterface.hpp>
+#include <momentumopt/cntopt/ContactPlanInterface.hpp>
 
 namespace momentumopt {
 
@@ -24,7 +25,7 @@ namespace momentumopt {
     public:
 	  /*! default class constructor and destructor */
 	  KinematicsOptimizer(){}
-      ~KinematicsOptimizer(){}
+      ~KinematicsOptimizer();
 
       /**
        * function to initialize and configure the optimization
@@ -36,10 +37,12 @@ namespace momentumopt {
       /**
        * function to parse equations and objective into optimization problem and attempt to find a solution
        * @param[in]  ini_state                            initial state of the robot
+       * @param[in]  contact_plan                         container of contact sequence to be used for dynamics planning
        * @param[in]  dyn_sequence                         dynamics sequence to be used as momentum tracking reference
        * @param[in]  is_not_first_kindyn_iteration        signals if it is the first kinematics-dynamics iteration
        */
-      void optimize(const DynamicsState& ini_state, const DynamicsSequence& dyn_sequence, bool is_not_first_kindyn_iteration = false);
+      void optimize(const DynamicsState& ini_state, ContactPlanInterface* contact_plan,
+                    DynamicsSequence& dyn_sequence, bool is_not_first_kindyn_iteration = false);
 
       /**
        * this function gives access to the optimized motion plan
@@ -102,8 +105,14 @@ namespace momentumopt {
        */
       void optimizePosture(KinematicsState& current_state, const DynamicsState& desired_state, bool is_not_initial_state = true, bool include_torque_limits = false);
 
-//      /*! helper function to display a kinematic motion */
-//      void displayMotion();
+      /*! helper function to display a kinematic motion */
+      void displayMotion(const DynamicsSequence& dyn_sequence);
+
+      /**
+       * function to update the tracking endeffector trajectories
+       * @param[in]  dyn_sequence                   dynamics sequence to be used as momentum tracking reference
+       */
+      void updateEndeffectorTrajectories(DynamicsSequence& dyn_sequence);
 
     private:
       /*! Variables required for optimization */
@@ -132,7 +141,13 @@ namespace momentumopt {
        * end-effectors configurations: activation, position, orientation, joint configuration: positions,
        * velocities and accelerations, for initial state, current state and desired state
        */
-      KinematicsState* current_state_; //ini_state_;
+      KinematicsState *ini_state_, *current_state_;
+
+      /**
+       * helper class to store information about the contact plan, such as surfaces,
+       * position and orientation of a sequence of contacts
+       */
+      ContactPlanInterface* contact_plan_;
 
       /**
        * kinematics sequence of kinematics states. This is the main interface between the user

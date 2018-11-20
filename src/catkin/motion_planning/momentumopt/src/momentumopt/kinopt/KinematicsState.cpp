@@ -76,8 +76,8 @@ namespace momentumopt {
   {
 	std::stringstream text;
     text << "  com     " << this->centerOfMass().transpose() << "\n";
-    //text << "  lmom    " << this->linearMomentum().transpose() << "\n";
-    //text << "  amom    " << this->angularMomentum().transpose() << "\n";
+    text << "  lmom    " << this->linearMomentum().transpose() << "\n";
+    text << "  amom    " << this->angularMomentum().transpose() << "\n";
 
 	for (int eff_id=0; eff_id<Problem::n_endeffs_; eff_id++)
 	{

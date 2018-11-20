@@ -38,7 +38,18 @@ namespace momentumopt {
         );
       }
 
-      KinematicsState updateJacobians(const KinematicsState& kin_state) override
+      void displayPosture(const KinematicsState& kin_state, double time_step) override
+      {
+        PYBIND11_OVERLOAD_PURE(
+          void,
+          KinematicsInterface,
+		  displayPosture,
+          kin_state,
+		  time_step
+        );
+      }
+
+      KinematicsState updateJacobians(KinematicsState& kin_state) override
       {
         PYBIND11_OVERLOAD_PURE(
           KinematicsState,
@@ -47,7 +58,6 @@ namespace momentumopt {
           kin_state
         );
       }
-
   };
 
 }

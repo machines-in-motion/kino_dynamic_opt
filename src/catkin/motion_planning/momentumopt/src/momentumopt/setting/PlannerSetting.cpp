@@ -37,14 +37,17 @@ namespace momentumopt {
 	  readParameter(planner_vars, "load_kinematics", load_kinematics_);
       if (load_kinematics_) {
 	    readParameter(planner_vars, "num_dofs", num_dofs_);
-	    // readParameter(planner_vars, "min_joint_limits", min_joint_limits_);
-     //    readParameter(planner_vars, "max_joint_limits", max_joint_limits_);
-     //    readParameter(planner_vars, "default_joint_positions", default_joint_positions_);
+	    readParameter(planner_vars, "kd_iterations", kd_iterations_);
+	    readParameter(planner_vars, "num_subsamples", num_subsamples_);
+        readParameter(planner_vars, "display_motion", display_motion_);
+	    readParameter(planner_vars, "min_joint_limits", min_joint_limits_);
+        readParameter(planner_vars, "max_joint_limits", max_joint_limits_);
+        readParameter(planner_vars, "default_joint_positions", default_joint_positions_);
 
-     //    readParameter(planner_vars, "active_dofs", active_dofs_);
-     //    extended_active_dofs_ = Eigen::VectorXi(active_dofs_.size()+6).setZero();
-     //    for (int dof_id=0; dof_id<6; dof_id++) { extended_active_dofs_[dof_id] = dof_id; }
-     //    for (int dof_id=0; dof_id<active_dofs_.size(); dof_id++) { extended_active_dofs_[6+dof_id] = 6+active_dofs_[dof_id]; }
+        readParameter(planner_vars, "active_dofs", active_dofs_);
+        extended_active_dofs_ = Eigen::VectorXi(active_dofs_.size()+6).setZero();
+        for (int dof_id=0; dof_id<6; dof_id++) { extended_active_dofs_[dof_id] = dof_id; }
+        for (int dof_id=0; dof_id<active_dofs_.size(); dof_id++) { extended_active_dofs_[6+dof_id] = 6+active_dofs_[dof_id]; }
       }
 
 	  // Dynamics parameters
@@ -57,7 +60,7 @@ namespace momentumopt {
 	  readParameter(planner_vars, "time_step", time_step_);
 	  readParameter(planner_vars, "n_act_eefs", num_act_eefs_);
 	  readParameter(planner_vars, "time_horizon", time_horizon_);
-    readParameter(planner_vars, "min_rel_height", min_rel_height_);
+      readParameter(planner_vars, "min_rel_height", min_rel_height_);
 	  readParameter(planner_vars, "external_force", external_force_);
       readParameter(planner_vars, "com_displacement", com_displacement_);
       if (readParameter<std::string>(planner_vars, "heuristic").compare("TrustRegion")==0) { heuristic_ = Heuristic::TrustRegion; }
@@ -107,23 +110,24 @@ namespace momentumopt {
       readParameter(planner_vars, "w_lmom_track", w_lmom_track_);
 
       if (heuristic_ == Heuristic::TimeOptimization) {
-    	    readParameter(planner_vars, "w_time", w_time_);
-    	    readParameter(planner_vars, "w_time_penalty", w_time_penalty_);
+        readParameter(planner_vars, "w_time", w_time_);
+        readParameter(planner_vars, "w_time_penalty", w_time_penalty_);
       }
 
       // Kinematics weights
       if (load_kinematics_) {
-	    // readParameter(planner_vars, "w_kin_com", w_kin_com_);
-	    // readParameter(planner_vars, "w_kin_lmom", w_kin_lmom_);
-	    // readParameter(planner_vars, "w_kin_amom", w_kin_amom_);
-	    // readParameter(planner_vars, "w_kin_lmomd", w_kin_lmomd_);
-	    // readParameter(planner_vars, "w_kin_amomd", w_kin_amomd_);
-	    // readParameter(planner_vars, "w_kin_eff_pos", w_kin_eff_pos_);
-	    // readParameter(planner_vars, "w_kin_joint_vel", w_kin_joint_vel_);
-	    // readParameter(planner_vars, "w_kin_joint_acc", w_kin_joint_acc_);
-	    // readParameter(planner_vars, "w_kin_default_joints", w_kin_default_joints_);
-	    // readParameter(planner_vars, "max_convergence_iters", max_convergence_iters_);
-	    // readParameter(planner_vars, "convergence_tolerance", convergence_tolerance_);
+	    readParameter(planner_vars, "w_kin_com", w_kin_com_);
+	    readParameter(planner_vars, "w_kin_lmom", w_kin_lmom_);
+	    readParameter(planner_vars, "w_kin_amom", w_kin_amom_);
+	    readParameter(planner_vars, "w_kin_lmomd", w_kin_lmomd_);
+	    readParameter(planner_vars, "w_kin_amomd", w_kin_amomd_);
+	    readParameter(planner_vars, "w_kin_eff_pos", w_kin_eff_pos_);
+	    readParameter(planner_vars, "w_kin_base_ori", w_kin_base_ori_);
+	    readParameter(planner_vars, "w_kin_joint_vel", w_kin_joint_vel_);
+	    readParameter(planner_vars, "w_kin_joint_acc", w_kin_joint_acc_);
+	    readParameter(planner_vars, "w_kin_default_joints", w_kin_default_joints_);
+	    readParameter(planner_vars, "max_convergence_iters", max_convergence_iters_);
+	    readParameter(planner_vars, "convergence_tolerance", convergence_tolerance_);
       }
 
       // Storage information
@@ -151,6 +155,8 @@ namespace momentumopt {
       // Kinematics parameters
       case PlannerIntParam_NumDofs : { return num_dofs_; }
       case PlannerIntParam_NumActiveDofs : { return num_act_dofs_; }
+      case PlannerIntParam_NumSubsamples : { return num_subsamples_; }
+      case PlannerIntParam_KinDynIterations : { return kd_iterations_; }
       case PlannerIntParam_NumExtendedActiveDofs : { return num_extended_act_dofs_; }
       case PlannerIntParam_MaxKinConvergenceIterations : { return max_convergence_iters_; }
 
@@ -176,6 +182,7 @@ namespace momentumopt {
       case PlannerBoolParam_IsFrictionConeLinear : { return is_friction_cone_linear_; }
 
       // Kinematics parameters
+      case PlannerBoolParam_DisplayMotion : { return display_motion_; }
       case PlannerBoolParam_LoadKinematics : { return load_kinematics_; }
 
       // Storage information
@@ -293,6 +300,7 @@ namespace momentumopt {
       case PlannerVectorParam_WeightKinematicTrackingCenterOfMass : { return w_kin_com_; }
       case PlannerVectorParam_WeightKinematicTrackingLinearMomentum : { return w_kin_lmom_; }
       case PlannerVectorParam_WeightKinematicTrackingAngularMomentum : { return w_kin_amom_; }
+      case PlannerVectorParam_WeightKinematicTrackingBaseOrientation : { return w_kin_base_ori_; }
       case PlannerVectorParam_WeightKinematicTrackingLinearMomentumRate : { return w_kin_lmomd_; }
       case PlannerVectorParam_WeightKinematicTrackingAngularMomentumRate : { return w_kin_amomd_; }
       case PlannerVectorParam_WeightKinematicTrackingEndeffectorPosition : { return w_kin_eff_pos_; }
@@ -335,6 +343,8 @@ namespace momentumopt {
       // Kinematics parameters
       case PlannerIntParam_NumDofs : { return num_dofs_; }
       case PlannerIntParam_NumActiveDofs : { return num_act_dofs_; }
+      case PlannerIntParam_NumSubsamples : { return num_subsamples_; }
+      case PlannerIntParam_KinDynIterations : { return kd_iterations_; }
       case PlannerIntParam_NumExtendedActiveDofs : { return num_extended_act_dofs_; }
       case PlannerIntParam_MaxKinConvergenceIterations : { return max_convergence_iters_; }
 
@@ -360,6 +370,7 @@ namespace momentumopt {
       case PlannerBoolParam_IsFrictionConeLinear : { return is_friction_cone_linear_; }
 
       // Kinematics parameters
+      case PlannerBoolParam_DisplayMotion : { return display_motion_; }
       case PlannerBoolParam_LoadKinematics : { return load_kinematics_; }
 
       // Storage information
@@ -477,6 +488,7 @@ namespace momentumopt {
       case PlannerVectorParam_WeightKinematicTrackingCenterOfMass : { return w_kin_com_; }
       case PlannerVectorParam_WeightKinematicTrackingLinearMomentum : { return w_kin_lmom_; }
       case PlannerVectorParam_WeightKinematicTrackingAngularMomentum : { return w_kin_amom_; }
+      case PlannerVectorParam_WeightKinematicTrackingBaseOrientation : { return w_kin_base_ori_; }
       case PlannerVectorParam_WeightKinematicTrackingLinearMomentumRate : { return w_kin_lmomd_; }
       case PlannerVectorParam_WeightKinematicTrackingAngularMomentumRate : { return w_kin_amomd_; }
       case PlannerVectorParam_WeightKinematicTrackingEndeffectorPosition : { return w_kin_eff_pos_; }

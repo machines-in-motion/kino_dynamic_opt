@@ -30,6 +30,10 @@ namespace momentumopt {
 	PlannerIntParam_NumExtendedActiveDofs,
 	PlannerIntParam_NumActiveEndeffectors,
     PlannerIntParam_MaxKinConvergenceIterations,
+
+	// Kinematics parameters
+	PlannerIntParam_NumSubsamples,
+	PlannerIntParam_KinDynIterations,
   };
 
   /*! Available boolean variables used by the planner */
@@ -39,6 +43,7 @@ namespace momentumopt {
 	PlannerBoolParam_IsFrictionConeLinear,
 
     // Kinematics parameters
+	PlannerBoolParam_DisplayMotion,
     PlannerBoolParam_LoadKinematics,
 
 	// Storage information
@@ -77,6 +82,7 @@ namespace momentumopt {
     // Storage information
     PlannerStringParam_ConfigFile,
 	PlannerStringParam_SaveDynamicsFile,
+	PlannerStringParam_SaveKinematicsFile,
 
 	// Solver setting
 	PlannerStringParam_DefaultSolverSettingFile,
@@ -128,10 +134,10 @@ namespace momentumopt {
 	PlannerVectorParam_WeightKinematicDefaultJointPositions,
     PlannerVectorParam_WeightKinematicTrackingLinearMomentum,
     PlannerVectorParam_WeightKinematicTrackingAngularMomentum,
-    PlannerVectorParam_WeightKinematicTrackingLinearMomentumRate,
+	PlannerVectorParam_WeightKinematicTrackingBaseOrientation,
+	PlannerVectorParam_WeightKinematicTrackingLinearMomentumRate,
     PlannerVectorParam_WeightKinematicTrackingAngularMomentumRate,
 	PlannerVectorParam_WeightKinematicTrackingEndeffectorPosition,
-
   };
 
   /*! Available array variables used by the planner */

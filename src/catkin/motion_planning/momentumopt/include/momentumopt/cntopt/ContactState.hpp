@@ -115,4 +115,62 @@ namespace momentumopt {
       std::array<std::vector<ContactState>, Problem::n_endeffs_> endeffector_contacts_;
   };
 
+  /**
+   * This class defines a viapoint state including position and orientation
+   */
+  class ViapointState
+  {
+    public:
+      ViapointState();
+      ~ViapointState(){}
+
+      int& viapointId() { return viapoint_id_; }
+      Eigen::Vector3d& viapointPosition() { return position_; }
+      Eigen::Quaternion<double>& viapointOrientation() { return orientation_; }
+
+      const int& viapointId() const { return viapoint_id_; }
+      const int& optimizationId() { return optimization_id_; }
+      const Eigen::Vector3d& viapointPosition() const { return position_; }
+      const Eigen::Quaternion<double>& viapointOrientation() const { return orientation_; }
+
+      std::string toString() const;
+      friend std::ostream& operator<<(std::ostream &os, const ViapointState& obj) { return os << obj.toString(); }
+
+    private:
+      friend class ViapointSequence;
+      ViapointState(const Eigen::VectorXd& parameters, const int optimization_id);
+
+    private:
+      Eigen::Vector3d position_;
+      int optimization_id_, viapoint_id_;
+      Eigen::Quaternion<double> orientation_;
+  };
+
+  /**
+   * This class is a container for a sequence of viapoint states for all end-effectors.
+   */
+  class ViapointSequence
+  {
+    public:
+      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+    public:
+      ViapointSequence(){}
+      ~ViapointSequence(){}
+
+      const int& numOptimizationViapoints() const { return num_optimization_viapoints_; }
+      const int  numEndeffectorViapoints(int eff_id) const { return endeffector_viapoints_[eff_id].size(); }
+      void loadFromFile(const std::string cfg_file, const std::string contact_plan_name = "contact_plan");
+      std::vector<ViapointState>& endeffectorViapoints(int eff_id) { return endeffector_viapoints_[eff_id]; }
+      const std::vector<ViapointState>& endeffectorViapoints(int eff_id) const { return endeffector_viapoints_[eff_id]; }
+
+      std::string toString() const;
+      friend std::ostream& operator<<(std::ostream &os, const ViapointSequence& obj) { return os << obj.toString(); }
+
+    private:
+      int num_optimization_viapoints_;
+      std::array<std::vector<ViapointState>, Problem::n_endeffs_> endeffector_viapoints_;
+  };
+
+
 }

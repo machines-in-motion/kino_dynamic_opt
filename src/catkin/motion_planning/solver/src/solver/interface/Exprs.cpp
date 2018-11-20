@@ -33,7 +33,7 @@ namespace solver {
   bool LinExpr::isClean(const LinExpr& rhs) {
     for (int i=1; i<rhs.size(); i++){
 	  for (int j=0; j<i; j++) {
-		if (rhs.vars_[i].var_storage_->col_no_ == rhs.vars_[j].var_storage_->col_no_)
+        if (rhs.vars_[i].var_storage_->col_no_ == rhs.vars_[j].var_storage_->col_no_)
 		  return false;
 	  }
 	  if (rhs.coeffs_[i] == 0.0)
@@ -49,7 +49,7 @@ namespace solver {
     for (int i=0; i<rhs.size(); i++){
 	  bool set = false;
 	  for (int j=0; j<result.size(); j++) {
-		if (rhs.vars_[i].var_storage_->col_no_ == result.vars_[j].var_storage_->col_no_) {
+        if (rhs.vars_[i].var_storage_->col_no_ == result.vars_[j].var_storage_->col_no_) {
 		  result.coeffs_[j] += (rhs.coeffs_[i]);
 		  set = true;
 	    }
@@ -81,6 +81,13 @@ namespace solver {
     }
     *this = LinExpr::clean(*this);
 	return *this;
+  }
+
+  std::ostream& operator<<(std::ostream &stream, LinExpr expr) {
+    stream << expr.constant_;
+    for (unsigned int i=0; i<(unsigned int)expr.coeffs_.size(); i++)
+      stream << " + " << expr.coeffs_[i] << " var[" << expr.vars_[i].get(SolverIntParam_ColNum) << "]" ;
+    return stream;
   }
 
   // Class for Disciplined Convex Quadratic Expressions

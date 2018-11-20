@@ -36,22 +36,71 @@ namespace solver {
       static LinExpr clean(const LinExpr& rhs);
       int size() const { return vars_.size(); }
       double& getConstant() { return constant_; }
-      Var getVar(int i) const { return vars_[i]; }
+      const Var& getVar(int i) const { return vars_[i]; }
       double getCoeff(int i) const { return coeffs_[i]; }
       const double& getConstant() const { return constant_; }
       void clear() { constant_ = 0.0; coeffs_.clear(); vars_.clear(); }
 
       LinExpr operator*(double factor) const;
       LinExpr& operator+=(const LinExpr& rhs);
+      LinExpr& operator+=(double a) { *this += LinExpr(a); return *this; }
+      LinExpr& operator-=(double a) { *this += LinExpr(-a); return *this; }
+      LinExpr& operator-=(const LinExpr& rhs) { *this += rhs*(-1.0); return *this; }
+      LinExpr operator/(double a) { LinExpr result = 0.0; result = *this*(1.0/a); return result; }
+      LinExpr operator+(double a) { LinExpr result = *this; result += LinExpr(a); return result; }
+      LinExpr operator-(double a) { LinExpr result = *this; result += LinExpr(-a); return result; }
+      LinExpr operator+(Var var) { LinExpr result = *this; result += LinExpr(var, 1.0); return result; }
+      LinExpr operator-(Var var) { LinExpr result = *this; result += LinExpr(var, -1.0); return result; }
       LinExpr operator+(const LinExpr& rhs) const { LinExpr result = *this; result += rhs; return result; }
       LinExpr operator-(const LinExpr& rhs) const { LinExpr result = *this; result += rhs*(-1.0); return result; }
       LinExpr operator=(const LinExpr& rhs) { constant_ = rhs.constant_; vars_ = rhs.vars_; coeffs_ = rhs.coeffs_; return *this; }
+      LinExpr& operator*=(double a) { constant_ *= a; for (int i=0; i<(int)vars_.size(); i++) { coeffs_[i] *= a; } return *this; }
+      LinExpr& operator/=(double a) { constant_ /= a; for (int i=0; i<(int)vars_.size(); i++) { coeffs_[i] /= a; } return *this; }
+
+      friend LinExpr operator+(Var var) { return LinExpr(var, 1.0); }
+      friend LinExpr operator-(Var var) { return LinExpr(var, -1.0); }
+      friend LinExpr operator*(Var var, double a) { return LinExpr(var, a); }
+      friend LinExpr operator*(double a, Var var) { return LinExpr(var, a); }
+      friend LinExpr operator+(Var x, Var y) { return LinExpr(x)+LinExpr(y); }
+      friend LinExpr operator-(Var x, Var y) { return LinExpr(x)-LinExpr(y); }
+      friend LinExpr operator/(Var var, double a) { return LinExpr(var, 1.0/a); }
+      friend LinExpr operator+(double a, Var var) { return LinExpr(a)+LinExpr(var); }
+      friend LinExpr operator+(Var var, double a) { return LinExpr(var)+LinExpr(a); }
+      friend LinExpr operator-(double a, Var var) { return LinExpr(a)-LinExpr(var); }
+      friend LinExpr operator-(Var var, double a) { return LinExpr(var)-LinExpr(a); }
+      friend LinExpr operator+(const LinExpr& rhs) { LinExpr result = rhs; return result; }
+      friend LinExpr operator-(const LinExpr& rhs) { LinExpr result = LinExpr()-rhs; return result; }
+      friend LinExpr operator-(Var var, LinExpr rhs) { LinExpr result = LinExpr(var)-rhs; return result; }
+      friend LinExpr operator+(double a, const LinExpr& rhs) { LinExpr result = LinExpr(a)+rhs; return result; }
+      friend LinExpr operator-(double a, const LinExpr& rhs) { LinExpr result = LinExpr(a)-rhs; return result; }
+      friend LinExpr operator*(double factor, const LinExpr& rhs) { LinExpr result = rhs*factor; return result; }
+
+      friend std::ostream& operator<<(std::ostream &stream, LinExpr expr);
 
     private:
       double constant_;
       std::vector<Var> vars_;
       std::vector<double> coeffs_;
   };
+
+  LinExpr operator+(Var var);
+  LinExpr operator-(Var var);
+  LinExpr operator+(Var x, Var y);
+  LinExpr operator-(Var x, Var y);
+  LinExpr operator*(Var var, double a);
+  LinExpr operator*(double a, Var var);
+  LinExpr operator/(Var var, double a);
+  LinExpr operator+(double a, Var var);
+  LinExpr operator+(Var var, double a);
+  LinExpr operator-(double a, Var var);
+  LinExpr operator-(Var var, double a);
+  LinExpr operator+(const LinExpr& rhs);
+  LinExpr operator-(const LinExpr& rhs);
+  LinExpr operator-(Var var, LinExpr rhs);
+  LinExpr operator+(double a, const LinExpr& rhs);
+  LinExpr operator-(double a, const LinExpr& rhs);
+  LinExpr operator*(double factor, const LinExpr& rhs);
+  std::ostream& operator<<(std::ostream &stream, LinExpr expr);
 
   /**
    * Helper class to ease the construction of a quadratic expression
@@ -83,7 +132,7 @@ namespace solver {
 	  const std::vector<double>& coeffs() const { return coeffs_; }
 	  const bool& softConstraint() const { return soft_constraint_; }
 	  const std::vector<Var>& extraVars() const { return extra_vars_; }
-	  const Var getVar(int qid, int lid) const { return qexpr_[qid].getVar(lid); }
+	  const Var& getVar(int qid, int lid) const { return qexpr_[qid].getVar(lid); }
 
     private:
       LinExpr lexpr_;

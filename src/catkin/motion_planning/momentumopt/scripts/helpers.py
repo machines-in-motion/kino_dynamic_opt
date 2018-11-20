@@ -79,18 +79,18 @@ class Graphics:
         linecolors = {0: 'cornflowerblue', 1: 'darkorange', 2: 'seagreen', 3: 'gold'}
 
         time_spec = np.squeeze(np.asarray(np.linspace(1, len(timesteps1), len(timesteps1))))
-        time_vec  = np.squeeze(np.asarray(np.linspace(self.time_step, self.time_horizon, len(timesteps1))))
-        for eef_id in range(0,4):
-            trueData = np.zeros(len(timesteps1))
-            for cnt_id in range(0,len(self.effs_cnts[eef_id])):
-                for id in range(0,len(trueData)):
-                    if (time_vec[id] >= self.effs_cnts[eef_id][cnt_id].tini and time_vec[id] < self.effs_cnts[eef_id][cnt_id].tend):
-                        trueData[id] = 1
-            axis.fill_between(time_spec, ylim[0], ylim[1], where=trueData>0.5, facecolor=linecolors[eef_id], alpha=shading)
+#         time_vec  = np.squeeze(np.asarray(np.linspace(self.time_step, self.time_horizon, len(timesteps1))))
+#         for eef_id in range(0,4):
+#             trueData = np.zeros(len(timesteps1))
+#             for cnt_id in range(0,len(self.effs_cnts[eef_id])):
+#                 for id in range(0,len(trueData)):
+#                     if (time_vec[id] >= self.effs_cnts[eef_id][cnt_id].tini and time_vec[id] < self.effs_cnts[eef_id][cnt_id].tend):
+#                         trueData[id] = 1
+#             axis.fill_between(time_spec, ylim[0], ylim[1], where=trueData>0.5, facecolor=linecolors[eef_id], alpha=shading)
 
         axis.grid(True)
         axis.set_xlim(xlim)
-        axis.set_ylim(ylim)
+        #axis.set_ylim(ylim)
         for item in axis.get_xgridlines():
             item.set_color(grid_color)
         for item in axis.get_ygridlines():
@@ -112,19 +112,19 @@ class Graphics:
 
         if (showLabel is True):
             leg = axis.legend(bbox_to_anchor=(0., -0.30, 1., .102), loc=3, ncol=2, mode="expand", borderaxespad=0.)
-
-        time_vec = np.squeeze(np.asarray(np.linspace(self.time_step, self.time_horizon, len(datax))))
-        for eef_id in range(0,4):
-            trueData = np.zeros(len(datax))
-            for cnt_id in range(0,len(self.effs_cnts[eef_id])):
-                for id in range(0,len(trueData)):
-                    if (time_vec[id] >= self.effs_cnts[eef_id][cnt_id].tini and time_vec[id] < self.effs_cnts[eef_id][cnt_id].tend):
-                        trueData[id] = 1
-            axis.fill_between(datax, ylim[0], ylim[1], where=trueData>0.5, facecolor=linecolors[eef_id], alpha=shading)
-
+#  
+#         time_vec = np.squeeze(np.asarray(np.linspace(self.time_step, self.time_horizon, len(datax))))
+#         for eef_id in range(0,4):
+#             trueData = np.zeros(len(datax))
+#             for cnt_id in range(0,len(self.effs_cnts[eef_id])):
+#                 for id in range(0,len(trueData)):
+#                     if (time_vec[id] >= self.effs_cnts[eef_id][cnt_id].tini and time_vec[id] < self.effs_cnts[eef_id][cnt_id].tend):
+#                         trueData[id] = 1
+#             axis.fill_between(datax, ylim[0], ylim[1], where=trueData>0.5, facecolor=linecolors[eef_id], alpha=shading)
+ 
         axis.grid(True)
         axis.set_xlim(xlim)
-        axis.set_ylim(ylim)
+        #axis.set_ylim(ylim)
         for item in axis.get_xgridlines():
             item.set_color(grid_color)
         for item in axis.get_ygridlines():
@@ -138,7 +138,7 @@ class Graphics:
             for t in axis.axes.get_yticklabels():
                 t.set_horizontalalignment('right')
                 t.set_x(1.15)
-
+ 
         axis.spines["top"].set_color(axis_color)
         axis.spines["left"].set_color(axis_color)
         axis.spines["right"].set_color(axis_color)
@@ -151,7 +151,7 @@ class Graphics:
     def nice_frc_plot(self, axis, datax, datay, linecolors, linestyles, linelabels, addlabels, line_width, grid_color, tick_size, tick_color, axis_color, xlim, ylim, xmsg, ymsg, label_size, label_color, legend_textsize, legend_color, legend_fcolor, legend_flinewidth, legend_fbgcolor, shading):
         axis.grid(True)
         axis.set_xlim(xlim)
-        axis.set_ylim(ylim)
+        #axis.set_ylim(ylim)
         for item in axis.get_xgridlines():
             item.set_color(grid_color)
         for item in axis.get_ygridlines():
@@ -170,14 +170,14 @@ class Graphics:
         if (addlabels is True):
             axis.axes.xaxis.set_ticklabels([])
 
-        time_vec = np.squeeze(np.asarray(np.linspace(self.time_step, self.time_horizon, len(datax))))
-        for eef_id in range(0,4):
-            trueData = np.zeros(len(datax))
-            for cnt_id in range(0,len(self.effs_cnts[eef_id])):
-                for id in range(0,len(trueData)):
-                    if (time_vec[id] >= self.effs_cnts[eef_id][cnt_id].tini and time_vec[id] < self.effs_cnts[eef_id][cnt_id].tend):
-                        trueData[id] = 1
-            axis.fill_between(datax, ylim[0], ylim[1], where=trueData>0.5, facecolor=linecolors[eef_id], alpha=shading)
+#         time_vec = np.squeeze(np.asarray(np.linspace(self.time_step, self.time_horizon, len(datax))))
+#         for eef_id in range(0,4):
+#             trueData = np.zeros(len(datax))
+#             for cnt_id in range(0,len(self.effs_cnts[eef_id])):
+#                 for id in range(0,len(trueData)):
+#                     if (time_vec[id] >= self.effs_cnts[eef_id][cnt_id].tini and time_vec[id] < self.effs_cnts[eef_id][cnt_id].tend):
+#                         trueData[id] = 1
+#             axis.fill_between(datax, ylim[0], ylim[1], where=trueData>0.5, facecolor=linecolors[eef_id], alpha=shading)
 
 
         for id in range(0, len(datay)):
