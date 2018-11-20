@@ -46,6 +46,10 @@ contact_plan:
   effcnt_rh: [[0.0, 5.0,    0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
   effcnt_lh: [[0.0, 5.0,   -0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
 
+  effvia_rf: []
+  effvia_lf: []
+  effvia_rh: []
+  effvia_lh: []
 
 planner_variables:
 
@@ -54,7 +58,11 @@ planner_variables:
   #########################
   
   load_kinematics: True
+
+  display_motion: True
   num_dofs: 8
+  kd_iterations: 0
+  num_subsamples: 3
   active_dofs: [0, 1, 2, 3, 4, 5, 6, 7]
   min_joint_limits: [-2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5]
   max_joint_limits: [ 2.5,  2.5,  2.5,  2.5,  2.5,  2.5,  2.5,  2.5]
@@ -164,29 +172,19 @@ planner_variables:
   # Kinematics weights #
   ######################
 
-  # w_kin_tolerance:  1e-4
-  # max_convergence_iters: 50
-  # leg_pos_tracking_lower_scale: 1.0
-  # leg_pos_tracking_upper_scale: 1.0
-  # arm_pos_tracking_lower_scale: 1.0
-  # arm_pos_tracking_upper_scale: 1.0
-  # leg_pos_tracking_falling_time: 0.5
-  # leg_pos_tracking_raising_time: 0.5
-  # arm_pos_tracking_falling_time: 0.5
-  # arm_pos_tracking_raising_time: 0.5
-  # w_track_com:      [ 10.00,   10.00,   10.00]
-  # w_track_eff_pos:  [ 2.500,   2.500,   2.500]
-  # w_reg_eff_vel:    [ 0.000,   0.000,   0.000]
-  # w_track_eff_ori:  [ 0.000,   0.000,   0.000]
-  # w_track_base_ori: [ 1.000,   1.000,   1.000]
-  # w_track_amom:     [ 4.e-4,   4.e-3,   4.e-4]
-  # w_track_lmom:     [ 1.e-4,   1.e-4,   1.e-4]
-  # w_reg_lmomd:      [ 1.e-5,   1.e-5,   1.e-5]
-  # w_reg_amomd:      [ 1.e-3,   5.e-3,   1.e-3]
-  # w_default_jnt:    [1e-2, 1e-2, 1e-2, 1e-2,  1e-2, 1e-2, 1e-2, 1e-2]
-  # w_jnt_vel:        [1e-5, 1e-5, 1e-5, 1e-5,  1e-5, 1e-5, 1e-5, 1e-5,    1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4]
-  # w_jnt_acc:        [1e-5, 1e-5, 1e-5, 1e-5,  1e-5, 1e-5, 1e-5, 1e-5,    1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4]
-                     # joints                                            # base
+  max_convergence_iters: 50
+  convergence_tolerance:  1e-4
+  w_kin_com:      [ 0.000,   10.00,   10.00]
+  w_kin_lmom:     [ 0.000,   1.e-3,   1.e-4]
+  w_kin_amom:     [ 4.e-3,   4.e-3,   0.000]
+  w_kin_lmomd:    [ 1.e-4,   1.e-4,   1.e-4]
+  w_kin_amomd:    [ 1.e-3,   1.e-3,   0.000]
+  w_kin_eff_pos:  [ 10.00,   50.00,   50.00]
+  w_kin_base_ori: [ 1.e-8,   1.e-0,   1.e-8]
+  w_kin_default_joints:  [                                       1e-8, 1e-8, 1e-8, 1e-8,  1e-8, 1e-8, 1e-8, 1e-8]
+  w_kin_joint_vel:       [1e-6, 1e-6, 1e-6, 1e-8, 1e-8, 1e-8,    1e-6, 1e-6, 1e-6, 1e-6,  1e-6, 1e-6, 1e-6, 1e-6]
+  w_kin_joint_acc:       [1e-6, 1e-6, 1e-6, 1e-8, 1e-8, 1e-8,    1e-6, 1e-6, 1e-6, 1e-6,  1e-6, 1e-6, 1e-6, 1e-6]
+                          # base                                 # joints
 
   #######################
   # Storage information #

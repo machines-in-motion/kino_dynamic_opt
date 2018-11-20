@@ -44,6 +44,12 @@ def get_contact_plan(contact_states, effs):
     return contacts
 
 
+def Rquat(x,y,z,w):
+    q = se3.Quaternion(w=w,x=x,y=y,z=z)
+    q.normalize()
+    return q.matrix()
+
+
 def set_new_goal(goal_position):
     new_pos = np.zeros((3, 1))
     for i in range(3):
@@ -91,36 +97,13 @@ class KinematicsOptimizer:
         self.kinematics_sequence.resize(planner_setting.get(PlannerIntParam_NumTimesteps),
                                         planner_setting.get(PlannerIntParam_NumDofs))
 
-    def init_jacobians_and_trafos(self):
-        # Create dictionary for jacobians
-        self.jacobians_dict = {}
-        # Create jacobian for COM
-        self.jacobians_dict["COM"] = self.robot.get_jacobian("COM")
-        # Create dictionary for transformations
-        self.transformations_dict = {}
-        # Create transformation for COM
-        self.transformations_dict["COM"] = self.robot.get_transformation("COM")
-        self.transformations_dict["COM_GOAL"] = self.transformations_dict["COM"]().copy()
-
-        # Hip, knee and end effector jacobians and transformations
-        for eff in self.robot.effs:
-            for joint in self.robot.joints_list:
-                joint_identifier = eff + "_" + joint
-                self.jacobians_dict[joint_identifier] = self.robot.get_jacobian(joint_identifier, "TRANSLATION")
-                self.transformations_dict[joint_identifier] = self.robot.get_transformation(joint_identifier, "TRANSLATION")
-
-            # Create transformations for goal states
-            self.transformations_dict[eff + "_END_GOAL"] = self.transformations_dict[eff + "_END"]().copy()
-
-        self.centroidal_momentum = self.robot.get_centroidal_momentum()
-
     def create_tasks(self, t, com_motion, contacts, eff_traj_poly):
         desired_velocities = []
         jacobians = []
 
-        self.transformations_dict["COM_GOAL"] = set_new_goal(com_motion[t, :])
-        desired_vel_com = self.robot.get_desired_velocity(self.transformations_dict["COM_GOAL"], 
-                                                          self.transformations_dict["COM"], "TRANSLATION")
+        self.robot.transformations_dict["COM_GOAL"] = set_new_goal(com_motion[t, :])
+        desired_vel_com = self.robot.get_desired_velocity(self.robot.transformations_dict["COM_GOAL"],
+                                                          self.robot.transformations_dict["COM"], "TRANSLATION")
 
         for eff in self.robot.effs:
             self.in_contact = False
@@ -140,14 +123,14 @@ class KinematicsOptimizer:
                 new_goal = [eff_traj_poly[eff][coord].eval(self.time[t]) for coord in range(3)]
                 new_goal = set_new_goal(new_goal)
 
-            self.transformations_dict[eff + "_END_GOAL"] = new_goal
-            desired_velocity = self.robot.get_desired_velocity(self.transformations_dict[eff + "_END_GOAL"], 
-                                                               self.transformations_dict[eff + "_END"], "TRANSLATION")
+            self.robot.transformations_dict[eff + "_END_GOAL"] = new_goal
+            desired_velocity = self.robot.get_desired_velocity(self.robot.transformations_dict[eff + "_END_GOAL"],
+                                                               self.robot.transformations_dict[eff + "_END"], "TRANSLATION")
             desired_velocities.append(desired_velocity)
-            jacobians.append(self.jacobians_dict[eff + "_END"])
+            jacobians.append(self.robot.jacobians_dict[eff + "_END"])
 
         desired_velocities.append(desired_vel_com)
-        jacobians.append(self.jacobians_dict["COM"])
+        jacobians.append(self.robot.jacobians_dict["COM"])
 
         return desired_velocities, jacobians
 
@@ -160,8 +143,8 @@ class KinematicsOptimizer:
         for eff in self.robot.effs:
             for joint in self.robot.joints_list:
                 joint_identifier = eff + "_" + joint
-                G[index, :] = np.array(self.jacobians_dict[joint_identifier]()[-1, :])[0]
-                z[index] = self.transformations_dict[joint_identifier]()[-1][0, 0]
+                G[index, :] = np.array(self.robot.jacobians_dict[joint_identifier]()[-1, :])[0]
+                z[index] = self.robot.transformations_dict[joint_identifier]()[-1][0, 0]
                 index += 1
         G *= - dt
         z_floor += self.offset
@@ -171,18 +154,13 @@ class KinematicsOptimizer:
         # G_max = np.eye(self.robot.nv)[- self.robot.num_ctrl_joints:, :]
         # G_min = - np.eye(self.robot.nv)[- self.robot.num_ctrl_joints:, :]
         # G = np.vstack((G, G_max, G_min))
-        # h_max = self.q_max_delta * np.ones((self.robot.num_ctrl_joints, 1)) 
+        # h_max = self.q_max_delta * np.ones((self.robot.num_ctrl_joints, 1))
         # h_min = self.q_max_delta * np.ones((self.robot.num_ctrl_joints, 1))
         # h = np.vstack((np.resize(h, (h.shape[0], 1)), h_max, h_min))
-        
+
         # h = np.squeeze(h)
 
         return G, h
-
-    # def Rquat(self, x,y,z,w):
-    #     q = se3.Quaternion(w=w,x=x,y=y,z=z)
-    #     q.normalize()
-    #     return q.matrix()
 
     def optimize(self, ini_state, contact_sequence, dynamics_sequence):
         # Set floor's z coordinate to where the endeffector's z coordinates are
@@ -220,7 +198,7 @@ class KinematicsOptimizer:
 
         # plt.show()
 
-        # Get contact plan 
+        # Get contact plan
         contacts = get_contact_plan(contact_sequence.contact_states, self.robot.effs)
 
         # Generate minimum jerk trajectories
@@ -228,8 +206,6 @@ class KinematicsOptimizer:
         z_min = min(com_motion[:, 2])
         eff_traj_poly = generate_eff_traj(contacts, z_max, z_min)
 
-        self.init_jacobians_and_trafos()
-        
         # Create robot motion using IK for COM and endeffector trajectories
         ik = InverseKinematics(self.dt, self.robot.nq)
         q_traj = []
@@ -241,7 +217,11 @@ class KinematicsOptimizer:
         self.ik_motion["COM"] = np.zeros((len(self.time), 3))
         self.ik_motion["LMOM"] = np.zeros((len(self.time), 3))
         self.ik_motion["AMOM"] = np.zeros((len(self.time), 3))
+        self.ik_motion["base_position"] = np.zeros((len(self.time), 3))
+        self.ik_motion["base_orientation"] = np.zeros((len(self.time), 4))
         self.ik_motion["joint_configurations"] = np.zeros((len(self.time), self.robot.num_ctrl_joints))
+        self.ik_motion["base_linear_velocity"] = np.zeros((len(self.time), 3))
+        self.ik_motion["base_angular_velocity"] = np.zeros((len(self.time), 3))
         self.ik_motion["joint_velocities"] = np.zeros((len(self.time), self.robot.num_ctrl_joints))
         for eff in self.robot.effs:
             for joint in self.robot.joints_list:
@@ -270,7 +250,7 @@ class KinematicsOptimizer:
 
             # Add tasks to the cost function of the IK
             ik.add_tasks(desired_velocities, jacobians, gains=0.5, weights=weights)
-            
+
             # q_before = self.robot.q.copy()
             # x_before, y_before, z_before, w_before = np.squeeze(np.array(q_before[3:7]), 1)
             # pdb.set_trace()
@@ -278,7 +258,9 @@ class KinematicsOptimizer:
 
             # pdb.set_trace()
 
-            while norm(desired_velocities, ik.weights) > self.eps and i < self.max_iterations: 
+            q_previous = self.robot.q.copy()
+
+            while norm(desired_velocities, ik.weights) > self.eps and i < self.max_iterations:
                 if i % self.max_iterations == 0 and i > 0:
                     print("Error:", norm(desired_velocities))
                     print("Used iterations:", i)
@@ -291,32 +273,41 @@ class KinematicsOptimizer:
                 i += 1
                 # print(i)
 
+            q_new = self.robot.q.copy()
+
             # q_after = self.robot.q.copy()
             # self.robot.set_configuration(q_before)
             # self.robot.update_configuration(np.transpose(np.matrix(q_dot)) * ik.dt)
             # # print(q_after)
             # print(q_after - self.robot.q)
 
-            # pdb.set_trace()
             # self.robot.set_configuration(q_after)
 
-            # self.robot.centroidalMomentum(self.robot.q, np.transpose(np.matrix(q_dot)))
-
-            self.ik_motion["COM"][t, :] = np.squeeze(self.transformations_dict["COM"](), 1)
-            self.ik_motion["LMOM"][t, :] = np.squeeze(self.robot.data.hg.vector[:3], 1)
-            self.ik_motion["AMOM"][t, :] = np.squeeze(self.robot.data.hg.vector[3:], 1)
-            self.ik_motion["joint_configurations"][t, :] = np.squeeze(np.array(self.robot.q[num_uncontrolled_joints:]), 1)
             if t == 0:
                 q_1 = self.robot.q
+                q_dot = self.robot.get_difference(q_1, self.robot.q)
             else:
                 q_1 = q_traj[-1]
-            q_vel = se3.difference(self.robot.model, q_1, self.robot.q)
-            self.ik_motion["joint_velocities"][t, :] = np.squeeze(np.array(q_vel[num_uncontrolled_joints - 1:]), 1)
+                q_dot = self.robot.get_difference(q_1, self.robot.q) / (self.time[t] - self.time[t - 1])
+
+            self.robot.centroidalMomentum(q_new, q_dot)
+
+            self.ik_motion["COM"][t, :] = np.squeeze(self.robot.transformations_dict["COM"](), 1)
+            self.ik_motion["LMOM"][t, :] = np.squeeze(self.robot.data.hg.vector[:3], 1)
+            self.ik_motion["AMOM"][t, :] = np.squeeze(self.robot.data.hg.vector[3:], 1)
+
+            self.ik_motion["base_position"][t, :] = np.squeeze(np.array(self.robot.q[:3]), 1)
+            self.ik_motion["base_orientation"][t, :] = np.squeeze(np.array(self.robot.q[3:7]), 1)
+            self.ik_motion["joint_configurations"][t, :] = np.squeeze(np.array(self.robot.q[num_uncontrolled_joints:]), 1)
+
+            self.ik_motion["base_linear_velocity"][t, :] = np.squeeze(np.array(q_dot[:3]), 1)
+            self.ik_motion["base_angular_velocity"][t, :] = np.squeeze(np.array(q_dot[3:6]), 1)
+            self.ik_motion["joint_velocities"][t, :] = np.squeeze(np.array(q_dot[num_uncontrolled_joints - 1:]), 1)
             for eff in self.robot.effs:
                 for joint in self.robot.joints_list:
                     joint_identifier = eff + "_" + joint
-                    self.ik_motion[joint_identifier][t, :] = np.squeeze(self.transformations_dict[joint_identifier](), 1)
-                    
+                    self.ik_motion[joint_identifier][t, :] = np.squeeze(self.robot.transformations_dict[joint_identifier](), 1)
+
             print("Finished after iteration:", i)
             q_traj.append(self.robot.q)
             ik.delete_tasks()
@@ -330,7 +321,7 @@ class KinematicsOptimizer:
 
         self.populate_sequence()
 
-        # self.plot_motion(com_motion, lmom, amom, eff_traj_poly, z_floor)
+        # self.plot_plan(com_motion, lmom, amom, eff_traj_poly, z_floor)
 
     def populate_sequence(self):
         for time_id in range(self.num_time_steps):
@@ -338,10 +329,17 @@ class KinematicsOptimizer:
             kinematic_state.com = self.ik_motion["COM"][time_id, :]
             kinematic_state.lmom = self.ik_motion["LMOM"][time_id, :]
             kinematic_state.amom = self.ik_motion["AMOM"][time_id, :]
+
+            kinematic_state.robot_posture.base_position = self.ik_motion["base_position"][time_id, :]
+            kinematic_state.robot_posture.base_orientation = self.ik_motion["base_orientation"][time_id, :]
             kinematic_state.robot_posture.joint_positions = self.ik_motion["joint_configurations"][time_id, :]
+
+            kinematic_state.robot_velocity.base_linear_velocity = self.ik_motion["base_linear_velocity"][time_id, :]
+            kinematic_state.robot_velocity.base_angular_velocity = self.ik_motion["base_angular_velocity"][time_id, :]
             kinematic_state.robot_velocity.joint_velocities = self.ik_motion["joint_velocities"][time_id, :]
 
-    def plot_motion(self, com_motion, lmom, amom, eff_traj_poly, z_floor):
+
+    def plot_plan(self, com_motion, lmom, amom, eff_traj_poly, z_floor):
         import matplotlib.pyplot as plt
 
         coordinates = ["y", "z"]
@@ -383,7 +381,7 @@ class KinematicsOptimizer:
 
         axes[-1].set_xlabel("t [s]")
         fig.suptitle("AMOM")
-        
+
         # TODO: add planned minimum jerk trajectories for end effectors
         for joint in self.robot.joints_list:
             fig, axes = plt.subplots(2, 1, sharex='col')
@@ -393,15 +391,12 @@ class KinematicsOptimizer:
                     coord_index = i + 1
                     ax.plot(self.time, self.ik_motion[joint_identifier][:, coord_index], label=joint_identifier+"_IK")
                     ax.set_ylabel(coordinates[i] + " [m]")
-            
+
             axes[-1].plot([self.time[0], self.time[-1]], [z_floor, z_floor], "k", label="Floor")
             for ax in axes:
                 ax.legend()
 
             axes[-1].set_xlabel("t [s]")
             fig.suptitle(joint)
-            
+
         plt.show()
-
-
-

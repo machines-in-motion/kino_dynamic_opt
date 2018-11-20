@@ -27,6 +27,8 @@ class QuadrupedWrapper(RobotWrapper):
 
         self.set_init_config()
 
+        self.init_jacobians_and_trafos()
+
     def set_init_config(self):
         model = self.model
         data = self.data
@@ -66,6 +68,9 @@ class QuadrupedWrapper(RobotWrapper):
 
     def update_configuration(self, delta_q):
         self.q = se3.integrate(self.model, self.q, delta_q)
+
+    def get_difference(self, q_1, q_2):
+        return se3.difference(self.model, q_1, q_2)
 
     def get_jacobian(self, name, dofs=None, internal=True):
         if not self.model.existFrame(name) and not name == "COM":
@@ -134,14 +139,42 @@ class QuadrupedWrapper(RobotWrapper):
         else:
             return transformation
 
-    def get_desired_velocity(self, goal, transformation_func, dofs):
+    def get_desired_velocity(self, goal, transformation_func, dofs=None):
         def eval_vel(delta_t):
             if dofs == "TRANSLATION":
                 return (goal - transformation_func()) / delta_t
+            elif dofs is None:
+                return se3.log(transformation_func().inverse() * goal).vector / delta_t
             else:
                 raise ValueError("Implementation for %s not available" %dofs)
             
         return eval_vel
+
+    def init_jacobians_and_trafos(self):
+        # Create dictionary for jacobians
+        self.jacobians_dict = {}
+        # Create jacobian for COM
+        self.jacobians_dict["COM"] = self.get_jacobian("COM")
+        self.jacobians_dict["base_link"] = self.get_jacobian("base_link")
+        # Create dictionary for transformations
+        self.transformations_dict = {}
+        # Create transformation for COM
+        self.transformations_dict["COM"] = self.get_transformation("COM")
+        self.transformations_dict["COM_GOAL"] = self.transformations_dict["COM"]().copy()
+        self.transformations_dict["base_link"] = self.get_transformation("base_link")
+        self.transformations_dict["base_link_GOAL"] = self.transformations_dict["base_link"]().copy()
+
+        # Hip, knee and end effector jacobians and transformations
+        for eff in self.effs:
+            for joint in self.joints_list:
+                joint_identifier = eff + "_" + joint
+                self.jacobians_dict[joint_identifier] = self.get_jacobian(joint_identifier, "TRANSLATION")
+                self.transformations_dict[joint_identifier] = self.get_transformation(joint_identifier, "TRANSLATION")
+
+            # Create transformations for goal states
+            self.transformations_dict[eff + "_END_GOAL"] = self.transformations_dict[eff + "_END"]().copy()
+
+        self.centroidal_momentum = self.get_centroidal_momentum()
 
     def initDisplay(self,loadModel):
         RobotWrapper.initDisplay(self,loadModel=loadModel)

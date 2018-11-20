@@ -42,8 +42,8 @@ void init_kinematics(py::module &m)
     .def(py::init<int&>())
     .def("generalized_joint_positions", &RobotPosture::generalizedJointPositions)
     .def_property("base_position", (const Eigen::Vector3d& (RobotPosture::*)(void) const) &RobotPosture::basePosition, (void (RobotPosture::*)(const Eigen::Vector3d&)) &RobotPosture::basePosition)
-    .def_property("joint_positions", (const Eigen::VectorXd& (RobotPosture::*)(void) const) &RobotPosture::jointPositions, (void (RobotPosture::*)(const Eigen::VectorXd&)) &RobotPosture::jointPositions)
     .def_property("base_orientation", (const Eigen::Vector4d (RobotPosture::*)(void) const) &RobotPosture::pyBaseOrientation, (void (RobotPosture::*)(const Eigen::Vector4d)) &RobotPosture::pyBaseOrientation)
+    .def_property("joint_positions", (const Eigen::VectorXd& (RobotPosture::*)(void) const) &RobotPosture::jointPositions, (void (RobotPosture::*)(const Eigen::VectorXd&)) &RobotPosture::jointPositions)
     .def("__repr__", [](const RobotPosture &robot_posture) { return robot_posture.toString(); } );
 
   // binding of robot velocity
