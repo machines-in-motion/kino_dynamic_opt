@@ -300,8 +300,8 @@ class KinematicsOptimizer:
             self.ik_motion["base_orientation"][t, :] = np.squeeze(np.array(self.robot.q[3:7]), 1)
             self.ik_motion["joint_configurations"][t, :] = np.squeeze(np.array(self.robot.q[num_uncontrolled_joints:]), 1)
 
-            self.ik_motion["base_linear_velocity"][t, :] = np.squeeze(np.array(self.robot.dq[:3]), 1)
-            self.ik_motion["base_angular_velocity"][t, :] = np.squeeze(np.array(self.robot.dq[3:6]), 1)
+            self.ik_motion["base_linear_velocity"][t, :] = np.squeeze(np.array(q_dot[:3]), 1)
+            self.ik_motion["base_angular_velocity"][t, :] = np.squeeze(np.array(q_dot[3:6]), 1)
             self.ik_motion["joint_velocities"][t, :] = np.squeeze(np.array(q_dot[num_uncontrolled_joints - 1:]), 1)
             for eff in self.robot.effs:
                 for joint in self.robot.joints_list:
