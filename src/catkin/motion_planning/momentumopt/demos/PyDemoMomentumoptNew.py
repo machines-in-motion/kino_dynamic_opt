@@ -19,6 +19,7 @@
 
 from pysolver import *
 from pymomentum import *
+from pysolverlqr import *
 from pinocchio.utils import *
 from pinocchio.robot_wrapper import RobotWrapper
 from quadruped.PyQuadrupedRobot import QuadrupedWrapper
@@ -87,6 +88,9 @@ def main(argv):
     planner_setting = PlannerSetting()
     planner_setting.initialize(cfg_file)
 
+    dynlqr_setting = SolverLqrSetting()
+    dynlqr_setting.initialize(cfg_file, "solverlqr_dynamics")
+
     'define robot initial state'
     ini_state = DynamicsState()
     ini_state.fillInitialRobotState(cfg_file)
@@ -125,6 +129,13 @@ def main(argv):
     # print dyn_optimizer.solveTime()
     # print dyn_optimizer.dynamicsSequence().dynamics_states[planner_setting.get(PlannerIntParam_NumTimesteps)-1]
     # print contact_plan.contactSequence().contact_states(0)[0].position
+
+    'define dynamics feedback'
+    dynamics_feedback = DynamicsFeedback()
+    dynamics_feedback.initialize(dynlqr_setting, planner_setting)
+    dynamics_feedback.optimize(ini_state, dyn_optimizer.dynamicsSequence())
+    #Access feedback gains using: dynamics_feedback.forceGain(time_id)
+    
 
     print('Done...')
 

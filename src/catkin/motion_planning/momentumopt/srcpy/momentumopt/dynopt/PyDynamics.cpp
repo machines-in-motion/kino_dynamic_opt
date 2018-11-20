@@ -20,6 +20,7 @@
 #include <pybind11/pybind11.h>
 
 #include <momentumopt/dynopt/DynamicsState.hpp>
+#include <momentumopt/dynopt/DynamicsFeedback.hpp>
 #include <momentumopt/dynopt/DynamicsOptimizer.hpp>
 
 namespace py = pybind11;
@@ -72,4 +73,12 @@ void init_dynamics(py::module &m)
     .def("optimize", &DynamicsOptimizer::optimize, py::arg("ini_state"), py::arg("contact_plan"), py::arg("kin_sequence"), py::arg("update_tracking_objective") = false)
     .def("dynamicsSequence", (const DynamicsSequence& (DynamicsOptimizer::*)(void) const) &DynamicsOptimizer::dynamicsSequence)
     .def("solveTime", &DynamicsOptimizer::solveTime);
+
+  // binding of dynamics feedback wrapper
+  py::class_<DynamicsFeedbackWrapper>(m, "DynamicsFeedback")
+    .def(py::init<>())
+    .def("initialize", &DynamicsFeedbackWrapper::initialize)
+    .def("optimize", &DynamicsFeedbackWrapper::optimize)
+	.def("forceGain", &DynamicsFeedbackWrapper::forceGain);
+
 }

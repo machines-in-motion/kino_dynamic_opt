@@ -70,10 +70,12 @@ namespace momentumopt {
       Eigen::Vector3d& endeffectorCoP(int eff_id) { return eff_cops_[eff_id]; }
       Eigen::Vector3d& endeffectorForce(int eff_id) { return eff_forces_[eff_id]; }
       Eigen::Vector3d& endeffectorTorque(int eff_id) { return eff_torques_[eff_id]; }
+      Eigen::Vector3d& endeffectorTorqueAtContactPoint(int eff_id) { return eefs_trqs_contact_point_[eff_id]; }
 
       const Eigen::Vector3d& endeffectorCoP(int eff_id) const { return eff_cops_[eff_id]; }
       const Eigen::Vector3d& endeffectorForce(int eff_id) const { return eff_forces_[eff_id]; }
       const Eigen::Vector3d& endeffectorTorque(int eff_id) const { return eff_torques_[eff_id]; }
+      const Eigen::Vector3d& endeffectorTorqueAtContactPoint(int eff_id) const { return eefs_trqs_contact_point_[eff_id]; }
 
       const std::vector<Eigen::Vector3d>& pyEndeffectorCops() const { return eff_cops_; }
       const std::vector<Eigen::Vector3d>& pyEndeffectorForces() const { return eff_forces_; }
@@ -118,8 +120,8 @@ namespace momentumopt {
       std::array<int, Problem::n_endeffs_> eff_ids_, cnt_ids_;
 
       std::vector<Eigen::Quaternion<double>> eff_orientations_;
-      std::vector<Eigen::Vector3d> eff_forces_, eff_torques_, eff_cops_;
       std::vector<Eigen::Vector3d> eff_positions_, eff_velocities_, eff_accelerations_;
+      std::vector<Eigen::Vector3d> eff_forces_, eff_torques_, eff_cops_, eefs_trqs_contact_point_;
   };
 
   /**

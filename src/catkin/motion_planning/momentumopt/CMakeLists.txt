@@ -17,6 +17,7 @@ set(CATKIN_PKGS ${CATKIN_PKGS}
   solver
   yaml_cpp
   pybind11
+  solverlqr
 )
 
 find_package(catkin REQUIRED COMPONENTS ${CATKIN_PKGS})
@@ -63,6 +64,7 @@ set(momentumopt_SRC_FILES ${momentumopt_SRC_FILES}
 
   # files for dynamics planning
   src/momentumopt/dynopt/DynamicsState.cpp
+  src/momentumopt/dynopt/DynamicsFeedback.cpp
   src/momentumopt/dynopt/DynamicsOptimizer.cpp
 
   # files for kinematics planning

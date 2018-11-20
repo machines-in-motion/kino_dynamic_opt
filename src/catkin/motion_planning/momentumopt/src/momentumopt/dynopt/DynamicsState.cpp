@@ -43,6 +43,7 @@ namespace momentumopt {
       eff_cops_.push_back(Eigen::Vector3d::Zero());
 	  eff_forces_.push_back(Eigen::Vector3d::Zero());
 	  eff_torques_.push_back(Eigen::Vector3d::Zero());
+	  eefs_trqs_contact_point_.push_back(Eigen::Vector3d::Zero());
 
 	  eff_positions_.push_back(Eigen::Vector3d::Zero());
 	  eff_velocities_.push_back(Eigen::Vector3d::Zero());

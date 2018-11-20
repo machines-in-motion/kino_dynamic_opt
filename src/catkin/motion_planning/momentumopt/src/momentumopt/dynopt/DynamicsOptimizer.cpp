@@ -671,6 +671,11 @@ namespace momentumopt {
       for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++)
         if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id))
           dynamicsSequence().dynamicsState(time_id).endeffectorTorque(eff_id) = Eigen::Vector3d(0.0, 0.0, mat_guess_(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id)));
+
+      for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++)
+        if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id))
+          dynamicsSequence().dynamicsState(time_id).endeffectorTorqueAtContactPoint(eff_id) = dynamicsSequence().dynamicsState(time_id).endeffectorTorque(eff_id) + dynamicsSequence().dynamicsState(time_id).endeffectorCoP(eff_id).
+                                                                                              cross(this->getSetting().get(PlannerDoubleParam_MassTimesGravity)*dynamicsSequence().dynamicsState(time_id).endeffectorOrientation(eff_id).toRotationMatrix().transpose()*dynamicsSequence().dynamicsState(time_id).endeffectorForce(eff_id));
     }
   }
 

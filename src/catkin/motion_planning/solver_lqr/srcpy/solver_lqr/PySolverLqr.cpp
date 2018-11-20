@@ -15,24 +15,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <momentumopt/kinopt/KinematicsInterface.hpp>
+#include <pybind11/pybind11.h>
 
-namespace momentumopt {
+namespace py = pybind11;
 
-  // KinematicsInterface class functions implementation
-  void KinematicsInterface::internalInitialization(PlannerSetting& planner_setting)
-  {
-    planner_setting_ = &planner_setting;
+void init_params_lqr(py::module& module);
+void init_setting_lqr(py::module& module);
+void init_algorithm_lqr(py::module& module);
+void init_ocp_description_lqr(py::module& module);
 
-    centroidal_mometum_matrix_.resize(6, 6+this->getSetting().get(PlannerIntParam_NumDofs));
-    centroidal_mometum_matrix_.setZero();
-
-    endeffector_jacobians_.clear();
-    for (int eff_id=0; eff_id<Problem::n_endeffs_; eff_id++) {
-      endeffector_jacobians_.push_back(Eigen::MatrixXd(6, 6+this->getSetting().get(PlannerIntParam_NumDofs)));
-      endeffector_jacobians_[eff_id].setZero();
-    }
-    this->initialize(planner_setting);
-  }
-
+PYBIND11_MODULE(pysolverlqr, m) {
+  init_params_lqr(m);
+  init_setting_lqr(m);
+  init_algorithm_lqr(m);
+  init_ocp_description_lqr(m);
 }

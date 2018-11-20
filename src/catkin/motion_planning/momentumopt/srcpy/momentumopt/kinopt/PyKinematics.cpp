@@ -91,7 +91,7 @@ void init_kinematics(py::module &m)
     .def(py::init<>())
     .def_property("centroidal_momentum_matrix", (const Eigen::MatrixXd& (KinematicsInterface::*)(void) const) &KinematicsInterface::centroidalMomentumMatrix, (void (KinematicsInterface::*)(const Eigen::MatrixXd&)) &KinematicsInterface::centroidalMomentumMatrix)
     .def_property("endeffector_jacobians", (const std::vector<Eigen::MatrixXd>& (KinematicsInterface::*)(void) const) &KinematicsInterface::endeffectorJacobians, (void (KinematicsInterface::*)(const std::vector<Eigen::MatrixXd>&)) &KinematicsInterface::endeffectorJacobians)
-	.def("initialize", &KinematicsInterface::initialize)
+    .def("initialize", &KinematicsInterface::initialize)
     .def("displayPosture", &KinematicsInterface::displayPosture)
     .def("updateJacobians", &KinematicsInterface::updateJacobians);
 

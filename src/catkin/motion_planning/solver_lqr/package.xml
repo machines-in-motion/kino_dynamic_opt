@@ -1,22 +1,20 @@
 <?xml version="1.0"?>
 <package>
-  <name>momentumopt</name>
+  <name>solverlqr</name>
   <version>1.0.0</version>
-  <description>Optimization Routine for Centroidal Momentum Dynamics</description>
+  <description>Feedback Controller Routine</description>
   <maintainer email="bponton@tue.mpg.de">Autonomous Motion Lab - MPI-IS</maintainer>
-  <license>TODO</license>
+  <license>GNU-GPL</license>
   
   <buildtool_depend>catkin</buildtool_depend>
-  
+
   <build_depend>solver</build_depend>
   <build_depend>yaml_cpp</build_depend>
   <build_depend>pybind11</build_depend>
-  <build_depend>solverlqr</build_depend>
-  
+
   <run_depend>solver</run_depend>
   <run_depend>yaml_cpp</run_depend>
   <run_depend>pybind11</run_depend>
-  <run_depend>solverlqr</run_depend>
   
   <export>
   </export>

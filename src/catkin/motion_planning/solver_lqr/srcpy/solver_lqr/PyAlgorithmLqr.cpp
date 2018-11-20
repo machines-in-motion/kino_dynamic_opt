@@ -15,24 +15,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <momentumopt/kinopt/KinematicsInterface.hpp>
+#include <pybind11/eigen.h>
+#include <pybind11/stl_bind.h>
+#include <pybind11/pybind11.h>
 
-namespace momentumopt {
+#include <solver_lqr/SolverLqr.hpp>
 
-  // KinematicsInterface class functions implementation
-  void KinematicsInterface::internalInitialization(PlannerSetting& planner_setting)
-  {
-    planner_setting_ = &planner_setting;
+namespace py = pybind11;
+using namespace solverlqr;
 
-    centroidal_mometum_matrix_.resize(6, 6+this->getSetting().get(PlannerIntParam_NumDofs));
-    centroidal_mometum_matrix_.setZero();
+void init_algorithm_lqr(py::module &m)
+{
 
-    endeffector_jacobians_.clear();
-    for (int eff_id=0; eff_id<Problem::n_endeffs_; eff_id++) {
-      endeffector_jacobians_.push_back(Eigen::MatrixXd(6, 6+this->getSetting().get(PlannerIntParam_NumDofs)));
-      endeffector_jacobians_[eff_id].setZero();
-    }
-    this->initialize(planner_setting);
-  }
-
+  // binding of solver lqr algorithm
+  py::class_<SolverLqr>(m, "SolverLqr")
+    .def(py::init<>())
+    .def("initialize", &SolverLqr::initialize)
+    .def("optimize", &SolverLqr::optimize);
 }
