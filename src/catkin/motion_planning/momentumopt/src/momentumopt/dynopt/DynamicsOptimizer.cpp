@@ -76,7 +76,7 @@ namespace momentumopt {
     contact_plan_ = contact_plan;
 
     com_pos_goal_ = ini_state_.centerOfMass() + this->getSetting().get(PlannerVectorParam_CenterOfMassMotion);
-    contact_plan_->fillDynamicsSequence(this->dynamicsSequence());
+    contact_plan_->fillDynamicsSequence(ini_state, this->dynamicsSequence());
     this->initializeOptimizationVariables();
 
 	if (update_tracking_objective)

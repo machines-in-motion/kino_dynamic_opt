@@ -72,6 +72,10 @@ set(momentumopt_SRC_FILES ${momentumopt_SRC_FILES}
 
   # files for setting up environments
   src/momentumopt/setting/PlannerSetting.cpp
+  
+  # utilities
+  src/momentumopt/utilities/OrientationUtils.cpp
+  src/momentumopt/utilities/TrajectoryGenerator.cpp
 )
 
 set(pymomentumopt_SRC_FILES ${pymomentumopt_SRC_FILES}

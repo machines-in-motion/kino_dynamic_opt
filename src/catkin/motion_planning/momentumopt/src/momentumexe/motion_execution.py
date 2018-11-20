@@ -31,7 +31,7 @@ class PDController(object):
 
 
 def desired_state(specification, time_vector, optimized_sequence):
-    
+
     def desired_state_eval(t):
         closest_idx = np.argmin(abs(time_vector - t))
         # Determine interval
@@ -88,7 +88,7 @@ class MotionExecutor():
         urdf = str(os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/urdf/quadruped.urdf')
         self.robot = QuadrupedWrapper(urdf)
 
-        self.joint_map = {} 
+        self.joint_map = {}
         self.joint_map_inv = {}
         for ji in range(num_joints):
             self.joint_map[p.getJointInfo(self.robotId, ji)[1].decode('UTF-8')] = ji
@@ -142,7 +142,7 @@ class MotionExecutor():
         print(p.getPhysicsEngineParameters())
 
     def bullet2pin(self, joint_id):
-        return self.pin_joint_map[self.joint_map_inv[joint_id]] 
+        return self.pin_joint_map[self.joint_map_inv[joint_id]]
 
     def calculate_actual_trajectories(self, num_loops, t_vec, joint_configurations, base_states):
         print("Determining actual COM, LMOM and AMOM trajectories...")
@@ -202,12 +202,12 @@ class MotionExecutor():
                 # self.sim.step()
 
                 p.stepSimulation()
+                # sleep(0.001)
 
                 loop += 1
-                sleep(0.001)
 
         except KeyboardInterrupt:
-            print("Keyboard interrupt") 
+            print("Keyboard interrupt")
 
         desired_pos = desired_state("POSITION", self.time_vector, self.optimized_sequence)
         desired_vel = desired_state("VELOCITY", self.time_vector, self.optimized_sequence)
@@ -254,12 +254,10 @@ class MotionExecutor():
                 base_states[loop, 3:] = base_state_and_orientation[1]
                 t_vec[loop] = t
 
-                # self.sim.step()
-
                 p.stepSimulation()
+                # sleep(0.001)
 
                 loop += 1
-                # sleep(0.001)
 
             print("...Finished execution.")
 

@@ -32,7 +32,8 @@ namespace momentumopt {
     normal_ = aux1.cross(aux2);
     normal_ /= normal_.norm();
     point_.setZero();
-    for (int row_id=0; row_id<num_rows; row_id++) { point_ += ccwvertices.row(row_id); }
+    for (int row_id=0; row_id<num_rows; row_id++)
+      point_ += ccwvertices.row(row_id);
     point_ /= num_rows;
 
     // build definition of half-spaces
@@ -100,7 +101,7 @@ namespace momentumopt {
       std::vector<Eigen::Matrix<double, Eigen::Dynamic,3>> regions;
       readParameter(terrain_description, "regions", regions);
 
-      for (int reg_id=0; reg_id<regions.size(); reg_id++)
+      for (unsigned int reg_id=0; reg_id<regions.size(); reg_id++)
         this->addTerrainRegion(regions[reg_id]);
 
     } catch (std::runtime_error& e) {
