@@ -19,6 +19,7 @@
 
 from pysolver import *
 from pymomentum import *
+from pysolverlqr import *
 from pinocchio.utils import *
 from pinocchio.robot_wrapper import RobotWrapper
 import os, sys, getopt, numpy as np, pinocchio as pin
@@ -68,6 +69,9 @@ class MotionPlanner():
         self.planner_setting = PlannerSetting()
         self.planner_setting.initialize(cfg_file)
 
+        self.dynlqr_setting = SolverLqrSetting()
+        self.dynlqr_setting.initialize(cfg_file, "solverlqr_dynamics")
+
         'define robot initial state'
         self.ini_state = DynamicsState()
         self.ini_state.fillInitialRobotState(cfg_file)
@@ -93,6 +97,23 @@ class MotionPlanner():
         dyn_optimizer.initialize(self.planner_setting)
         dyn_optimizer.optimize(self.ini_state, self.contact_plan, self.kin_sequence)
 
+        'define dynamics feedback controller'
+        dynamics_feedback = DynamicsFeedback()
+        dynamics_feedback.initialize(self.dynlqr_setting, self.planner_setting)
+        dynamics_feedback.optimize(self.ini_state, dyn_optimizer.dynamicsSequence())
+        '''
+        Access feedback gains using: dynamics_feedback.forceGain(time_id)
+                                    [currentCOM  - desiredCoM ]
+          deltaForce = forceGain *  [currentLMOM - desiredLMOM]
+                                    [currentAMOM - desiredAMOM]
+        
+         Torque = PD(q,qdot) + J^T * (plannedForce + deltaForce)
+         Remember that plannedForce of dyn_optimizer is normalized by robot weight
+         (self.planner_setting.get(PlannerDoubleParam_RobotWeight)),
+         so you need to multiply it by that amount for it to work!
+         deltaForce comes already in the right units.
+        '''
+        
         # print dyn_optimizer.solveTime()
         # print dyn_optimizer.dynamicsSequence().dynamics_states[planner_setting.get(PlannerIntParam_NumTimesteps)-1]
         # print contact_plan.contactSequence().contact_states(0)[0].position

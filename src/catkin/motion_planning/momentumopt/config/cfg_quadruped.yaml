@@ -191,6 +191,61 @@ planner_variables:
   use_default_solver_setting: False
 
 
+solverlqr_dynamics:
+
+  ############################
+  # Lqr algorithm parameters #
+  ############################
+
+  verbosity: 0
+  decimal_digits: 4
+  lqr_max_iters: 1
+  linesearch_coeff: 1.1
+  linesearch_num_coeffs: 10
+  cost_change_tolerance: 1e-9
+  divergence_limit_check: 1e6
+  bpass_regularization_type: 2
+  bpass_min_regularization: 1e-6
+  bpass_max_regularization: 1e10
+  control_gradient_tolerance: 1e-6
+  bpass_initial_regularization: 0.1
+  min_expected_cost_improvement: 0.2
+  bpass_mult_regularization_incr: 1.2
+  bpass_initial_mult_regularization_incr: 1.0
+
+  ##########################
+  # Lqr problem parameters #
+  ##########################
+  
+  problem_name: DynamicMomentumOptimization
+  time_step: 0.05
+  time_horizon: 4.0
+  state_dimension: 9
+  control_dimension: 12
+  initial_state: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  
+  has_control_limits: False
+  
+  #######################
+  # Storage information #
+  #######################
+
+  store_data: False
+
+  ###################
+  # User parameters #
+  ###################
+
+  user_parameters:
+    control_cost: [0.001, 0.001, 0.001]
+    com_tracking: [1.0, 1.0, 1.0]
+    lmom_tracking: [0.1, 0.1, 0.1] 
+    amom_tracking: [0.1, 0.1, 0.1]
+    com_final_tracking: [1.0, 1.0, 1.0]
+    lmom_final_tracking: [0.1, 0.1, 0.1]
+    amom_final_tracking: [0.1, 0.1, 0.1]
+
+
 solver_variables:
 
   ###########################
