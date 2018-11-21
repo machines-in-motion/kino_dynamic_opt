@@ -342,14 +342,13 @@ class KinematicsOptimizer:
     def plot_plan(self, com_motion, lmom, amom, eff_traj_poly, z_floor):
         import matplotlib.pyplot as plt
 
-        coordinates = ["y", "z"]
+        coordinates = ["x", "y", "z"]
 
-        fig, axes = plt.subplots(2, 1, sharex='col')
+        fig, axes = plt.subplots(len(coordinates), 1, sharex='col')
 
         for i, ax in enumerate(axes):
-            coord_index = i + 1
-            ax.plot(self.time, self.ik_motion["COM"][:, coord_index], "r", label="COM_IK")
-            ax.plot(self.time, com_motion[:, coord_index], "b", label="COM_DYN_OPT")
+            ax.plot(self.time, self.ik_motion["COM"][:, i], "r", label="COM_IK")
+            ax.plot(self.time, com_motion[:, i], "b", label="COM_DYN_OPT")
             if coordinates[i] == "z":
                 ax.plot([self.time[0], self.time[-1]], [z_floor, z_floor], "k", label="Floor")
             ax.legend()
@@ -358,26 +357,24 @@ class KinematicsOptimizer:
         axes[-1].set_xlabel("t [s]")
         fig.suptitle("COM")
 
-        fig, axes = plt.subplots(2, 1, sharex='col')
+        fig, axes = plt.subplots(len(coordinates), 1, sharex='col')
 
         for i, ax in enumerate(axes):
-            coord_index = i + 1
-            ax.plot(self.time, self.ik_motion["LMOM"][:, coord_index], "r", label="LMOM_IK")
-            ax.plot(self.time, lmom[:, coord_index], "b", label="LMOM_DYN_OPT")
+            ax.plot(self.time, self.ik_motion["LMOM"][:, i], "r", label="LMOM_IK")
+            ax.plot(self.time, lmom[:, i], "b", label="LMOM_DYN_OPT")
             ax.legend()
-            ax.set_ylabel(coordinates[i] + " [m]")
+            ax.set_ylabel("p_" + coordinates[i] + " [kg * m / s]")
 
         axes[-1].set_xlabel("t [s]")
         fig.suptitle("LMOM")
 
-        fig, axes = plt.subplots(2, 1, sharex='col')
+        fig, axes = plt.subplots(len(coordinates), 1, sharex='col')
 
         for i, ax in enumerate(axes):
-            coord_index = i + 1
-            ax.plot(self.time, self.ik_motion["AMOM"][:, coord_index], "r", label="AMOM_IK")
-            ax.plot(self.time, amom[:, coord_index], "b", label="AMOM_DYN_OPT")
+            ax.plot(self.time, self.ik_motion["AMOM"][:, i], "r", label="AMOM_IK")
+            ax.plot(self.time, amom[:, i], "b", label="AMOM_DYN_OPT")
             ax.legend()
-            ax.set_ylabel(coordinates[i] + " [m]")
+            ax.set_ylabel("L_" + coordinates[i] + " [kg * m^2 / s]")
 
         axes[-1].set_xlabel("t [s]")
         fig.suptitle("AMOM")
@@ -390,7 +387,7 @@ class KinematicsOptimizer:
                 for i, ax in enumerate(axes):
                     coord_index = i + 1
                     ax.plot(self.time, self.ik_motion[joint_identifier][:, coord_index], label=joint_identifier+"_IK")
-                    ax.set_ylabel(coordinates[i] + " [m]")
+                    ax.set_ylabel(coordinates[i + 1] + " [m]")
 
             axes[-1].plot([self.time[0], self.time[-1]], [z_floor, z_floor], "k", label="Floor")
             for ax in axes:

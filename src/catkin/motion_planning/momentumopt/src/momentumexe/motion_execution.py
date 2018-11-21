@@ -290,15 +290,14 @@ class MotionExecutor():
                 fig.suptitle(joint_type + specification)
 
         momentums = ["LMOM", "AMOM", "COM"]
-        coords = ["y", "z"]
+        coords = ["x", "y", "z"]
 
         for momentum in momentums:
-            fig, axes = plt.subplots(2, 1, sharex='col')
+            fig, axes = plt.subplots(len(coords), 1, sharex='col')
 
             for i, coord in enumerate(coords):
-                coord_index = i + 1
-                axes[i].plot(self.time_vector, desired_trajectories[momentum][:, coord_index], "r", label="Desired " + momentum)
-                axes[i].plot(t_vec[:used_loops], actual_trajectories[momentum][:used_loops, coord_index], "b", label="Actual " + momentum)
+                axes[i].plot(self.time_vector, desired_trajectories[momentum][:, i], "r", label="Desired " + momentum)
+                axes[i].plot(t_vec[:used_loops], actual_trajectories[momentum][:used_loops, i], "b", label="Actual " + momentum)
                 axes[i].legend()
                 if momentum == "COM":
                     axes[i].set_ylabel(coord + " [m]")
