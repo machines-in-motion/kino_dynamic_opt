@@ -9,7 +9,7 @@ from pymomentum import *
 from src.momentumopt.kinoptpy.min_jerk_traj import generate_eff_traj
 from src.quadruped.quadruped_wrapper import QuadrupedWrapper
 from src.momentumopt.kinoptpy.inv_kin import InverseKinematics
-from src.momentumopt.kinoptpy.utils import norm, display_motion
+from src.momentumopt.kinoptpy.utils import norm, display_motion, norm_momentum
 
 
 class Contact:
@@ -85,13 +85,14 @@ class KinematicsOptimizer:
         self.max_iterations = max_iterations
         self.eps = eps
 
-        self.in_contact = False
+        self.in_contact = [False] * len(self.robot.effs)
         # TODO: Set these using a config file
         self.offset = 0.0  # set constraint for z directly on floor
         self.q_max_delta = 10.0  # maximum difference in joint velocity
         self.dt = 0.01  # dt for the incremental steps for the inverse kinematics
         self.weights_value = 0.02  # value of the weights for all the tasks
         self.lambda_value = 0.0001  # value of the regularization
+        self.w_not_in_contact = 1.0  # weight for non active end effector tracking
 
         self.kinematics_sequence = KinematicsSequence()
         self.kinematics_sequence.resize(planner_setting.get(PlannerIntParam_NumTimesteps),
@@ -105,17 +106,17 @@ class KinematicsOptimizer:
         desired_vel_com = self.robot.get_desired_velocity(self.robot.transformations_dict["COM_GOAL"],
                                                           self.robot.transformations_dict["COM"], "TRANSLATION")
 
-        for eff in self.robot.effs:
-            self.in_contact = False
+        for eff_id, eff in enumerate(self.robot.effs):
+            self.in_contact[eff_id] = False
             phase = 0
             cnt_ = contacts[eff]
 
             for i in range(len(cnt_)):
                 if cnt_[i].start_time() <= self.time[t] < cnt_[i].end_time():
                     phase = i
-                    self.in_contact = True
+                    self.in_contact[eff_id] = True
 
-            if self.in_contact:
+            if self.in_contact[eff_id]:
                 # Set goal position to contact position
                 new_goal = set_new_goal(contacts[eff][phase].position())
             else:
@@ -235,60 +236,61 @@ class KinematicsOptimizer:
             i = 0
             print("time =", self.time[t])
             desired_velocities, jacobians = self.create_tasks(t, com_motion, contacts, eff_traj_poly)
+            desired_momentum = np.hstack((lmom[t, :], amom[t, :]))
 
             # Set weightsfor tasks
-            weights = np.ones((len(jacobians)))
-            if self.in_contact:
-                weights[:] = self.weights_value
-            else:
-                weights[:] = self.weights_value
-            weights[-1] = self.weights_value
+            weights = self.weights_value * np.ones((len(jacobians)))
+
+            for i in range(len(self.robot.effs)):
+                if self.in_contact[i]:
+                    weights[i] = self.weights_value
+                else:
+                    weights[i] = self.w_not_in_contact * self.weights_value
+                weights[-1] = self.weights_value
 
             # Set regularizer
             lambda_ = self.lambda_value * np.ones_like(ik.lambda_)
             ik.set_regularizer(lambda_)
 
             # Add tasks to the cost function of the IK
-            ik.add_tasks(desired_velocities, jacobians, gains=0.5, weights=weights)
-
-            # q_before = self.robot.q.copy()
-            # x_before, y_before, z_before, w_before = np.squeeze(np.array(q_before[3:7]), 1)
-            # pdb.set_trace()
-            # R_before = self.Rquat(x=x_before, y=y_before, z=z_before, w=w_before)
-
-            # pdb.set_trace()
+            # ik.add_tasks(desired_velocities, jacobians, gains=0.5, weights=weights)
+            ik.add_tasks(desired_velocities, jacobians, 
+                         centroidal_momentum=self.robot.centroidal_momentum, desired_momentums=desired_momentum,
+                         gains=0.5, weights=weights)
 
             q_previous = self.robot.q.copy()
 
+            # print(norm_momentum(np.dot(np.array(self.robot.centroidal_momentum()), np.squeeze(np.array(self.robot.dq), 1)), desired_momentum))
+            # pdb.set_trace()
+
+            if t == 0:
+                q_dot = self.robot.get_difference(self.robot.q, self.robot.q) 
+                self.robot.set_velocity(q_dot)
+
+            # while norm_momentum(np.dot(np.array(self.robot.centroidal_momentum()), np.squeeze(np.array(self.robot.dq), 1)), desired_momentum) > self.eps and i < 100:
+            # while norm(desired_velocities, ik.weights) + norm_momentum(np.dot(np.array(self.robot.centroidal_momentum()), np.squeeze(np.array(self.robot.dq), 1)), desired_momentum) > self.eps and i < 50:
             while norm(desired_velocities, ik.weights) > self.eps and i < self.max_iterations:
                 if i % self.max_iterations == 0 and i > 0:
                     print("Error:", norm(desired_velocities))
                     print("Used iterations:", i)
-                # x_current, y_current, z_current, w_current = np.squeeze(np.array(self.robot.q.copy()[3:7]), 1)
-                # delta_q_ang_vel = se3.log3(self.Rquat(x=x_before, y=y_before, z=z_before, w=w_before).transpose() * R_before)
+                # delta_momentum = desired_momentum - np.dot(np.array(self.robot.centroidal_momentum()), np.squeeze(np.array(self.robot.dq), 1))
+                # ik.desired_momentums = delta_momentum
                 G, h = self.create_constraints(z_floor, ik.dt)
                 q_sol = ik.multi_task_IK(G=G, h=h, soft_constrained=True)
-                # q_dot += q_sol
                 self.robot.update_configuration(np.transpose(np.matrix(q_sol)) * ik.dt)
+                # if t == 0:
+                #     delta_t = (self.time[t] - 0.0)
+                # else: 
+                #     delta_t = (self.time[t] - self.time[t - 1])
+                # q_diff = self.robot.get_difference(self.robot.q, q_previous) / ((i + 1) * ik.dt)  # delta_t
+                # self.robot.set_velocity(q_diff)
                 i += 1
-                # print(i)
-
+                
             q_new = self.robot.q.copy()
 
-            # q_after = self.robot.q.copy()
-            # self.robot.set_configuration(q_before)
-            # self.robot.update_configuration(np.transpose(np.matrix(q_dot)) * ik.dt)
-            # # print(q_after)
-            # print(q_after - self.robot.q)
-
-            # self.robot.set_configuration(q_after)
-
-            if t == 0:
-                q_1 = self.robot.q
-                q_dot = self.robot.get_difference(q_1, self.robot.q)
-            else:
-                q_1 = q_traj[-1]
-                q_dot = self.robot.get_difference(q_1, self.robot.q) / (self.time[t] - self.time[t - 1])
+            if t > 0:
+                q_dot = self.robot.get_difference(q_traj[-1], self.robot.q) / (self.time[t] - self.time[t - 1])
+                self.robot.set_velocity(q_dot)
 
             self.robot.centroidalMomentum(q_new, q_dot)
 
