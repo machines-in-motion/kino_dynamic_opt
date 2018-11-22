@@ -77,9 +77,9 @@ class MotionPlanner():
         self.ini_state.fillInitialRobotState(cfg_file)
 
         'define reference dynamic sequence'
-        self.kin_sequence = KinematicsSequence()
-        self.kin_sequence.resize(self.planner_setting.get(PlannerIntParam_NumTimesteps),
-                                 self.planner_setting.get(PlannerIntParam_NumDofs))
+        #self.kin_sequence = KinematicsSequence()
+        #self.kin_sequence.resize(self.planner_setting.get(PlannerIntParam_NumTimesteps),
+        #                         self.planner_setting.get(PlannerIntParam_NumDofs))
 
         'define terrain description'
         self.terrain_description = TerrainDescription()
@@ -95,8 +95,24 @@ class MotionPlanner():
         'optimize motion'
         dyn_optimizer = DynamicsOptimizer()
         dyn_optimizer.initialize(self.planner_setting)
-        dyn_optimizer.optimize(self.ini_state, self.contact_plan, self.kin_sequence)
+        
+        'Kinematics Optimizer'
+        kin_optimizer = KinematicsOptimizer()
+        kin_optimizer.initialize(self.planner_setting)
 
+
+        dyn_optimizer.optimize(self.ini_state, self.contact_plan, kin_optimizer.kinematics_sequence, False)
+        for kd_iter in range(0, self.planner_setting.get(PlannerIntParam_KinDynIterations)):
+            print("KinOpt", kd_iter+1)
+            kin_optimizer.optimize(self.ini_state, self.contact_plan.contactSequence(), dyn_optimizer.dynamicsSequence())
+            print("DynOpt", kd_iter+1)
+            dyn_optimizer.optimize(self.ini_state, self.contact_plan, kin_optimizer.kinematics_sequence, True)    
+
+
+        optimized_sequence = kin_optimizer.kinematics_sequence
+
+        time_vector = create_time_vector(dyn_optimizer.dynamicsSequence())
+        
         'define dynamics feedback controller'
         dynamics_feedback = DynamicsFeedback()
         dynamics_feedback.initialize(self.dynlqr_setting, self.planner_setting)
@@ -117,24 +133,6 @@ class MotionPlanner():
         # print dyn_optimizer.solveTime()
         # print dyn_optimizer.dynamicsSequence().dynamics_states[planner_setting.get(PlannerIntParam_NumTimesteps)-1]
         # print contact_plan.contactSequence().contact_states(0)[0].position
-
-        # 'Kinematics Interface'
-        # kin_interface = PinocchioKinematicsInterface()
-
-        'Kinematics Optimizer'
-        kin_optimizer = KinematicsOptimizer()
-        kin_optimizer.initialize(self.planner_setting)
-        kin_optimizer.optimize(self.ini_state, self.contact_plan.contactSequence(), dyn_optimizer.dynamicsSequence())
-
-        optimized_sequence = kin_optimizer.kinematics_sequence
-
-        #print "Second Dynamic Iteration"
-        #dyn_optimizer.optimize(ini_state, contact_plan, kin_optimizer.kinematics_sequence, True)
-
-        #print "Second Kinematic Iteration"
-        #kin_optimizer.optimize(ini_state, contact_plan.contactSequence(), dyn_optimizer.dynamicsSequence())
-
-        time_vector = create_time_vector(dyn_optimizer.dynamicsSequence())
 
         return optimized_sequence, time_vector
 
