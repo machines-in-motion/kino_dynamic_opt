@@ -26,7 +26,7 @@ import os, sys, getopt, numpy as np, pinocchio as pin
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.momentumopt.kinoptpy.kinematics_optimizer import KinematicsOptimizer, create_time_vector
-from src.momentumexe.motion_execution import MotionExecutor
+#from src.momentumexe.motion_execution import MotionExecutor
 
 
 'Kinematics Interface using Pinocchio'
@@ -164,8 +164,8 @@ def main(argv):
     optimized_sequence.kinematics_states[15].robot_posture.joint_positions
     optimized_sequence.kinematics_states[15].robot_velocity.joint_velocities
 
-    motion_executor = MotionExecutor(optimized_sequence, time_vector)
-    motion_executor.execute_motion()
+    #motion_executor = MotionExecutor(optimized_sequence, time_vector)
+    #motion_executor.execute_motion()
 
     print('Done...')
 

@@ -106,8 +106,9 @@ namespace momentumopt {
       readParameter(planner_vars, "w_dfrc_leg", w_dfrc_leg_);
       readParameter(planner_vars, "w_amom_final", w_amom_final_);
       readParameter(planner_vars, "w_lmom_final", w_lmom_final_);
-      readParameter(planner_vars, "w_amom_track", w_amom_track_);
+      readParameter(planner_vars, "w_com_track" , w_com_track_ );
       readParameter(planner_vars, "w_lmom_track", w_lmom_track_);
+      readParameter(planner_vars, "w_amom_track", w_amom_track_);
 
       if (heuristic_ == Heuristic::TimeOptimization) {
         readParameter(planner_vars, "w_time", w_time_);
@@ -125,6 +126,7 @@ namespace momentumopt {
 	    readParameter(planner_vars, "w_kin_base_ori", w_kin_base_ori_);
 	    readParameter(planner_vars, "w_kin_joint_vel", w_kin_joint_vel_);
 	    readParameter(planner_vars, "w_kin_joint_acc", w_kin_joint_acc_);
+	    readParameter(planner_vars, "w_kin_eff_pos_nonact", w_kin_eff_pos_nonact_);
 	    readParameter(planner_vars, "w_kin_default_joints", w_kin_default_joints_);
 	    readParameter(planner_vars, "max_convergence_iters", max_convergence_iters_);
 	    readParameter(planner_vars, "convergence_tolerance", convergence_tolerance_);
@@ -291,6 +293,7 @@ namespace momentumopt {
       case PlannerVectorParam_WeightCenterOfMassViapoint : { return w_com_via_; }
       case PlannerVectorParam_WeightFinalLinearMomentum : { return w_lmom_final_; }
       case PlannerVectorParam_WeightFinalAngularMomentum : { return w_amom_final_; }
+      case PlannerVectorParam_WeightDynamicTrackingCenterOfMass : { return w_com_track_; }
       case PlannerVectorParam_WeightDynamicTrackingLinearMomentum : { return w_lmom_track_; }
       case PlannerVectorParam_WeightDynamicTrackingAngularMomentum : { return w_amom_track_; }
 
@@ -305,6 +308,7 @@ namespace momentumopt {
       case PlannerVectorParam_WeightKinematicTrackingAngularMomentumRate : { return w_kin_amomd_; }
       case PlannerVectorParam_WeightKinematicTrackingEndeffectorPosition : { return w_kin_eff_pos_; }
       case PlannerVectorParam_WeightKinematicDefaultJointPositions: { return w_kin_default_joints_; }
+      case PlannerVectorParam_WeightKinematicTrackingNonActiveEndeffectorPosition : { return w_kin_eff_pos_nonact_; }
 
       // Not handled parameters
       default: { throw std::runtime_error("PlannerSetting::get PlannerVectorParam invalid"); break; }
@@ -479,6 +483,7 @@ namespace momentumopt {
       case PlannerVectorParam_WeightCenterOfMassViapoint : { return w_com_via_; }
       case PlannerVectorParam_WeightFinalLinearMomentum : { return w_lmom_final_; }
       case PlannerVectorParam_WeightFinalAngularMomentum : { return w_amom_final_; }
+      case PlannerVectorParam_WeightDynamicTrackingCenterOfMass : { return w_com_track_; }
       case PlannerVectorParam_WeightDynamicTrackingLinearMomentum : { return w_lmom_track_; }
       case PlannerVectorParam_WeightDynamicTrackingAngularMomentum : { return w_amom_track_; }
 
@@ -493,6 +498,7 @@ namespace momentumopt {
       case PlannerVectorParam_WeightKinematicTrackingAngularMomentumRate : { return w_kin_amomd_; }
       case PlannerVectorParam_WeightKinematicTrackingEndeffectorPosition : { return w_kin_eff_pos_; }
       case PlannerVectorParam_WeightKinematicDefaultJointPositions: { return w_kin_default_joints_; }
+      case PlannerVectorParam_WeightKinematicTrackingNonActiveEndeffectorPosition : { return w_kin_eff_pos_nonact_; }
 
       // Not handled parameters
       default: { throw std::runtime_error("PlannerSetting::get PlannerVectorParam invalid"); break; }

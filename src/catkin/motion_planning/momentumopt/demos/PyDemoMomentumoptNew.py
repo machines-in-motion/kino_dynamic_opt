@@ -25,6 +25,9 @@ from pinocchio.robot_wrapper import RobotWrapper
 from quadruped.PyQuadrupedRobot import QuadrupedWrapper
 import os, sys, getopt, time, numpy as np, pinocchio as pin
 
+# sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# from src.momentumopt.kinoptpy.kinematics_optimizer import KinematicsOptimizer, create_time_vector
+
 'Kinematics Interface using Pinocchio'
 class PinocchioKinematicsInterface(KinematicsInterface):
     def __init__(self):
@@ -125,6 +128,14 @@ def main(argv):
         kin_optimizer.optimize(ini_state, contact_plan, dyn_optimizer.dynamicsSequence(), kd_iter>0)
         print("DynOpt", kd_iter+1)
         dyn_optimizer.optimize(ini_state, contact_plan, kin_optimizer.kinematicsSequence(), True)    
+
+#     'Kinematics Optimizer'
+#     print("KinOpt", 0)
+#     kin_optimizer = KinematicsOptimizer()
+#     kin_optimizer.initialize(planner_setting)
+#     kin_optimizer.optimize(ini_state, contact_plan.contactSequence(), dyn_optimizer.dynamicsSequence())
+#     dyn_optimizer.optimize(ini_state, contact_plan, kin_optimizer.kinematics_sequence, True)
+
 
     # print dyn_optimizer.solveTime()
     # print dyn_optimizer.dynamicsSequence().dynamics_states[planner_setting.get(PlannerIntParam_NumTimesteps)-1]

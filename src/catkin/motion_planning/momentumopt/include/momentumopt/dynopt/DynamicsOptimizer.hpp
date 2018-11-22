@@ -197,7 +197,7 @@ namespace momentumopt {
       double solve_time_, convergence_err_, last_convergence_err_;
 
       /*! helper vector variables for the optimization problem */
-      Eigen::Vector3d com_pos_goal_;
+      Eigen::Vector3d com_pos_goal_, weight_desired_com_tracking_;
 
       /*! helper optimization variables for the optimization problem */
       solver::OptimizationVariable dt_, com_, lmom_, amom_, lmomd_, amomd_;

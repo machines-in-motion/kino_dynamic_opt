@@ -83,8 +83,9 @@ namespace momentumopt {
       Eigen::Vector3d external_force_, com_displacement_;
       Eigen::Vector3d w_com_, w_lmom_, w_lmomd_, w_lmom_final_, w_amom_, w_amomd_, w_amom_final_,
 	                  w_com_via_, w_frc_arm_, w_frc_leg_, w_dfrc_arm_, w_dfrc_leg_, gravity_vector_,
-                      w_lmom_track_, w_amom_track_, w_kin_base_ori_,
-                      w_kin_com_, w_kin_lmom_, w_kin_amom_, w_kin_lmomd_, w_kin_amomd_, w_kin_eff_pos_;
+                      w_com_track_, w_lmom_track_, w_amom_track_, w_kin_base_ori_,
+                      w_kin_com_, w_kin_lmom_, w_kin_amom_, w_kin_lmomd_, w_kin_amomd_, w_kin_eff_pos_,
+					  w_kin_eff_pos_nonact_;
       Eigen::VectorXd default_joint_positions_, w_kin_default_joints_, w_kin_joint_vel_, w_kin_joint_acc_,
                       min_joint_limits_, max_joint_limits_;
       Eigen::VectorXi active_dofs_, extended_active_dofs_;
