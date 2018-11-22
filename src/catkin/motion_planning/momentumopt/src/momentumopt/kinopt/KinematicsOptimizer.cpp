@@ -129,9 +129,9 @@ namespace momentumopt {
               //double weight_scale = desired_state.endeffectorActivationWeight(eff_id);
               //Eigen::Vector3d eff_angular_velocity = requiredAngularVelocity(desired_state.endeffectorOrientation(eff_id), current_state.endeffectorOrientation(eff_id), desired_state.time(), this->getSetting().get(PlannerBoolParam_AngularVelocityInBodyCoordinates));
               ////quadexpr.addQuaTerm(weight_scale*this->getSetting().get(PlannerVectorParam_WeightKinematicTrackingEndeffectorOrientation)[axis_id], eff_angular_velocity[axis_id] - vars_[eef_ang_vel_[eff_id].id(axis_id,0)]);
-              quadobj.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightKinematicTrackingEndeffectorPosition)[axis_id], desired_state.endeffectorPosition(eff_id)[axis_id] - vars_[eef_pos_[eff_id].id(axis_id,0)]);
+              quadobj.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightKinematicTrackingNonActiveEndeffectorPosition)[axis_id], desired_state.endeffectorPosition(eff_id)[axis_id] - vars_[eef_pos_[eff_id].id(axis_id,0)]);
             } else {
-              quadobj.addQuaTerm(10.0*this->getSetting().get(PlannerVectorParam_WeightKinematicTrackingEndeffectorPosition)[axis_id], desired_state.endeffectorPosition(eff_id)[axis_id] - vars_[eef_pos_[eff_id].id(axis_id,0)]);
+              quadobj.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightKinematicTrackingEndeffectorPosition)[axis_id], desired_state.endeffectorPosition(eff_id)[axis_id] - vars_[eef_pos_[eff_id].id(axis_id,0)]);
             }
         }
 

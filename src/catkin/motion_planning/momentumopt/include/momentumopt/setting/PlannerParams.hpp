@@ -119,6 +119,7 @@ namespace momentumopt {
 	PlannerVectorParam_WeightFinalLinearMomentum,
 	PlannerVectorParam_WeightCenterOfMassViapoint,
     PlannerVectorParam_WeightFinalAngularMomentum,
+	PlannerVectorParam_WeightDynamicTrackingCenterOfMass,
 	PlannerVectorParam_WeightDynamicTrackingLinearMomentum,
 	PlannerVectorParam_WeightDynamicTrackingAngularMomentum,
 
@@ -138,6 +139,7 @@ namespace momentumopt {
 	PlannerVectorParam_WeightKinematicTrackingLinearMomentumRate,
     PlannerVectorParam_WeightKinematicTrackingAngularMomentumRate,
 	PlannerVectorParam_WeightKinematicTrackingEndeffectorPosition,
+	PlannerVectorParam_WeightKinematicTrackingNonActiveEndeffectorPosition,
   };
 
   /*! Available array variables used by the planner */
