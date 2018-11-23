@@ -44,7 +44,7 @@ class PinocchioKinematicsInterface(KinematicsInterface):
     def displayPosture(self, kin_state, wait_time):
         self.q = np.matrix(np.squeeze(np.asarray(kin_state.robot_posture.generalized_joint_positions()))).transpose()
         self.robot.display(self.q)
-        time.sleep(0.5*wait_time)
+        time.sleep(wait_time)
 
     def updateJacobians(self, kin_state):
         'Generalized joint positions and velocities'
