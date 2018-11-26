@@ -319,6 +319,7 @@ class KinematicsOptimizer:
         for i in range(len(q_traj)):
             q_matrix[i, :] = np.squeeze(np.array(q_traj[i]))
 
+        self.q_matrix = q_matrix
         self.populate_sequence()
 
         # self.plot_plan(com_motion, lmom, amom, eff_traj_poly, z_floor)
