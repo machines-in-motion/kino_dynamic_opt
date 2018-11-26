@@ -8,7 +8,7 @@ class QuadrupedWrapper(RobotWrapper):
 
     def __init__(self, urdf, dt=0.01, q=None):
         package_dirs = [os.path.dirname(os.path.dirname(os.path.abspath(__file__)))]
-        RobotWrapper.__init__(self, urdf, root_joint=se3.JointModelFreeFlyer())#, package_dirs=package_dirs)
+        RobotWrapper.__init__(self, urdf, root_joint=se3.JointModelFreeFlyer(), package_dirs=package_dirs)
 
         # Create data again after setting frames
         self.data = self.model.createData()
