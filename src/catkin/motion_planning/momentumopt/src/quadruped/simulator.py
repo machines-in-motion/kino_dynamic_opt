@@ -66,9 +66,9 @@ class Simulator(object):
             force = np.zeros(6)
             # force[2] = ci[9]
 
-            force[0] += pt[11][0]*pt[10]+pt[13][0]*pt[12]
-            force[1] += pt[11][1]*pt[10]+pt[13][1]*pt[12]
-            force[2] += pt[11][2]*pt[10]+pt[13][2]*pt[12]
+            force[0] += ci[11][0] * ci[10] + ci[13][0] * ci[12]
+            force[1] += ci[11][1] * ci[10] + ci[13][1] * ci[12]
+            force[2] += ci[11][2] * ci[10] + ci[13][2] * ci[12] + ci[9]
 
             contact_forces.append(force)
 
