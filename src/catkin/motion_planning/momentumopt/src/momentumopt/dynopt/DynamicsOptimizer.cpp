@@ -65,6 +65,7 @@ namespace momentumopt {
 
   void DynamicsOptimizer::updateTrackingObjective()
   {
+    weight_desired_com_tracking_ = this->getSetting().get(PlannerVectorParam_WeightCenterOfMass);
     this->getSetting().get(PlannerVectorParam_WeightLinearMomentum) = this->getSetting().get(PlannerVectorParam_WeightDynamicTrackingLinearMomentum);
 	this->getSetting().get(PlannerVectorParam_WeightAngularMomentum) = this->getSetting().get(PlannerVectorParam_WeightDynamicTrackingAngularMomentum);
   }
@@ -75,6 +76,7 @@ namespace momentumopt {
     ini_state_ = ini_state;
     contact_plan_ = contact_plan;
 
+    weight_desired_com_tracking_.setZero();
     com_pos_goal_ = ini_state_.centerOfMass() + this->getSetting().get(PlannerVectorParam_CenterOfMassMotion);
     contact_plan_->fillDynamicsSequence(ini_state, this->dynamicsSequence());
     this->initializeOptimizationVariables();
@@ -139,13 +141,14 @@ namespace momentumopt {
 
           // penalty on center of mass, linear and angular momentum
           if (time_id==this->getSetting().get(PlannerIntParam_NumTimesteps)-1) {
-        	    quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightCenterOfMass)[axis_id], LinExpr(vars_[com_.id(axis_id,time_id)]) - LinExpr(com_pos_goal_[axis_id]));
-            	quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightFinalLinearMomentum)[axis_id], LinExpr(vars_[lmom_.id(axis_id,time_id)]) - LinExpr(kin_sequence.kinematicsState(time_id).linearMomentum()[axis_id]));
-            	quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightFinalAngularMomentum)[axis_id], LinExpr(vars_[amom_.id(axis_id,time_id)]) - LinExpr(kin_sequence.kinematicsState(time_id).angularMomentum()[axis_id]));
+            quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightCenterOfMass)[axis_id], LinExpr(vars_[com_.id(axis_id,time_id)]) - LinExpr(com_pos_goal_[axis_id]));
+            quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightFinalLinearMomentum)[axis_id], LinExpr(vars_[lmom_.id(axis_id,time_id)]) - LinExpr(kin_sequence.kinematicsState(time_id).linearMomentum()[axis_id]));
+            quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightFinalAngularMomentum)[axis_id], LinExpr(vars_[amom_.id(axis_id,time_id)]) - LinExpr(kin_sequence.kinematicsState(time_id).angularMomentum()[axis_id]));
           } else {
-            	quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightLinearMomentum)[axis_id], LinExpr(vars_[lmom_.id(axis_id,time_id)]) - LinExpr(kin_sequence.kinematicsState(time_id).linearMomentum()[axis_id]));
-            	quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightAngularMomentum)[axis_id], LinExpr(vars_[amom_.id(axis_id,time_id)]) - LinExpr(kin_sequence.kinematicsState(time_id).angularMomentum()[axis_id]));
+            quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightLinearMomentum)[axis_id], LinExpr(vars_[lmom_.id(axis_id,time_id)]) - LinExpr(kin_sequence.kinematicsState(time_id).linearMomentum()[axis_id]));
+            quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightAngularMomentum)[axis_id], LinExpr(vars_[amom_.id(axis_id,time_id)]) - LinExpr(kin_sequence.kinematicsState(time_id).angularMomentum()[axis_id]));
           }
+          quad_objective_.addQuaTerm(weight_desired_com_tracking_[axis_id], vars_[com_.id(axis_id,time_id)] - kin_sequence.kinematicsState(time_id).centerOfMass()[axis_id]);
 
           // penalty on linear and angular momentum rates
           if (this->getSetting().heuristic() == Heuristic::TimeOptimization) {

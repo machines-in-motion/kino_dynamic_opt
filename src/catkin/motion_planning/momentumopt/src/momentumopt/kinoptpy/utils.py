@@ -35,3 +35,7 @@ def norm(vector, weights=None):
     else: 
         return norm_(vector)
 
+def norm_momentum(current_momentum, desired_momentum):
+    diff = current_momentum - desired_momentum
+    return np.sqrt(np.dot(np.transpose(diff), diff))
+

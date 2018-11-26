@@ -129,9 +129,9 @@ namespace momentumopt {
               //double weight_scale = desired_state.endeffectorActivationWeight(eff_id);
               //Eigen::Vector3d eff_angular_velocity = requiredAngularVelocity(desired_state.endeffectorOrientation(eff_id), current_state.endeffectorOrientation(eff_id), desired_state.time(), this->getSetting().get(PlannerBoolParam_AngularVelocityInBodyCoordinates));
               ////quadexpr.addQuaTerm(weight_scale*this->getSetting().get(PlannerVectorParam_WeightKinematicTrackingEndeffectorOrientation)[axis_id], eff_angular_velocity[axis_id] - vars_[eef_ang_vel_[eff_id].id(axis_id,0)]);
-              quadobj.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightKinematicTrackingEndeffectorPosition)[axis_id], desired_state.endeffectorPosition(eff_id)[axis_id] - vars_[eef_pos_[eff_id].id(axis_id,0)]);
+              quadobj.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightKinematicTrackingNonActiveEndeffectorPosition)[axis_id], desired_state.endeffectorPosition(eff_id)[axis_id] - vars_[eef_pos_[eff_id].id(axis_id,0)]);
             } else {
-              quadobj.addQuaTerm(10.0*this->getSetting().get(PlannerVectorParam_WeightKinematicTrackingEndeffectorPosition)[axis_id], desired_state.endeffectorPosition(eff_id)[axis_id] - vars_[eef_pos_[eff_id].id(axis_id,0)]);
+              quadobj.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightKinematicTrackingEndeffectorPosition)[axis_id], desired_state.endeffectorPosition(eff_id)[axis_id] - vars_[eef_pos_[eff_id].id(axis_id,0)]);
             }
         }
 
@@ -184,6 +184,11 @@ namespace momentumopt {
               //model_.addLinConstr(desired_state.endeffectorPosition(eff_id)[axis_id] - vars_[eef_pos_[eff_id].id(axis_id,0)], "=",  0.0);
             }
           }
+        }
+
+        // endeffector above the ground
+        for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++) {
+          model_.addLinConstr(vars_[eef_pos_[eff_id].id(2,0)], ">", -0.33);
         }
 
         // robot posture
@@ -264,16 +269,19 @@ namespace momentumopt {
       for (int dof_id=0; dof_id<this->getSetting().get(PlannerIntParam_NumActiveDofs); dof_id++) {
         int current_dof_id = this->getSetting().get(PlannerIntVectorParam_ActiveDofs)[dof_id];
         current_state.robotPosture().jointPositions()[current_dof_id] = vars_[jnt_q_.id(dof_id,0)].get(SolverDoubleParam_X);
-        current_state.robotVelocity().jointVelocities()[current_dof_id] = vars_[total_qd_.id(dof_id,0)].get(SolverDoubleParam_X);
-        current_state.robotAcceleration().jointAccelerations()[current_dof_id] = vars_[total_qdd_.id(dof_id,0)].get(SolverDoubleParam_X);
+        if (is_not_initial_state) {
+          current_state.robotVelocity().jointVelocities()[current_dof_id] = vars_[total_qd_.id(dof_id,0)].get(SolverDoubleParam_X);
+          current_state.robotAcceleration().jointAccelerations()[current_dof_id] = vars_[total_qdd_.id(dof_id,0)].get(SolverDoubleParam_X);
+        }
       }
       for (int axis_id=0; axis_id<3; axis_id++) {
         current_state.robotPosture().basePosition()[axis_id] = vars_[base_position_.id(axis_id,0)].get(SolverDoubleParam_X);
-        current_state.robotVelocity().baseLinearVelocity()[axis_id] = vars_[total_qd_.id(axis_id,0)].get(SolverDoubleParam_X);
-        current_state.robotAcceleration().baseLinearAcceleration()[axis_id] = vars_[total_qdd_.id(axis_id,0)].get(SolverDoubleParam_X);
-
-        current_state.robotVelocity().baseAngularVelocity()[axis_id] = vars_[total_qd_.id(axis_id+3,0)].get(SolverDoubleParam_X);
-        current_state.robotAcceleration().baseAngularAcceleration()[axis_id] = vars_[total_qdd_.id(axis_id+3,0)].get(SolverDoubleParam_X);
+        if (is_not_initial_state) {
+          current_state.robotVelocity().baseLinearVelocity()[axis_id] = vars_[total_qd_.id(axis_id,0)].get(SolverDoubleParam_X);
+          current_state.robotVelocity().baseAngularVelocity()[axis_id] = vars_[total_qd_.id(axis_id+3,0)].get(SolverDoubleParam_X);
+          current_state.robotAcceleration().baseLinearAcceleration()[axis_id] = vars_[total_qdd_.id(axis_id,0)].get(SolverDoubleParam_X);
+          current_state.robotAcceleration().baseAngularAcceleration()[axis_id] = vars_[total_qdd_.id(axis_id+3,0)].get(SolverDoubleParam_X);
+        }
       }
 	}
   }
@@ -283,6 +291,9 @@ namespace momentumopt {
   {
     contact_plan_ = contact_plan;
     contact_plan_->updateEndeffectorTrajectories(ini_state, dyn_sequence);
+
+    *current_state_ = KinematicsState(this->getSetting().get(PlannerIntParam_NumDofs));
+    current_state_->robotPosture().jointPositions() = this->getSetting().get(PlannerVectorParam_KinematicDefaultJointPositions);
 
     // optimization of initial posture
     this->optimizePosture(*current_state_, ini_state, false, is_not_first_kindyn_iteration);

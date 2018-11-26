@@ -33,12 +33,7 @@ contact_plan:
   ################
   # Contact plan #
   ################
-  # effcnt_rf: [[0.0, 5.0,    0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
-  # effcnt_lf: [[0.0, 5.0,   -0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
-  # effcnt_rh: [[0.0, 1.5,    0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
-  #             [2.5, 5.0,    0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
-  # effcnt_lh: [[0.0, 1.5,   -0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
-  #             [2.5, 5.0,   -0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
+
   effcnt_rf: [[0.0, 1.5,    0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
               [2.5, 5.0,    0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
   effcnt_lf: [[0.0, 1.5,   -0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0], 
@@ -46,10 +41,11 @@ contact_plan:
   effcnt_rh: [[0.0, 5.0,    0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
   effcnt_lh: [[0.0, 5.0,   -0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
 
-  effvia_rf: []
-  effvia_lf: []
+  effvia_rf: [[0.0,    0.10, -0.20, -0.25,    1.0, 0.0, 0.0, 0.0]]
+  effvia_lf: [[0.0,   -0.10, -0.20, -0.25,    1.0, 0.0, 0.0, 0.0]]
   effvia_rh: []
   effvia_lh: []
+
 
 planner_variables:
 
@@ -58,45 +54,15 @@ planner_variables:
   #########################
   
   load_kinematics: True
-
+  
   display_motion: True
   num_dofs: 8
-  kd_iterations: 5
+  kd_iterations: 3
   num_subsamples: 3
   active_dofs: [0, 1, 2, 3, 4, 5, 6, 7]
   min_joint_limits: [-2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5]
   max_joint_limits: [ 2.5,  2.5,  2.5,  2.5,  2.5,  2.5,  2.5,  2.5]
-  default_joint_positions: [0.52, -1.04,  0.52, -1.04, -0.52,  1.04, -0.52,  1.04]
-
-  #########################
-  # Kinematics parameters #
-  #########################
-
-  # load_kinopt: False
-  # display_motion: False
-  # display_contacts_plan: False
-  # load_to_track_momentum: False
-  # kd_iterations: 1
-  # num_subsamples: 3
-  # num_viapoints: [1, 1, 1, 1]
-  # effvia_rf:
-  #   via0: [ 1.50,        -0.100,  0.000, -0.200,    1.0, 0.0, 0.0, 0.0]
-  # effvia_lf:
-  #   via0: [ 1.50,         0.100,  0.000, -0.200,    1.0, 0.0, 0.0, 0.0]
-  # effvia_rh:
-  #   via0: [ 1.50,        -0.100,  0.400, -0.200,    1.0, 0.0, 0.0, 0.0]
-  # effvia_lh:
-  #   via0: [ 1.50,         0.100,  0.400, -0.200,    1.0, 0.0, 0.0, 0.0]
-  # eff_rotation_dofs: []
-  # active_dofs: [0, 1, 2, 3, 4, 5, 6, 7,   8, 9, 10, 11, 12, 13]
-  # min_joint_angles: [-1.75, -1.75, -1.75, -1.75,  0.50,  0.50,  0.50,  0.50]
-  # max_joint_angles: [-0.50, -0.50, -0.50, -0.50,  1.75,  1.75,  1.75,  1.75]
-  # default_joints_state: [-0.401568, -0.89385, -0.447988, -0.91187, 0.431389, 0.959211, 0.397285, 0.876047]
-  # use_noncvx_eff_orientation_opt: False
-  # ang_vel_in_body_coordinates: True
-  # num_base_ori_viapoints: 0
-  # base_ori_viapoints:
-  #   via0: [ 5.20,    0.9689, 0.0, 0.0, -0.2474]
+  default_joint_positions: [-0.52,  1.04, -0.52,  1.04, -0.52,  1.04, -0.52,  1.04]
 
   #######################
   # Dynamics parameters #
@@ -110,7 +76,7 @@ planner_variables:
   com_displacement: [0.00, 0.00, 0.00]
   num_com_viapoints: 0
   com_viapoints:
-    via0: [2.50,    0.500, 0.45,  0.00]
+    via0: [2.00,    0.00, -0.05, -0.05]
 
   #####################
   # Timing parameters #
@@ -126,7 +92,7 @@ planner_variables:
 
   gravity: 9.81
   robot_mass: 2.772
-  friction_coeff: 0.2
+  friction_coeff: 0.3
   min_rel_height: 0.08
   friction_cone: LinearCone  # Types: LinearCone, SocCone #
   time_range: [0.02, 0.25]
@@ -154,20 +120,20 @@ planner_variables:
   w_time_penalty:  0.000
   w_time:          1000.0
   w_com:           [ 1000.,  1000.,  10000]
-  w_amom:          [ 1.000,  0.010,  0.010]
+  w_amom:          [ 0.010,  0.010,  0.010]
   w_lmom:          [ 0.005,  0.001,  0.001]
-  w_amomd:         [ 0.100,  0.100,  0.100]
-  w_lmomd:         [ 0.080,  0.005,  0.005]
+  w_amomd:         [ 0.001,  0.001,  0.001]
+  w_lmomd:         [ 0.080,  0.001,  0.005]
   w_amom_final:    [ 10.00,  10.00,  10.00]
   w_lmom_final:    [ 10.00,  10.00,  10.00]
   w_com_via:       [ 0.000,  0.000,  0.000]
-  w_frc_arm:       [ 0.001,  0.001,  0.001]
-  w_frc_leg:       [ 0.001,  0.001,  0.001]
-  w_dfrc_arm:      [ 0.000,  0.000,  0.010]
-  w_dfrc_leg:      [ 0.000,  0.000,  0.010]
-  w_com_track:     [ 0.000,  0.000,  0.000]
+  w_frc_arm:       [ 0.000,  0.000,  0.001]
+  w_frc_leg:       [ 0.000,  0.000,  0.001]
+  w_dfrc_arm:      [ 0.000,  0.000,  0.000]
+  w_dfrc_leg:      [ 0.000,  0.000,  0.000]
+  w_com_track:     [ 1.000,  20.00,  20.00]
   w_lmom_track:    [ 1.000,  10.00,  10.00]
-  w_amom_track:    [ 100.0,  1.000,  1.000]
+  w_amom_track:    [ 50.00,  1.000,  1.000]
 
   ######################
   # Kinematics weights #
@@ -176,16 +142,16 @@ planner_variables:
   max_convergence_iters: 50
   convergence_tolerance: 1e-4
   w_kin_com:             [ 0.000,   10.00,   10.00]
-  w_kin_lmom:            [ 0.000,   1.e-3,   1.e-4]
-  w_kin_amom:            [ 4.e-3,   4.e-3,   0.000]
-  w_kin_lmomd:           [ 1.e-4,   1.e-4,   1.e-4]
-  w_kin_amomd:           [ 1.e-3,   1.e-3,   0.000]
+  w_kin_lmom:            [ 0.000,   0.000,   0.000]  #[ 0.000,   1.e-3,   1.e-4]
+  w_kin_amom:            [ 4.e-2,   0.000,   0.000]  #[ 4.e-3,   4.e-3,   0.000]
+  w_kin_lmomd:           [ 0.000,   0.000,   0.000]  #[ 1.e-4,   1.e-4,   1.e-4]
+  w_kin_amomd:           [ 0.000,   0.000,   0.000]  #[ 1.e-3,   1.e-3,   0.000]
   w_kin_eff_pos:         [ 10.00,   50.00,   50.00]
-  w_kin_eff_pos_nonact:  [ 1.000,   0.100,   0.100]
-  w_kin_base_ori:        [ 1.e-8,   1.e-0,   1.e-8]
+  w_kin_eff_pos_nonact:  [ 1.000,   1.000,   1.000]
+  w_kin_base_ori:        [ 0.000,   1.e-0,   1.e-8]
   w_kin_default_joints:  [                                       1e-8, 1e-8, 1e-8, 1e-8,  1e-8, 1e-8, 1e-8, 1e-8]
   w_kin_joint_vel:       [1e-6, 1e-6, 1e-6, 1e-8, 1e-8, 1e-8,    1e-6, 1e-6, 1e-6, 1e-6,  1e-6, 1e-6, 1e-6, 1e-6]
-  w_kin_joint_acc:       [1e-6, 1e-6, 1e-6, 1e-8, 1e-8, 1e-8,    1e-6, 1e-6, 1e-6, 1e-6,  1e-6, 1e-6, 1e-6, 1e-6]
+  w_kin_joint_acc:       [1e-6, 1e-6, 1e-6, 1e-8, 1e-8, 1e-8,    3e-6, 3e-6, 3e-6, 3e-6,  1e-6, 1e-6, 1e-6, 1e-6]
                           # base                                 # joints
 
   #######################

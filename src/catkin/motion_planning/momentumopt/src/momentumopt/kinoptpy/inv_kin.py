@@ -32,8 +32,10 @@ class InverseKinematics:
         K_p_[:-1] = self.K_p
         self.K_p = K_p_
 
-    def add_tasks(self, desired_velocities, jacobians, centroidal_momentum=None, gains=1.0, weights=None):
+    def add_tasks(self, desired_velocities, jacobians, centroidal_momentum=None, desired_momentums=None, gains=1.0, weights=None):
         self.centroidal_momentum = centroidal_momentum
+        self.desired_momentums = desired_momentums
+
         if not len(desired_velocities) == len(jacobians): 
             raise ValueError("%d != %d. The number of desired velocities and jacobians have to be equal." %(len(desired_velocities), len(jacobians)))
         if not isinstance(gains, float):
@@ -91,6 +93,17 @@ class InverseKinematics:
                 P += self.weights[i] * 2.0 * np.dot(np.transpose(J_), J_)
                 r += self.weights[i] * (- 2.0) * np.squeeze(np.array(np.dot(np.transpose(J_), self.K_p[i] * self.desired_vels[i](self.dt)))) 
 
+        # if not self.centroidal_momentum is None: 
+        #     # weight_momentum = 0.0001  # 1.0 * self.weights[0]
+        #     weight_momentum = 0.01 * np.ones((6))
+        #     weight_momentum[3:] = 0.0
+        #     K_p_momentum = 1.0  # self.K_p[0]
+        #     H_ = self.centroidal_momentum()
+        #     P += 2.0 * np.dot(np.transpose(H_), np.dot(np.diag(weight_momentum), H_))
+        #     r += (- 2.0) * np.squeeze(np.array(np.dot(np.transpose(H_), np.dot(np.diag(weight_momentum), K_p_momentum * self.desired_momentums)))) 
+        #     # P = weight_momentum * 2.0 * np.dot(np.transpose(H_), H_)
+        #     # r = weight_momentum * (-2.0) * np.squeeze(np.array(np.dot(np.transpose(H_), K_p_momentum * self.desired_momentums))) 
+
         # Add regularization term, since P is only guranteed to be positive semi-definite
         # P = P + lambda * I
         regularizer = np.diag(self.lambda_)    
@@ -104,9 +117,6 @@ class InverseKinematics:
         # Feed P and r to QP solver
         q_sol = self.qp_solver.quadprog_solve_qp(P, r, G=G, h=h)
         q_sol = q_sol[:P_orig_size]
-
-        # Apply incremental solution to robot
-        # self.robot.update_configuration(np.transpose(np.matrix(q_sol)) * self.dt)
 
         return q_sol
 
