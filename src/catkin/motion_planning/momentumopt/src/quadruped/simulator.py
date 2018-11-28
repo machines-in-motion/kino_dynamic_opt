@@ -59,6 +59,7 @@ class Simulator(object):
                 return -1.
 
         cp = p.getContactPoints()
+
         if len(cp) > 0:
             for ci in cp:
                 contact_normal = ci[7] 
