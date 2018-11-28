@@ -22,7 +22,6 @@ class Simulator(object):
         for ji in range(p.getNumJoints(robot_id)):
             bullet_joint_map[p.getJointInfo(robot_id, ji)[1].decode('UTF-8')] = ji
 
-        self.joint_names = joint_names
         self.bullet_joint_ids = np.array([bullet_joint_map[name] for name in joint_names])
         self.pinocchio_joint_ids = np.array([pinocchio_robot.model.getJointId(name) for name in joint_names])
 
@@ -60,19 +59,34 @@ class Simulator(object):
                 return -1.
 
         cp = p.getContactPoints()
-        for ci in cp:
-            i = np.where(np.array(self.bullet_endeff_ids) == ci[4])[0][0]
-            active_contacts_frame_ids.append(self.pinocchio_endeff_ids[i])
-            force = np.zeros(6)
-            # force[2] = ci[9]
+        if len(cp) > 0:
+            for ci in cp:
+                contact_normal = ci[7] 
+                normal_force = ci[9]
+                lateral_friction_direction_1 = ci[11]
+                lateral_friction_force_1 = ci[10]
+                lateral_friction_direction_2 = ci[13]
+                lateral_friction_force_2 = ci[12]
 
-            force[0] += pt[11][0]*pt[10]+pt[13][0]*pt[12]
-            force[1] += pt[11][1]*pt[10]+pt[13][1]*pt[12]
-            force[2] += pt[11][2]*pt[10]+pt[13][2]*pt[12]
+                if ci[4] in self.bullet_endeff_ids:
+                    i = np.where(np.array(self.bullet_endeff_ids) == ci[4])[0][0]
+                else:
+                    if normal_force > 1e-5:
+                        print("Normal force at", p.getJointInfo(self.robot_id, ci[4])[1].decode('UTF-8'), ": ", normal_force)
+                    continue
 
-            contact_forces.append(force)
+                active_contacts_frame_ids.append(self.pinocchio_endeff_ids[i])
+                force = np.zeros(6)
 
-        return active_contacts_frame_ids, np.array(contact_forces).reshape(-1)
+                force[:3] = normal_force * np.array(contact_normal) + \
+                            lateral_friction_force_1 * np.array(lateral_friction_direction_1) + \
+                            lateral_friction_force_2 * np.array(lateral_friction_direction_2)
+
+                contact_forces.append(force)
+
+            return active_contacts_frame_ids, contact_forces
+        else:
+            return [], []
 
     def get_state(self):
         # Returns a pinocchio like representation of the q, dq matrixes

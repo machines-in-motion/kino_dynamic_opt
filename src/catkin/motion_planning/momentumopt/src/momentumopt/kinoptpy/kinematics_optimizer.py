@@ -75,9 +75,10 @@ class KinematicsOptimizer:
         self.kinematic_interface = None
         self.robot = None
 
-    def initialize(self, planner_setting, max_iterations=1000, eps=0.01):
+    def initialize(self, planner_setting, max_iterations=1000, eps=0.001):
         # self.kinematic_interface = kin_interface
         self.num_time_steps = planner_setting.get(PlannerIntParam_NumTimesteps)
+        self.robot_weight = planner_setting.get(PlannerDoubleParam_RobotWeight) 
 
         # Load the robot from URDF-model
         urdf = str(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + '/urdf/quadruped.urdf')
@@ -163,7 +164,7 @@ class KinematicsOptimizer:
 
         return G, h
 
-    def optimize(self, ini_state, contact_sequence, dynamics_sequence):
+    def optimize(self, ini_state, contact_sequence, dynamics_sequence, plotting=False):
         # Set floor's z coordinate to where the endeffector's z coordinates are
         z_floor = ini_state.eff(0)[-1]
         self.robot.viewer.gui.applyConfiguration('world/floor',[0.0, 0.0, z_floor,  0.0, 0.0, 0.0, 1.0])
@@ -232,9 +233,39 @@ class KinematicsOptimizer:
         # q_dot = np.zeros((self.robot.model.nv))
         # q_before = self.robot.q.copy()
 
+        # set initial robot configuration
+        t = 0
+        desired_velocities, jacobians = self.create_tasks(t, com_motion, contacts, eff_traj_poly)
+
+        # Set regularizer
+        lambda_ = self.lambda_value * np.ones_like(ik.lambda_)
+        ik.set_regularizer(lambda_)
+
+        weights = self.weights_value * np.ones((len(jacobians)))
+        # Add tasks to the cost function of the IK
+        ik.add_tasks(desired_velocities, jacobians, 
+                     gains=0.5, weights=weights)
+
+        q_dot = self.robot.get_difference(self.robot.q, self.robot.q) 
+        self.robot.set_velocity(q_dot)
+
+        i = 0
+        while norm(desired_velocities, ik.weights) > self.eps and i < self.max_iterations:
+            if i % self.max_iterations == 0 and i > 0:
+                print("Error:", norm(desired_velocities))
+                print("Used iterations:", i)
+            G, h = self.create_constraints(z_floor, ik.dt)
+            q_sol = ik.multi_task_IK(G=G, h=h, soft_constrained=True)
+            self.robot.update_configuration(np.transpose(np.matrix(q_sol)) * ik.dt)
+            i += 1
+
+        # desired_delta_momentum_array = np.zeros((len(self.time), 6))
+        # actual_delta_momentum_array = np.zeros((len(self.time), 6))
+
+        # Track robot motion
         for t in range(len(self.time)):
             i = 0
-            print("time =", self.time[t])
+            # print("time =", self.time[t])
             desired_velocities, jacobians = self.create_tasks(t, com_motion, contacts, eff_traj_poly)
             desired_momentum = np.hstack((lmom[t, :], amom[t, :]))
 
@@ -258,12 +289,12 @@ class KinematicsOptimizer:
                          centroidal_momentum=self.robot.centroidal_momentum, desired_momentums=desired_momentum,
                          gains=0.5, weights=weights)
 
+            if t == 0:
+                ik.centroidal_momentum = None
+
             q_previous = self.robot.q.copy()
 
-            # print(norm_momentum(np.dot(np.array(self.robot.centroidal_momentum()), np.squeeze(np.array(self.robot.dq), 1)), desired_momentum))
-            # pdb.set_trace()
-
-            if t == 0:
+            if t <= 0:
                 q_dot = self.robot.get_difference(self.robot.q, self.robot.q) 
                 self.robot.set_velocity(q_dot)
 
@@ -274,6 +305,7 @@ class KinematicsOptimizer:
                     print("Error:", norm(desired_velocities))
                     print("Used iterations:", i)
                 # delta_momentum = desired_momentum - np.dot(np.array(self.robot.centroidal_momentum()), np.squeeze(np.array(self.robot.dq), 1))
+                # print(delta_momentum[1:4])
                 # ik.desired_momentums = delta_momentum
                 G, h = self.create_constraints(z_floor, ik.dt)
                 q_sol = ik.multi_task_IK(G=G, h=h, soft_constrained=True)
@@ -282,10 +314,12 @@ class KinematicsOptimizer:
                 #     delta_t = (self.time[t] - 0.0)
                 # else: 
                 #     delta_t = (self.time[t] - self.time[t - 1])
-                # q_diff = self.robot.get_difference(self.robot.q, q_previous) / ((i + 1) * ik.dt)  # delta_t
+                # q_diff = self.robot.get_difference(self.robot.q, q_previous) / ((i + 1) * ik.dt)
                 # self.robot.set_velocity(q_diff)
                 i += 1
-                
+
+            # actual_delta_momentum_array
+
             q_new = self.robot.q.copy()
 
             if t > 0:
@@ -310,7 +344,7 @@ class KinematicsOptimizer:
                     joint_identifier = eff + "_" + joint
                     self.ik_motion[joint_identifier][t, :] = np.squeeze(self.robot.transformations_dict[joint_identifier](), 1)
 
-            print("Finished after iteration:", i)
+            # print("Finished after iteration:", i)
             q_traj.append(self.robot.q)
             ik.delete_tasks()
             self.robot.display(self.robot.q)
@@ -323,7 +357,9 @@ class KinematicsOptimizer:
 
         self.populate_sequence()
 
-        # self.plot_plan(com_motion, lmom, amom, eff_traj_poly, z_floor)
+        if plotting:
+            self.plot_plan(com_motion, lmom, amom, eff_traj_poly, z_floor, contacts)
+            self.plot_desired_forces(dynamics_sequence, contacts)
 
     def populate_sequence(self):
         for time_id in range(self.num_time_steps):
@@ -340,22 +376,42 @@ class KinematicsOptimizer:
             kinematic_state.robot_velocity.base_angular_velocity = self.ik_motion["base_angular_velocity"][time_id, :]
             kinematic_state.robot_velocity.joint_velocities = self.ik_motion["joint_velocities"][time_id, :]
 
+    def get_swing_times(self, contacts):
+        swing_times = {}
 
-    def plot_plan(self, com_motion, lmom, amom, eff_traj_poly, z_floor):
+        for eff in self.robot.effs:
+            swing_times[eff] = []
+            num_contacts = len(contacts[eff])
+            if num_contacts > 1:
+                for i in range(len(contacts[eff]) - 1):
+                    swing_times[eff].append([contacts[eff][i].end_time(), contacts[eff][i + 1].start_time()])
+
+        return swing_times
+
+    def plot_plan(self, com_motion, lmom, amom, eff_traj_poly, z_floor, contacts):
         import matplotlib.pyplot as plt
+        from matplotlib.patches import Polygon
+        import matplotlib as mpl
 
         coordinates = ["x", "y", "z"]
+        swing_times = self.get_swing_times(contacts)
 
         fig, axes = plt.subplots(len(coordinates), 1, sharex='col')
 
         for i, ax in enumerate(axes):
             ax.plot(self.time, self.ik_motion["COM"][:, i], "r", label="COM_IK")
             ax.plot(self.time, com_motion[:, i], "b", label="COM_DYN_OPT")
-            if coordinates[i] == "z":
-                ax.plot([self.time[0], self.time[-1]], [z_floor, z_floor], "k", label="Floor")
+            
+            for eff in self.robot.effs:
+                for swing_time in swing_times[eff]:
+                    t_0, t_1 = swing_time
+                    ax.axvline(x=t_0, color=self.robot.colors[eff], linestyle="--", alpha=0.25)
+                    ax.axvline(x=t_1, color=self.robot.colors[eff], linestyle="--", alpha=0.25)
+
             ax.legend()
             ax.set_ylabel(coordinates[i] + " [m]")
 
+        axes[-1].axhline(y=z_floor, color="k", linestyle="-", label="Floor")
         axes[-1].set_xlabel("t [s]")
         fig.suptitle("COM")
 
@@ -364,6 +420,13 @@ class KinematicsOptimizer:
         for i, ax in enumerate(axes):
             ax.plot(self.time, self.ik_motion["LMOM"][:, i], "r", label="LMOM_IK")
             ax.plot(self.time, lmom[:, i], "b", label="LMOM_DYN_OPT")
+        
+            for eff in self.robot.effs:
+                for swing_time in swing_times[eff]:
+                    t_0, t_1 = swing_time
+                    ax.axvline(x=t_0, color=self.robot.colors[eff], linestyle="--", alpha=0.25)
+                    ax.axvline(x=t_1, color=self.robot.colors[eff], linestyle="--", alpha=0.25)
+
             ax.legend()
             ax.set_ylabel("p_" + coordinates[i] + " [kg * m / s]")
 
@@ -375,6 +438,13 @@ class KinematicsOptimizer:
         for i, ax in enumerate(axes):
             ax.plot(self.time, self.ik_motion["AMOM"][:, i], "r", label="AMOM_IK")
             ax.plot(self.time, amom[:, i], "b", label="AMOM_DYN_OPT")
+
+            for eff in self.robot.effs:
+                for swing_time in swing_times[eff]:
+                    t_0, t_1 = swing_time
+                    ax.axvline(x=t_0, color=self.robot.colors[eff], linestyle="--", alpha=0.25)
+                    ax.axvline(x=t_1, color=self.robot.colors[eff], linestyle="--", alpha=0.25)
+
             ax.legend()
             ax.set_ylabel("L_" + coordinates[i] + " [kg * m^2 / s]")
 
@@ -388,10 +458,19 @@ class KinematicsOptimizer:
                 joint_identifier = eff + "_" + joint
                 for i, ax in enumerate(axes):
                     coord_index = i + 1
-                    ax.plot(self.time, self.ik_motion[joint_identifier][:, coord_index], label=joint_identifier+"_IK")
+                    ax.plot(self.time, self.ik_motion[joint_identifier][:, coord_index], color=self.robot.colors[eff], label=joint_identifier+"_IK")
                     ax.set_ylabel(coordinates[i + 1] + " [m]")
 
-            axes[-1].plot([self.time[0], self.time[-1]], [z_floor, z_floor], "k", label="Floor")
+            for eff in self.robot.effs:
+                for swing_time in swing_times[eff]:
+                    t_0, t_1 = swing_time
+                    axes[0].axvline(x=t_0, color=self.robot.colors[eff], linestyle="--", alpha=0.25)
+                    axes[0].axvline(x=t_1, color=self.robot.colors[eff], linestyle="--", alpha=0.25)
+                    axes[1].axvline(x=t_0, color=self.robot.colors[eff], linestyle="--", alpha=0.25)
+                    axes[1].axvline(x=t_1, color=self.robot.colors[eff], linestyle="--", alpha=0.25)
+
+            axes[-1].axhline(y=z_floor, color="k", linestyle="-", label="Floor")
+
             for ax in axes:
                 ax.legend()
 
@@ -399,3 +478,39 @@ class KinematicsOptimizer:
             fig.suptitle(joint)
 
         plt.show()
+
+    def plot_desired_forces(self, dynamics_sequence, contacts):
+        import matplotlib.pyplot as plt
+        num_effs = len(self.robot.effs)
+        eff_forces = np.zeros((len(self.time), num_effs, 3))
+        for eff_id in range(num_effs):
+            for time_id in range(len(self.time)):
+                eff_forces[time_id, eff_id, :] = dynamics_sequence.dynamics_states[time_id].effForce(eff_id) * self.robot_weight
+
+        swing_times = self.get_swing_times(contacts)
+
+        fig, axes = plt.subplots(2, 2, sharex='col')
+
+        for i in range(num_effs):
+            idx_1, idx_2 = np.unravel_index([i], (2, 2))
+            ax = axes[idx_1[0], idx_2[0]]
+            ax.plot(self.time, eff_forces[:, i, -1])
+
+            joint_name = self.robot.effs[i] + "_END"
+            ax.set_title(joint_name)
+
+            for eff in self.robot.effs:
+                for swing_time in swing_times[eff]:
+                    t_0, t_1 = swing_time
+                    ax.axvline(x=t_0, color=self.robot.colors[eff], linestyle="--", alpha=0.25)
+                    ax.axvline(x=t_1, color=self.robot.colors[eff], linestyle="--", alpha=0.25)
+
+            ax.set_ylabel("F_z [N]")
+
+            if idx_1[0] == 1:
+                ax.set_xlabel("t [s]")
+
+        fig.suptitle("Desired Forces")
+
+        plt.show()
+        

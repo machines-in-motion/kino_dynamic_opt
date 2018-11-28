@@ -8,7 +8,7 @@ class QuadrupedWrapper(RobotWrapper):
 
     def __init__(self, urdf, dt=0.01, q=None):
         package_dirs = [os.path.dirname(os.path.dirname(os.path.abspath(__file__)))]
-        RobotWrapper.__init__(self, urdf, root_joint=se3.JointModelFreeFlyer())#, package_dirs=package_dirs)
+        RobotWrapper.__init__(self, urdf, root_joint=se3.JointModelFreeFlyer(), package_dirs=package_dirs)
 
         # Create data again after setting frames
         self.data = self.model.createData()
@@ -21,6 +21,8 @@ class QuadrupedWrapper(RobotWrapper):
 
         self.effs = ["BR", "BL", "FR", "FL"]  # order is important
         self.joints_list = ["HFE", "KFE", "END"]
+
+        self.colors = {"BL": "r", "BR": "y", "FL": "b", "FR": "g"}
 
         self.initDisplay(loadModel=True)
         self.viewer.gui.addFloor('world/floor')
@@ -196,18 +198,6 @@ class QuadrupedWrapper(RobotWrapper):
         self.id_frame_fr_hfe = self.model.getFrameId("FR_HFE")
         self.id_frame_fr_kfe = self.model.getFrameId("FR_KFE")
 
-        # Add 3D modelling parts manually, because they are somehow not displayed
-        # TODO: Why can Gepetto not visualize directly from URDF-model
-        # self.viewer.gui.addBox('world/basis',.1,.2,.025,[1.0,1.0,1.0,1])
-        # self.viewer.gui.addCylinder('world/blfemoral',.02,.16,[0.4,0.4,0.4, 1.])
-        # self.viewer.gui.addCylinder('world/blshank',.02,.16,[0.4,0.4,0.4, 1.])
-        # self.viewer.gui.addCylinder('world/brfemoral',.02,.16,[0.4,0.4,0.4, 1.])
-        # self.viewer.gui.addCylinder('world/brshank',.02,.16,[0.4,0.4,0.4, 1.])
-        # self.viewer.gui.addCylinder('world/flfemoral',.02,.16,[0.4,0.4,0.4, 1.])
-        # self.viewer.gui.addCylinder('world/flshank',.02,.16,[0.4,0.4,0.4, 1.])
-        # self.viewer.gui.addCylinder('world/frfemoral',.02,.16,[0.4,0.4,0.4, 1.])
-        # self.viewer.gui.addCylinder('world/frshank',.02,.16,[0.4,0.4,0.4, 1.])
-
         self.viewer.gui.addSphere('world/blhip',.03,[1.0,0.0,0.0, 1.])
         self.viewer.gui.addSphere('world/blknee',.03,[1.0,0.0,0.0, 1.])
         self.viewer.gui.addSphere('world/bleff',.03,[1.0,0.0,0.0, 1.])
@@ -221,28 +211,9 @@ class QuadrupedWrapper(RobotWrapper):
         self.viewer.gui.addSphere('world/frknee',.03,[1.0,0.0,0.0, 1.])
         self.viewer.gui.addSphere('world/freff',.03,[1.0,0.0,0.0, 1.])
 
-        # self.viewer.gui.setStaticTransform('world/blfemoral',[ 0.00, 0.0,-0.08, 0.0,0.0,0.0,1.0])
-        # self.viewer.gui.setStaticTransform('world/blshank',[ 0.00, 0.0,-0.08, 0.0,0.0,0.0,1.0])
-        # self.viewer.gui.setStaticTransform('world/brfemoral',[ 0.00, 0.0,-0.08, 0.0,0.0,0.0,1.0])
-        # self.viewer.gui.setStaticTransform('world/brshank',[ 0.00, 0.0,-0.08, 0.0,0.0,0.0,1.0])
-        # self.viewer.gui.setStaticTransform('world/flfemoral',[ 0.00, 0.0,-0.08, 0.0,0.0,0.0,1.0])
-        # self.viewer.gui.setStaticTransform('world/flshank',[ 0.00, 0.0,-0.08, 0.0,0.0,0.0,1.0])
-        # self.viewer.gui.setStaticTransform('world/frfemoral',[ 0.00, 0.0,-0.08, 0.0,0.0,0.0,1.0])
-        # self.viewer.gui.setStaticTransform('world/frshank',[ 0.00, 0.0,-0.08, 0.0,0.0,0.0,1.0])
-
     def display(self,q):
         RobotWrapper.display(self,q)
         se3.updateFramePlacements(self.model,self.data)
-
-        # self.viewer.gui.applyConfiguration('world/basis', se3ToXYZQUAT(self.data.oMf[self.id_frame_base]))
-        # self.viewer.gui.applyConfiguration('world/blfemoral', se3ToXYZQUAT(self.data.oMf[self.id_frame_bl_hfe]))
-        # self.viewer.gui.applyConfiguration('world/blshank', se3ToXYZQUAT(self.data.oMf[self.id_frame_bl_kfe]))
-        # self.viewer.gui.applyConfiguration('world/brfemoral', se3ToXYZQUAT(self.data.oMf[self.id_frame_br_hfe]))
-        # self.viewer.gui.applyConfiguration('world/brshank', se3ToXYZQUAT(self.data.oMf[self.id_frame_br_kfe]))
-        # self.viewer.gui.applyConfiguration('world/flfemoral', se3ToXYZQUAT(self.data.oMf[self.id_frame_fl_hfe]))
-        # self.viewer.gui.applyConfiguration('world/flshank', se3ToXYZQUAT(self.data.oMf[self.id_frame_fl_kfe]))
-        # self.viewer.gui.applyConfiguration('world/frfemoral', se3ToXYZQUAT(self.data.oMf[self.id_frame_fr_hfe]))
-        # self.viewer.gui.applyConfiguration('world/frshank', se3ToXYZQUAT(self.data.oMf[self.id_frame_fr_kfe]))
 
         self.viewer.gui.applyConfiguration('world/blhip', se3ToXYZQUAT(self.data.oMf[self.id_frame_bl_hfe]))
         self.viewer.gui.applyConfiguration('world/blknee', se3ToXYZQUAT(self.data.oMf[self.id_frame_bl_kfe]))

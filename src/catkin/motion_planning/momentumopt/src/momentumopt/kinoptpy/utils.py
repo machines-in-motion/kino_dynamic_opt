@@ -2,6 +2,14 @@ import numpy as np
 from time import sleep
 
 
+def isfloat(value):
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
+
+
 def display_motion(robot, q_traj, time):
     for i in range(len(time)):
         robot.display(q_traj[i])
@@ -9,6 +17,7 @@ def display_motion(robot, q_traj, time):
             sleep(time[i])
         else:
             sleep(time[i] - time[i - 1])
+
 
 def norm(vector, weights=None):
     def norm_(vector):
@@ -34,6 +43,7 @@ def norm(vector, weights=None):
             return np.sum([norm_(vec(delta_t=0.01)) for vec in vector])
     else: 
         return norm_(vector)
+
 
 def norm_momentum(current_momentum, desired_momentum):
     diff = current_momentum - desired_momentum

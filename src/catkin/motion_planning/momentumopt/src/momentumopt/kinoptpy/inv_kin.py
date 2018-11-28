@@ -95,8 +95,8 @@ class InverseKinematics:
 
         # if not self.centroidal_momentum is None: 
         #     # weight_momentum = 0.0001  # 1.0 * self.weights[0]
-        #     weight_momentum = 0.01 * np.ones((6))
-        #     weight_momentum[3:] = 0.0
+        #     weight_momentum = 0.0 * np.ones((6))
+        #     weight_momentum[3:] = 0.1
         #     K_p_momentum = 1.0  # self.K_p[0]
         #     H_ = self.centroidal_momentum()
         #     P += 2.0 * np.dot(np.transpose(H_), np.dot(np.diag(weight_momentum), H_))

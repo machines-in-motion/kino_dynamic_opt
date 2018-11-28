@@ -26,7 +26,7 @@ import os, sys, getopt, numpy as np, pinocchio as pin
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.momentumopt.kinoptpy.kinematics_optimizer import KinematicsOptimizer, create_time_vector
-#from src.momentumexe.motion_execution import MotionExecutor
+from src.momentumexe.motion_execution import MotionExecutor
 
 
 'Kinematics Interface using Pinocchio'
@@ -100,16 +100,19 @@ class MotionPlanner():
         kin_optimizer = KinematicsOptimizer()
         kin_optimizer.initialize(self.planner_setting)
 
-
+        print("DynOpt", 0)
         dyn_optimizer.optimize(self.ini_state, self.contact_plan, kin_optimizer.kinematics_sequence, False)
         for kd_iter in range(0, self.planner_setting.get(PlannerIntParam_KinDynIterations)):
             print("KinOpt", kd_iter+1)
-            kin_optimizer.optimize(self.ini_state, self.contact_plan.contactSequence(), dyn_optimizer.dynamicsSequence())
+            if kd_iter == self.planner_setting.get(PlannerIntParam_KinDynIterations) - 1:
+                kin_optimizer.optimize(self.ini_state, self.contact_plan.contactSequence(), dyn_optimizer.dynamicsSequence(), plotting=False)
+            else:
+                kin_optimizer.optimize(self.ini_state, self.contact_plan.contactSequence(), dyn_optimizer.dynamicsSequence(), plotting=False)
             print("DynOpt", kd_iter+1)
             dyn_optimizer.optimize(self.ini_state, self.contact_plan, kin_optimizer.kinematics_sequence, True)    
 
-
-        optimized_sequence = kin_optimizer.kinematics_sequence
+        optimized_kin_plan = kin_optimizer.kinematics_sequence
+        optimized_dyn_plan = dyn_optimizer.dynamicsSequence()
 
         time_vector = create_time_vector(dyn_optimizer.dynamicsSequence())
         
@@ -134,7 +137,7 @@ class MotionPlanner():
         # print dyn_optimizer.dynamicsSequence().dynamics_states[planner_setting.get(PlannerIntParam_NumTimesteps)-1]
         # print contact_plan.contactSequence().contact_states(0)[0].position
 
-        return optimized_sequence, time_vector
+        return optimized_kin_plan, optimized_dyn_plan, self.planner_setting, time_vector
 
 
 'Main function for optimization demo'
@@ -157,13 +160,10 @@ def main(argv):
     print(cfg_file)
 
     motion_planner = MotionPlanner(cfg_file)
-    optimized_sequence, time_vector = motion_planner.optimize_motion()
+    optimized_kin_plan, optimized_dyn_plan, planner_setting, time_vector = motion_planner.optimize_motion()
 
-    optimized_sequence.kinematics_states[15].robot_posture.joint_positions
-    optimized_sequence.kinematics_states[15].robot_velocity.joint_velocities
-
-    #motion_executor = MotionExecutor(optimized_sequence, time_vector)
-    #motion_executor.execute_motion()
+    motion_executor = MotionExecutor(optimized_kin_plan, optimized_dyn_plan, planner_setting, time_vector)
+    motion_executor.execute_motion(plotting=True, tune_online=False)
 
     print('Done...')
 
