@@ -89,16 +89,23 @@ void init_kinematics(py::module &m)
   // binding of kinematics interface
   py::class_<KinematicsInterface, PyKinematicsInterface>(m, "KinematicsInterface")
     .def(py::init<>())
+	.def("initialize", &KinematicsInterface::initialize)
+	.def("displayPosture", &KinematicsInterface::displayPosture)
+	.def("logarithmicMap", &KinematicsInterface::logarithmicMap)
+	.def("integratePosture", &KinematicsInterface::integratePosture)
+	.def("differentiatePostures", &KinematicsInterface::differentiatePostures)
+    .def("updateJacobiansAndState", &KinematicsInterface::updateJacobiansAndState)
+	.def_property("constraints_vector", (const Eigen::VectorXd& (KinematicsInterface::*)(void) const) &KinematicsInterface::constraintsVector, (void (KinematicsInterface::*)(const Eigen::VectorXd&)) &KinematicsInterface::constraintsVector)
+	.def_property("constraints_matrix", (const Eigen::MatrixXd& (KinematicsInterface::*)(void) const) &KinematicsInterface::constraintsMatrix, (void (KinematicsInterface::*)(const Eigen::MatrixXd&)) &KinematicsInterface::constraintsMatrix)
+	.def_property("center_of_mass_jacobian", (const Eigen::MatrixXd& (KinematicsInterface::*)(void) const) &KinematicsInterface::centerOfMassJacobian, (void (KinematicsInterface::*)(const Eigen::MatrixXd&)) &KinematicsInterface::centerOfMassJacobian)
     .def_property("centroidal_momentum_matrix", (const Eigen::MatrixXd& (KinematicsInterface::*)(void) const) &KinematicsInterface::centroidalMomentumMatrix, (void (KinematicsInterface::*)(const Eigen::MatrixXd&)) &KinematicsInterface::centroidalMomentumMatrix)
     .def_property("endeffector_jacobians", (const std::vector<Eigen::MatrixXd>& (KinematicsInterface::*)(void) const) &KinematicsInterface::endeffectorJacobians, (void (KinematicsInterface::*)(const std::vector<Eigen::MatrixXd>&)) &KinematicsInterface::endeffectorJacobians)
-    .def("initialize", &KinematicsInterface::initialize)
-    .def("displayPosture", &KinematicsInterface::displayPosture)
-    .def("updateJacobians", &KinematicsInterface::updateJacobians);
+    .def_property("centroidal_momentum_matrix_variation", (const Eigen::MatrixXd& (KinematicsInterface::*)(void) const) &KinematicsInterface::centroidalMomentumMatrixVariation, (void (KinematicsInterface::*)(const Eigen::MatrixXd&)) &KinematicsInterface::centroidalMomentumMatrixVariation);
 
   // binding of kinematics optimizer
   py::class_<KinematicsOptimizer>(m, "KinematicsOptimizer")
     .def(py::init<>())
     .def("initialize", &KinematicsOptimizer::initialize)
-    .def("kinematicsSequence", (const KinematicsSequence& (KinematicsOptimizer::*)(void) const) &KinematicsOptimizer::kinematicsSequence)
-    .def("optimize", &KinematicsOptimizer::optimize, py::arg("ini_state"), py::arg("contact_plan"), py::arg("dyn_sequence"), py::arg("is_not_first_kindyn_iteration") = false);
+	.def("optimize", &KinematicsOptimizer::optimize, py::arg("ini_state"), py::arg("contact_plan"), py::arg("dyn_sequence"), py::arg("is_first_kinopt"))
+    .def("kinematicsSequence", (const KinematicsSequence& (KinematicsOptimizer::*)(void) const) &KinematicsOptimizer::kinematicsSequence);
 }

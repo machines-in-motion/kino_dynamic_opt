@@ -41,46 +41,39 @@ namespace momentumopt {
 
       // pure virtual functions to be implemented
       virtual void initialize(PlannerSetting& planner_setting) = 0;
-      virtual KinematicsState updateJacobians(KinematicsState& kin_state) = 0;
+      virtual Eigen::Vector3d logarithmicMap(const Eigen::Vector4d quat_wxyz) = 0;
+      virtual KinematicsState integratePosture(KinematicsState& kin_state, double dt) = 0;
       virtual void displayPosture(const KinematicsState& kin_state, double time_step) = 0;
+      virtual KinematicsState updateJacobiansAndState(KinematicsState& kin_state, double dt) = 0;
+      virtual KinematicsState differentiatePostures(KinematicsState& start_state, KinematicsState& end_state, double timestep) = 0;
 
-//      // pure virtual functions to be implemented
-//      virtual void displayPosture(const DynamicsState& state, double time_step) = 0;
-//      virtual double endeffectorOrientationError(int n_vars, const double* x) = 0;
-//      virtual void updateJacobianAndState(Eigen::Ref<Eigen::MatrixXd> centroidal_momentum_matrix, Eigen::Ref<Eigen::MatrixXd> base_jacobian,
-//                          std::array<Eigen::MatrixXd, Problem::n_endeffs_>& endeffector_jacobian, DynamicsState& current_joints_state) = 0;
-//      virtual void updateInertiaAndNonlinearTerms(Eigen::Ref<Eigen::MatrixXd> inertia_matrix,
-//                          Eigen::Ref<Eigen::VectorXd> nonlinear_terms, const DynamicsState& current_joints_state) = 0;
-//
-//      // helper functions to deal with joints in charge of end-effector rotations
-//      const Eigen::VectorXi& endeffectorRotationalDofs() const { return eff_rotation_dofs_; }
-//      void initialize(const Eigen::VectorXi& eff_rotation_dofs) { eff_rotation_dofs_ = eff_rotation_dofs; }
-//      void setDesiredEndeffectorOrientation(const DynamicsState& state) { des_eff_orientation_ = std::make_shared<DynamicsState>(state); }
-//      const Eigen::Quaternion<double>& getDesiredEndeffectorOrientation(int eff_id) const { return des_eff_orientation_->endeffectorOrientation(eff_id); }
-//
-//      // helper functions to define how to optimize endeffector-rotations
-//      void getNlpParameters(int& n_vars, int& n_cons) { n_vars = 12; n_cons = 0; }
-//      void getStartingPoint(int n_vars, double* x) { for (int i=0; i<n_vars; i++) { x[i]=0.0; } }
-//      void evaluateConstraintsVector(int n_vars, int n_cons, const double* x, double* constraints) {}
-//      double evaluateObjective(int n_vars, const double* x) { return this->endeffectorOrientationError(n_vars, x); }
-//      void getNlpBounds(int n_vars, int n_cons, double* x_l, double* x_u, double* g_l, double* g_u) { for (int i=0; i<n_vars; i++) { x_l[i] = -2*M_PI; x_u[i] =  2*M_PI; } }
-//
-//    private:
-//      Eigen::VectorXi eff_rotation_dofs_;
-//      std::shared_ptr<DynamicsState> des_eff_orientation_;
+      // center of mass and momentum jacobians
+      Eigen::MatrixXd& centerOfMassJacobian() { return center_of_mass_jacobian_; }
+      Eigen::MatrixXd& centroidalMomentumMatrix() { return centroidal_momentum_matrix_; }
+      const Eigen::MatrixXd& centerOfMassJacobian() const { return center_of_mass_jacobian_; }
+      const Eigen::MatrixXd& centroidalMomentumMatrix() const { return centroidal_momentum_matrix_; }
+      void centerOfMassJacobian(const Eigen::MatrixXd& center_of_mass_jacobian) { center_of_mass_jacobian_ = center_of_mass_jacobian; }
+      void centroidalMomentumMatrix(const Eigen::MatrixXd& centroidal_mometum_matrix) { centroidal_momentum_matrix_ = centroidal_mometum_matrix; }
 
-      Eigen::MatrixXd& centroidalMomentumMatrix() { return centroidal_mometum_matrix_; }
-      const Eigen::MatrixXd& centroidalMomentumMatrix() const { return centroidal_mometum_matrix_; }
-      void centroidalMomentumMatrix(const Eigen::MatrixXd& centroidal_mometum_matrix) { centroidal_mometum_matrix_ = centroidal_mometum_matrix; }
+      Eigen::MatrixXd& centroidalMomentumMatrixVariation() { return centroidal_momentum_matrix_variation_; }
+      const Eigen::MatrixXd& centroidalMomentumMatrixVariation() const { return centroidal_momentum_matrix_variation_; }
+      void centroidalMomentumMatrixVariation(const Eigen::MatrixXd& centroidal_momentum_matrix_variation) { centroidal_momentum_matrix_variation_ = centroidal_momentum_matrix_variation; }
 
+      // endeffector jacobians
       Eigen::MatrixXd& endeffectorJacobian(int eff_id) { return endeffector_jacobians_[eff_id]; }
-      const Eigen::MatrixXd& endeffectorJacobian(int eff_id) const { return endeffector_jacobians_[eff_id]; }
-
       const std::vector<Eigen::MatrixXd>& endeffectorJacobians() const { return endeffector_jacobians_; }
+      const Eigen::MatrixXd& endeffectorJacobian(int eff_id) const { return endeffector_jacobians_[eff_id]; }
       void endeffectorJacobians(const std::vector<Eigen::MatrixXd>& endeffector_jacobians) { endeffector_jacobians_ = endeffector_jacobians; }
+
+      // bodies non-penetration constraints
+      const Eigen::VectorXd& constraintsVector() const { return constraints_vector_; }
+      const Eigen::MatrixXd& constraintsMatrix() const { return constraints_matrix_; }
+      void constraintsVector(const Eigen::VectorXd& constraints_vector) { constraints_vector_ = constraints_vector; }
+      void constraintsMatrix(const Eigen::MatrixXd& constraints_matrix) { constraints_matrix_ = constraints_matrix; }
 
     private:
       friend class KinematicsOptimizer;
+
       /*! internal initialization function */
       void internalInitialization(PlannerSetting& planner_setting);
 
@@ -93,8 +86,9 @@ namespace momentumopt {
       PlannerSetting* planner_setting_;
 
       /*! Jacobians and problem matrices */
-      Eigen::MatrixXd centroidal_mometum_matrix_;
+      Eigen::VectorXd constraints_vector_;
       std::vector<Eigen::MatrixXd> endeffector_jacobians_;
+      Eigen::MatrixXd centroidal_momentum_matrix_, centroidal_momentum_matrix_variation_, center_of_mass_jacobian_, constraints_matrix_;
   };
 
 }

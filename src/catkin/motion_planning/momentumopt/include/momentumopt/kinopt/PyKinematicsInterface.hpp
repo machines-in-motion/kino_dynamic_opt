@@ -49,13 +49,47 @@ namespace momentumopt {
         );
       }
 
-      KinematicsState updateJacobians(KinematicsState& kin_state) override
+      KinematicsState updateJacobiansAndState(KinematicsState& kin_state, double dt) override
       {
         PYBIND11_OVERLOAD_PURE(
           KinematicsState,
           KinematicsInterface,
-          updateJacobians,
-          kin_state
+		  updateJacobiansAndState,
+          kin_state,
+		  dt
+        );
+      }
+
+      KinematicsState integratePosture(KinematicsState& kin_state, double dt) override
+      {
+        PYBIND11_OVERLOAD_PURE(
+          KinematicsState,
+          KinematicsInterface,
+		  integratePosture,
+		  kin_state,
+		  dt
+        );
+      }
+
+      KinematicsState differentiatePostures(KinematicsState& start_state, KinematicsState& end_state, double timestep) override
+      {
+        PYBIND11_OVERLOAD_PURE(
+          KinematicsState,
+          KinematicsInterface,
+		  differentiatePostures,
+		  start_state,
+		  end_state,
+		  timestep
+        );
+      }
+
+      Eigen::Vector3d logarithmicMap(const Eigen::Vector4d quat_wxyz) override
+      {
+        PYBIND11_OVERLOAD_PURE(
+          Eigen::Vector3d,
+          KinematicsInterface,
+          logarithmicMap,
+          quat_wxyz
         );
       }
   };

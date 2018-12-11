@@ -62,12 +62,12 @@ namespace momentumopt {
 	  Heuristic heuristic_;
 
 	  /*! helper string variables for the optimization problem */
-	  std::string cfg_file_, save_dynamics_file_, default_solver_setting_file_;
+	  std::string cfg_file_, save_dynamics_file_, save_kinematics_file_, default_solver_setting_file_;
 
 	  /*! helper integer variables for the optimization problem */
       int num_com_viapoints_, num_act_eefs_, num_timesteps_, max_time_iterations_, num_dofs_,
           num_act_dofs_, num_extended_act_dofs_, max_convergence_iters_, num_subsamples_,
-		  kd_iterations_;
+		  kd_iterations_, max_trajectory_iters_;
 
       /*! helper boolean variables for the optimization problem */
       bool store_data_, is_time_horizon_fixed_, is_friction_cone_linear_, use_default_solver_setting_,
@@ -76,7 +76,8 @@ namespace momentumopt {
       /*! helper double variables for the optimization problem */
       double gravity_, time_step_, robot_mass_, time_horizon_, friction_coeff_, max_time_residual_tolerance_,
              min_time_residual_improvement_, mass_times_gravity_, w_trq_arm_, w_trq_leg_, w_time_penalty_, w_time_,
-             convergence_tolerance_, min_rel_height_;
+             convergence_tolerance_, min_rel_height_, floor_height_, kin_integration_step_, kin_slacks_penalty_,
+             lambda_regularization_;
 
       /*! helper vector variables for the optimization problem */
       Eigen::Vector2d time_range_, torque_range_;

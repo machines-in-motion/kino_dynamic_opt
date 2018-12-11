@@ -26,6 +26,7 @@ namespace momentumopt {
   {
     cfg_file_ = cfg_file;
     save_dynamics_file_ = cfg_file.substr(0, cfg_file.size()-5) + "_dyn_results.yaml";
+    save_kinematics_file_ = cfg_file.substr(0, cfg_file.size()-5) + "_kin_results.yaml";
     default_solver_setting_file_ = CFG_SRC_PATH + std::string("default_solver_setting.yaml");
 
     try
@@ -78,6 +79,7 @@ namespace momentumopt {
       // Configuration parameters
       readParameter(planner_vars, "gravity", gravity_);
       readParameter(planner_vars, "robot_mass", robot_mass_);
+      readParameter(planner_vars, "floor_height", floor_height_);
       readParameter(planner_vars, "torque_range", torque_range_);
       readParameter(planner_vars, "friction_coeff", friction_coeff_);
       readParameter(planner_vars, "max_eef_lengths", max_eef_lengths_);
@@ -126,10 +128,14 @@ namespace momentumopt {
 	    readParameter(planner_vars, "w_kin_base_ori", w_kin_base_ori_);
 	    readParameter(planner_vars, "w_kin_joint_vel", w_kin_joint_vel_);
 	    readParameter(planner_vars, "w_kin_joint_acc", w_kin_joint_acc_);
+        readParameter(planner_vars, "slacks_penalty", kin_slacks_penalty_);
+	    readParameter(planner_vars, "integration_step", kin_integration_step_);
 	    readParameter(planner_vars, "w_kin_eff_pos_nonact", w_kin_eff_pos_nonact_);
 	    readParameter(planner_vars, "w_kin_default_joints", w_kin_default_joints_);
+	    readParameter(planner_vars, "max_trajectory_iters", max_trajectory_iters_);
 	    readParameter(planner_vars, "max_convergence_iters", max_convergence_iters_);
 	    readParameter(planner_vars, "convergence_tolerance", convergence_tolerance_);
+        readParameter(planner_vars, "lambda_regularization", lambda_regularization_);
       }
 
       // Storage information
@@ -160,6 +166,7 @@ namespace momentumopt {
       case PlannerIntParam_NumSubsamples : { return num_subsamples_; }
       case PlannerIntParam_KinDynIterations : { return kd_iterations_; }
       case PlannerIntParam_NumExtendedActiveDofs : { return num_extended_act_dofs_; }
+      case PlannerIntParam_MaxKinTrajectoryIterations : { return max_trajectory_iters_; }
       case PlannerIntParam_MaxKinConvergenceIterations : { return max_convergence_iters_; }
 
       // Dynamics parameters
@@ -203,6 +210,9 @@ namespace momentumopt {
     switch (param)
     {
       // Kinematics parameters
+      case PlannerDoubleParam_KinSlacksPenalty : { return kin_slacks_penalty_; }
+      case PlannerDoubleParam_KinIntegrationStep : { return kin_integration_step_; }
+      case PlannerDoubleParam_LambdaRegularization : { return lambda_regularization_; }
       case PlannerDoubleParam_KinConvergenceTolerance : { return convergence_tolerance_; }
 
       // Dynamics parameters
@@ -217,6 +227,7 @@ namespace momentumopt {
       // Configuration parameters
       case PlannerDoubleParam_Gravity : { return gravity_; }
       case PlannerDoubleParam_RobotMass : { return robot_mass_; }
+      case PlannerDoubleParam_FloorHeight : { return floor_height_; }
       case PlannerDoubleParam_RobotWeight : { return mass_times_gravity_; }
       case PlannerDoubleParam_FrictionCoefficient : { return friction_coeff_; }
       case PlannerDoubleParam_MassTimesGravity : { return mass_times_gravity_; }
@@ -239,6 +250,7 @@ namespace momentumopt {
       // Storage information
       case PlannerStringParam_ConfigFile : { return cfg_file_; }
       case PlannerStringParam_SaveDynamicsFile : { return save_dynamics_file_; }
+      case PlannerStringParam_SaveKinematicsFile : { return save_kinematics_file_; }
 
       // Solver setting
       case PlannerStringParam_DefaultSolverSettingFile : { return default_solver_setting_file_; }
@@ -350,6 +362,7 @@ namespace momentumopt {
       case PlannerIntParam_NumSubsamples : { return num_subsamples_; }
       case PlannerIntParam_KinDynIterations : { return kd_iterations_; }
       case PlannerIntParam_NumExtendedActiveDofs : { return num_extended_act_dofs_; }
+      case PlannerIntParam_MaxKinTrajectoryIterations : { return max_trajectory_iters_; }
       case PlannerIntParam_MaxKinConvergenceIterations : { return max_convergence_iters_; }
 
       // Dynamics parameters
@@ -393,6 +406,9 @@ namespace momentumopt {
     switch (param)
     {
       // Kinematics parameters
+      case PlannerDoubleParam_KinSlacksPenalty : { return kin_slacks_penalty_; }
+      case PlannerDoubleParam_KinIntegrationStep : { return kin_integration_step_; }
+      case PlannerDoubleParam_LambdaRegularization : { return lambda_regularization_; }
       case PlannerDoubleParam_KinConvergenceTolerance : { return convergence_tolerance_; }
 
       // Dynamics parameters
@@ -407,6 +423,7 @@ namespace momentumopt {
       // Configuration parameters
       case PlannerDoubleParam_Gravity : { return gravity_; }
       case PlannerDoubleParam_RobotMass : { return robot_mass_; }
+      case PlannerDoubleParam_FloorHeight : { return floor_height_; }
       case PlannerDoubleParam_RobotWeight : { return mass_times_gravity_; }
       case PlannerDoubleParam_FrictionCoefficient : { return friction_coeff_; }
       case PlannerDoubleParam_MassTimesGravity : { return mass_times_gravity_; }
@@ -429,6 +446,7 @@ namespace momentumopt {
       // Storage information
       case PlannerStringParam_ConfigFile : { return cfg_file_; }
       case PlannerStringParam_SaveDynamicsFile : { return save_dynamics_file_; }
+      case PlannerStringParam_SaveKinematicsFile : { return save_kinematics_file_; }
 
       // Solver setting
       case PlannerStringParam_DefaultSolverSettingFile : { return default_solver_setting_file_; }

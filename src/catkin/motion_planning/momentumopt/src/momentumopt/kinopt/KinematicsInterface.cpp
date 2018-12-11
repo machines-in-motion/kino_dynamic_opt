@@ -24,14 +24,17 @@ namespace momentumopt {
   {
     planner_setting_ = &planner_setting;
 
-    centroidal_mometum_matrix_.resize(6, 6+this->getSetting().get(PlannerIntParam_NumDofs));
-    centroidal_mometum_matrix_.setZero();
+    center_of_mass_jacobian_.resize(3, 6+this->getSetting().get(PlannerIntParam_NumDofs));
+    centroidal_momentum_matrix_.resize(6, 6+this->getSetting().get(PlannerIntParam_NumDofs));
+    centroidal_momentum_matrix_variation_.resize(6, 6+this->getSetting().get(PlannerIntParam_NumDofs));
 
     endeffector_jacobians_.clear();
-    for (int eff_id=0; eff_id<Problem::n_endeffs_; eff_id++) {
-      endeffector_jacobians_.push_back(Eigen::MatrixXd(6, 6+this->getSetting().get(PlannerIntParam_NumDofs)));
-      endeffector_jacobians_[eff_id].setZero();
-    }
+    center_of_mass_jacobian_.setZero();
+    centroidal_momentum_matrix_.setZero();
+    centroidal_momentum_matrix_variation_.setZero();
+    for (int eff_id=0; eff_id<Problem::n_endeffs_; eff_id++)
+      endeffector_jacobians_.push_back(Eigen::MatrixXd(6, 6+this->getSetting().get(PlannerIntParam_NumDofs)).setZero());
+
     this->initialize(planner_setting);
   }
 
