@@ -36,7 +36,7 @@ class QuadrupedWrapper(RobotWrapper):
         data = self.data
         NQ = model.nq
         NV = model.nv
-        self.q, self.dq, tau = zero(NQ), zero(NV), zero(NV)
+        self.q, self.dq, self.ddq, tau = zero(NQ), zero(NV), zero(NV), zero(NV)
 
         # The free flyer has an idenitity placement
         identity_placement = np.matrix(se3.utils.se3ToXYZQUAT(se3.SE3.Identity())).T
@@ -70,6 +70,9 @@ class QuadrupedWrapper(RobotWrapper):
 
     def set_velocity(self, dq):
         self.dq = dq
+
+    def set_acceleration(self, ddq):
+        self.ddq = ddq
 
     def update_configuration(self, delta_q):
         self.q = se3.integrate(self.model, self.q, delta_q)
@@ -118,6 +121,14 @@ class QuadrupedWrapper(RobotWrapper):
             return centroidal_momentum_matrix
 
         return eval_centroidal_momentum
+
+    def get_d_centroidal_momentum(self):
+        def eval_d_centroidal_momentum():
+            self.centroidalMomentum(self.q, self.dq)
+            d_centroidal_momentum_matrix = self.data.dAg
+            return d_centroidal_momentum_matrix
+
+        return eval_d_centroidal_momentum
 
     def get_transformation(self, name, dofs=None):
         if not self.model.existFrame(name) and not name == "COM":
@@ -180,6 +191,7 @@ class QuadrupedWrapper(RobotWrapper):
             self.transformations_dict[eff + "_END_GOAL"] = self.transformations_dict[eff + "_END"]().copy()
 
         self.centroidal_momentum = self.get_centroidal_momentum()
+        self.d_centroidal_momentum = self.get_d_centroidal_momentum()
 
     def initDisplay(self,loadModel):
         RobotWrapper.initDisplay(self,loadModel=loadModel)

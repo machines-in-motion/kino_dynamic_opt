@@ -54,7 +54,7 @@ planner_variables:
 
   display_motion: True
   num_dofs: 8
-  kd_iterations: 1
+  kd_iterations: 2
   num_subsamples: 3
   active_dofs: [0, 1, 2, 3, 4, 5, 6, 7]
   min_joint_limits: [-2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5]
@@ -103,7 +103,7 @@ planner_variables:
   com_displacement: [0.00, 0.00, 0.00]
   num_com_viapoints: 1
   com_viapoints:
-    via0: [2.50,    0.0, 0.0, -0.2]
+    via0: [2.50,    0.0, 0.0, -0.23]
 
   #####################
   # Timing parameters #
@@ -153,12 +153,12 @@ planner_variables:
   w_lmomd:         [ 0.080,  0.020,  0.030]
   w_amom_final:    [ 10.00,  10.00,  10.00]
   w_lmom_final:    [ 10.00,  10.00,  10.00]
-  w_com_via:       [ 0.000,  0.000,  10.00]
+  w_com_via:       [ 0.000,  0.000,  100.0]
   w_frc_arm:       [ 0.001,  0.001,  0.001]
   w_frc_leg:       [ 0.001,  0.001,  0.001]
   w_dfrc_arm:      [ 0.000,  0.000,  0.000]
   w_dfrc_leg:      [ 0.000,  0.000,  0.010]
-  w_com_track:     [ 0.000,  0.000,  0.000]
+  w_com_track:     [ 0.000,  0.000,  1.000]
   w_lmom_track:    [ 1.000,  1.000,  1.000]
   w_amom_track:    [ 5.000,  10.00,  5.000]
 

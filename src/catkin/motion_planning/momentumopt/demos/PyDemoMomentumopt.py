@@ -27,7 +27,7 @@ import os, sys, getopt, numpy as np, pinocchio as pin
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.momentumopt.kinoptpy.kinematics_optimizer import KinematicsOptimizer, create_time_vector
 from src.momentumexe.motion_execution import MotionExecutor
-
+from src.momentumopt.kinoptpy.create_data_file import create_file
 
 'Kinematics Interface using Pinocchio'
 class PinocchioKinematicsInterface(KinematicsInterface):
@@ -137,7 +137,7 @@ class MotionPlanner():
         # print dyn_optimizer.dynamicsSequence().dynamics_states[planner_setting.get(PlannerIntParam_NumTimesteps)-1]
         # print contact_plan.contactSequence().contact_states(0)[0].position
 
-        return optimized_kin_plan, optimized_dyn_plan, self.planner_setting, time_vector
+        return optimized_kin_plan, optimized_dyn_plan, dynamics_feedback, self.planner_setting, time_vector
 
 
 'Main function for optimization demo'
@@ -160,10 +160,16 @@ def main(argv):
     print(cfg_file)
 
     motion_planner = MotionPlanner(cfg_file)
-    optimized_kin_plan, optimized_dyn_plan, planner_setting, time_vector = motion_planner.optimize_motion()
+    optimized_kin_plan, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector = motion_planner.optimize_motion()
 
-    motion_executor = MotionExecutor(optimized_kin_plan, optimized_dyn_plan, planner_setting, time_vector)
-    motion_executor.execute_motion(plotting=True, tune_online=False)
+    # Create configuration and velocity file from motion plan for dynamic graph
+    create_file(time_vector, optimized_kin_plan)
+
+    simulation = True
+
+    if simulation:
+        motion_executor = MotionExecutor(optimized_kin_plan, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector)
+        motion_executor.execute_motion(plotting=False, tune_online=False)
 
     print('Done...')
 

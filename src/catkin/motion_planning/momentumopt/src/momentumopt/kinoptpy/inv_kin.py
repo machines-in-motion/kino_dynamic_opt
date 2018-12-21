@@ -32,9 +32,10 @@ class InverseKinematics:
         K_p_[:-1] = self.K_p
         self.K_p = K_p_
 
-    def add_tasks(self, desired_velocities, jacobians, centroidal_momentum=None, desired_momentums=None, gains=1.0, weights=None):
+    def add_tasks(self, desired_velocities, jacobians, centroidal_momentum=None, d_centroidal_momentum=None, desired_momentum=None, gains=1.0, weights=None):
         self.centroidal_momentum = centroidal_momentum
-        self.desired_momentums = desired_momentums
+        self.d_centroidal_momentum = d_centroidal_momentum
+        self.desired_delta_momentum = desired_momentum
 
         if not len(desired_velocities) == len(jacobians): 
             raise ValueError("%d != %d. The number of desired velocities and jacobians have to be equal." %(len(desired_velocities), len(jacobians)))
@@ -117,6 +118,62 @@ class InverseKinematics:
         # Feed P and r to QP solver
         q_sol = self.qp_solver.quadprog_solve_qp(P, r, G=G, h=h)
         q_sol = q_sol[:P_orig_size]
+
+        return q_sol
+
+        # Multi task inverse kinematics using QP to minimize sum(||J_i * q_dot - x_i_dot ||^2)
+    def multi_task_IK_momentum(self, G=None, h=None, A=None, b=None, soft_constrained=False):
+        # Transform the multi task inverse kinematics into QP 
+        # min 0.5 * q_dot^T * P * q_dot + r^T * q_dot
+        # with:
+        # P = sum(2.0 * J_i^T * J_i)
+        # r = sum(- 2.0 * J_i^T * x_i_dot)
+
+        for i in range(len(self.jacobians)):
+            J_ = self.jacobians[i]()
+            filled_with_zeros = np.zeros_like(J_)
+            J_ = np.hstack((J_, filled_with_zeros))
+            if i == 0:
+                P = self.weights[i] * 2.0 * np.dot(J_.T, J_)
+                r = self.weights[i] * (- 2.0) * np.squeeze(np.array(np.dot(J_.T, self.K_p[i] * self.desired_vels[i](self.dt)))) 
+            else:
+                P += self.weights[i] * 2.0 * np.dot(J_.T, J_)
+                r += self.weights[i] * (- 2.0) * np.squeeze(np.array(np.dot(J_.T, self.K_p[i] * self.desired_vels[i](self.dt)))) 
+
+        # import pdb
+        # pdb.set_trace()
+
+        A_centroidal = self.centroidal_momentum()
+        filled_with_zeros = np.zeros_like(A_centroidal)
+        A_centroidal = np.hstack((A_centroidal, filled_with_zeros))
+        A_d = self.d_centroidal_momentum()
+        filled_with_zeros = np.zeros_like(A_d)
+        A_d = np.hstack((filled_with_zeros, A_d))
+        A_centroidal = np.vstack((A_d, A_centroidal))
+        delta_momentum = np.hstack((self.desired_delta_momentum, np.zeros((6))))
+
+        P += self.weights[0] * 2.0 * np.dot(A_centroidal.T, A_centroidal)
+        r += self.weights[0] * (- 2.0) * np.squeeze(np.array(np.dot(A_centroidal.T, self.K_p[0] * delta_momentum / self.dt))) 
+
+        # Add regularization term, since P is only guranteed to be positive semi-definite
+        # P = P + lambda * I
+        regularizer = np.diag(self.lambda_)    
+        P += regularizer
+
+        P_orig_size = P.shape[0]
+
+        # pdb.set_trace()        
+
+        # if soft_constrained and not G is None and not h is None:
+        #     P, r, G, h = self.create_soft_constraints(P, r, G, h)
+
+        # pdb.set_trace()
+
+        # Feed P and r to QP solver
+        q_sol = self.qp_solver.quadprog_solve_qp(P, r, G=G, h=h, A=A, b=b)
+        q_sol = q_sol[:P_orig_size]
+
+        # pdb.set_trace()
 
         return q_sol
 

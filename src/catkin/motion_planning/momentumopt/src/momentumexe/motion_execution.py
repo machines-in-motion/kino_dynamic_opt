@@ -1,7 +1,6 @@
 import os
 import numpy as np
 from time import sleep, time
-import pdb
 
 import pybullet as p
 import pinocchio as se3
@@ -35,7 +34,9 @@ class PDController(object):
         self.D = D
 
 
-def desired_state(specification, time_vector, optimized_sequence):
+def desired_state(specification, time_vector, optimized_sequence=None, dynamics_feedback=None):
+    if optimized_sequence is None and dynamics_feedback is None:
+        raise ValueError("Specify desired positions, velocities or dynamic feedback gains.")
 
     def desired_state_eval(t):
         closest_idx = np.argmin(abs(time_vector - t))
@@ -47,12 +48,27 @@ def desired_state(specification, time_vector, optimized_sequence):
             t1_idx = closest_idx
             t2_idx = min(closest_idx + 1, len(time_vector) - 1)
 
+        state_1 = None
+        state_2 = None
+
         if specification == "POSITION":
             state_1 = optimized_sequence.kinematics_states[t1_idx].robot_posture.joint_positions
             state_2 = optimized_sequence.kinematics_states[t2_idx].robot_posture.joint_positions
         elif specification == "VELOCITY":
             state_1 = optimized_sequence.kinematics_states[t1_idx].robot_velocity.joint_velocities
             state_2 = optimized_sequence.kinematics_states[t2_idx].robot_velocity.joint_velocities
+        elif specification == "COM":
+            state_1 = optimized_sequence.kinematics_states[t1_idx].com
+            state_2 = optimized_sequence.kinematics_states[t2_idx].com
+        elif specification == "LMOM":
+            state_1 = optimized_sequence.kinematics_states[t1_idx].lmom
+            state_2 = optimized_sequence.kinematics_states[t2_idx].lmom
+        elif specification == "AMOM":
+            state_1 = optimized_sequence.kinematics_states[t1_idx].amom
+            state_2 = optimized_sequence.kinematics_states[t2_idx].amom
+        elif specification == "DYN_FEEDBACK":
+            state_1 = dynamics_feedback.forceGain(t1_idx)
+            state_2 = dynamics_feedback.forceGain(t2_idx)
 
         delta_t = t - time_vector[t1_idx]
         if t2_idx <= 0:
@@ -85,9 +101,10 @@ def query_gain_from_user(K, gain_str, entered_joint_id):
 
 class MotionExecutor():
 
-    def __init__(self, optimized_kin_plan, optimized_dyn_plan, planner_setting, time_vector):
+    def __init__(self, optimized_kin_plan, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector):
         self.optimized_kin_plan = optimized_kin_plan
         self.optimized_dyn_plan = optimized_dyn_plan
+        self.dynamics_feedback = dynamics_feedback
         self.time_vector = time_vector
         self.planner_setting = planner_setting
 
@@ -168,6 +185,29 @@ class MotionExecutor():
         print("...Done.")
         return com_trajectory, lmom_trajectory, amom_trajectory
 
+    def calculate_momentum(self, delta_t, joint_configuration, base_state):
+        q_new = self.robot.q.copy()
+        q_previous = self.robot.q.copy()
+        num_uncontrolled_joints = q_new.shape[0] - len(self.controlled_joints)
+
+        q_new[:num_uncontrolled_joints] = np.reshape(base_state, (num_uncontrolled_joints, 1))
+        q_new[num_uncontrolled_joints:] = joint_configuration.reshape((-1, 1))
+
+        self.robot.set_configuration(q_new)
+
+        if delta_t < 1e-8:
+            q_previous = q_new.copy()
+            q_dot = self.robot.get_difference(q_previous, q_new)
+        else:
+            q_dot = self.robot.get_difference(q_previous, q_new) / delta_t
+
+        self.robot.centroidalMomentum(q_new, q_dot)
+        com = np.squeeze(np.array(self.robot.com(q_new)), 1)
+        lmom = np.squeeze(np.array(self.robot.data.hg.vector[:3]), 1)
+        amom = np.squeeze(np.array(self.robot.data.hg.vector[3:]), 1)
+
+        return com, lmom, amom
+
     def limit_torques(self, torque):
         torque[torque < self.tau_min] = self.tau_min
         torque[torque > self.tau_max] = self.tau_max
@@ -175,10 +215,13 @@ class MotionExecutor():
 
     def execute_motion(self, plotting=False, tune_online=False):
         sim = self.sim
-        P, D = 15. * np.ones(8), 0.2 * np.ones(8)
+        P, D = 10. * np.ones(8), 0.3 * np.ones(8)
 
         for i in range(8):
             if "HFE" in self.robot.model.names[int(sim.pinocchio_joint_ids[i])]:
+                D[i] = 0.5
+
+            if "FR" in self.robot.model.names[int(sim.pinocchio_joint_ids[i])] or "FL" in self.robot.model.names[int(sim.pinocchio_joint_ids[i])]:
                 D[i] = 0.5
 
         num_uncontrolled_joints = 6
@@ -201,8 +244,12 @@ class MotionExecutor():
         except KeyboardInterrupt:
             print("Keyboard interrupt")
 
-        desired_pos = desired_state("POSITION", self.time_vector, self.optimized_kin_plan)
-        desired_vel = desired_state("VELOCITY", self.time_vector, self.optimized_kin_plan)
+        desired_pos = desired_state("POSITION", self.time_vector, optimized_sequence=self.optimized_kin_plan)
+        desired_vel = desired_state("VELOCITY", self.time_vector, optimized_sequence=self.optimized_kin_plan)
+        desired_com_func = desired_state("COM", self.time_vector, optimized_sequence=self.optimized_kin_plan)
+        desired_lmom_func = desired_state("LMOM", self.time_vector, optimized_sequence=self.optimized_kin_plan)
+        desired_amom_func = desired_state("AMOM", self.time_vector, optimized_sequence=self.optimized_kin_plan)
+        dyn_feedback = desired_state("DYN_FEEDBACK", self.time_vector, dynamics_feedback=self.dynamics_feedback)
 
         time_horizon = 4.0
         max_num_iterations = int(time_horizon * 1000)
@@ -227,23 +274,23 @@ class MotionExecutor():
                 joint_identifier = eff + "_" + joint
                 jacobians_eff[joint_identifier] = self.robot.get_jacobian(joint_identifier, "TRANSLATION")
 
-        swing_times = {}
-
-        for eff in self.robot.effs:
-            swing_times[eff] = []
-
         # Apply gains for trajectory tracking
         try:
             print("Executing motion...")
             executing = True
-            t_0 = None
-            t_1 = None
+            # t_0 = None
+            # t_1 = None
 
-            import pdb
+            force_offset = 0
 
             while executing:
                 loop = 0
                 time_id = 0
+                
+                swing_times = {}
+                for eff in self.robot.effs:
+                    swing_times[eff] = []
+
                 while loop < max_num_iterations:
                     t = loop / 1e3
                     if t > self.time_vector[time_id]:
@@ -263,10 +310,35 @@ class MotionExecutor():
                     ptau = np.diag(P) * se3.difference(self.robot.model, q, q_des)[6:] 
                     ptau += np.diag(D) * (dq_des - dq)[6:]
 
-                    # for eff_id, eff in enumerate(self.robot.effs):
-                    #     eff = eff + "_END"
-                    #     force = self.optimized_dyn_plan.dynamics_states[time_id].effForce(eff_id) * robot_weight
-                    #     ptau += np.transpose(np.dot(np.transpose(jacobians_eff[eff]()), force))[6:]
+                    planned_force = np.zeros((3 * len(self.robot.effs)))
+                    jacobians_effs = np.zeros((3 * len(self.robot.effs), self.robot.nv))
+                    for eff_id, eff in enumerate(self.robot.effs):
+                        eff = eff + "_END"
+                        force = self.optimized_dyn_plan.dynamics_states[time_id].effForce(eff_id) * robot_weight
+                        # force = self.optimized_dyn_plan.dynamics_states[min(time_id - force_offset, len(self.time_vector) - 1)].effForce(eff_id) * robot_weight
+                        # force = self.optimized_dyn_plan.dynamics_states[max(time_id - force_offset, 0)].effForce(eff_id) * robot_weight
+                        planned_force[eff_id * 3 : eff_id * 3 + 3] = force
+                        jacobians_effs[eff_id * 3 : eff_id * 3 + 3, :] = jacobians_eff[eff]()
+
+                    use_dyn_feedback = True
+
+                    if use_dyn_feedback:
+                        if loop == 0:
+                            delta_t = 0
+                        else:
+                            delta_t = t - t_vec[-1]
+                        joint_configuration = q[7:].reshape((-1))
+                        base_state = np.zeros((7))
+                        base_state[:3], base_state[3:] = p.getBasePositionAndOrientation(self.robotId)
+                        com, lmom, amom = self.calculate_momentum(delta_t, joint_configuration, base_state)
+                        desired_momentum = np.hstack((desired_com_func(t), desired_lmom_func(t), desired_amom_func(t)))
+                        current_momentum = np.hstack((com, lmom, amom))
+                        delta_momentum = current_momentum - desired_momentum
+                        delta_force = np.dot(dyn_feedback(t), delta_momentum)
+                    else:
+                        delta_force = np.zeros_like(planned_force)
+
+                    ptau += np.reshape(np.transpose(np.dot(np.transpose(jacobians_effs), planned_force + delta_force))[6:], (ptau.shape[0], 1))
 
                     self.limit_torques(ptau)
 
@@ -302,6 +374,7 @@ class MotionExecutor():
 
                     loop += 1
 
+                # force_offset += 1
                 actual_com, actual_lmom, actual_amom = self.calculate_actual_trajectories(loop, t_vec, actual_pos_arr, base_states)
 
                 desired_com = np.zeros((len(self.time_vector), 3))
@@ -329,6 +402,7 @@ class MotionExecutor():
                     P, D = self.tunePD(P, D)
                 else:
                     executing = False
+                    # pass
 
             print("...Finished execution.")
 

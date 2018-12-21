@@ -1,6 +1,5 @@
 import os
 import numpy as np
-import pdb
 
 import pinocchio as se3
 from pinocchio.utils import *
@@ -136,7 +135,7 @@ class KinematicsOptimizer:
 
         return desired_velocities, jacobians
 
-    def create_constraints(self, z_floor, dt):
+    def create_constraints(self, z_floor, dt, acceleration=False):
         # Create constraints for the robot end effectors, knees and hips to stay above the ground
         num_constraints = len(self.robot.effs) * len(self.robot.joints_list)
         G = np.zeros((num_constraints, self.robot.nv))
@@ -152,6 +151,15 @@ class KinematicsOptimizer:
         z_floor += self.offset
         h = - z_floor + z
 
+        if acceleration:
+            # add constraints for connection of acceleration and velocity
+            G = np.hstack((G, np.zeros_like(G)))
+            b = np.squeeze(np.array(self.robot.dq), 1)
+            A = np.hstack((np.eye(self.robot.nv), - dt * np.eye(self.robot.nv)))
+        else:
+            A = None
+            b = None
+
         # Create constraints for limiting the joint velocity
         # G_max = np.eye(self.robot.nv)[- self.robot.num_ctrl_joints:, :]
         # G_min = - np.eye(self.robot.nv)[- self.robot.num_ctrl_joints:, :]
@@ -162,7 +170,7 @@ class KinematicsOptimizer:
 
         # h = np.squeeze(h)
 
-        return G, h
+        return G, h, A, b
 
     def optimize(self, ini_state, contact_sequence, dynamics_sequence, plotting=False):
         # Set floor's z coordinate to where the endeffector's z coordinates are
@@ -180,6 +188,13 @@ class KinematicsOptimizer:
             com_motion[t, :] = dynamics_sequence.dynamics_states[t].com
             lmom[t, :] = dynamics_sequence.dynamics_states[t].lmom
             amom[t, :] = dynamics_sequence.dynamics_states[t].amom
+
+        planned_forces = np.zeros((self.num_time_steps, 3 * len(self.robot.effs)))
+        for time_id in range(self.num_time_steps):
+            for eff_id, eff in enumerate(self.robot.effs):
+                eff = eff + "_END"
+                force = dynamics_sequence.dynamics_states[time_id].effForce(eff_id) * self.robot_weight
+                planned_forces[time_id, eff_id * 3 : eff_id * 3 + 3] = force
 
         # import matplotlib.pyplot as plt
 
@@ -211,6 +226,7 @@ class KinematicsOptimizer:
         # Create robot motion using IK for COM and endeffector trajectories
         ik = InverseKinematics(self.dt, self.robot.nq)
         q_traj = []
+        q_vel = []
 
         num_uncontrolled_joints = self.robot.q.shape[0] - self.robot.num_ctrl_joints
 
@@ -254,7 +270,7 @@ class KinematicsOptimizer:
             if i % self.max_iterations == 0 and i > 0:
                 print("Error:", norm(desired_velocities))
                 print("Used iterations:", i)
-            G, h = self.create_constraints(z_floor, ik.dt)
+            G, h, A, b = self.create_constraints(z_floor, ik.dt)
             q_sol = ik.multi_task_IK(G=G, h=h, soft_constrained=True)
             self.robot.update_configuration(np.transpose(np.matrix(q_sol)) * ik.dt)
             i += 1
@@ -262,12 +278,18 @@ class KinematicsOptimizer:
         # desired_delta_momentum_array = np.zeros((len(self.time), 6))
         # actual_delta_momentum_array = np.zeros((len(self.time), 6))
 
+        # lambda_ = self.lambda_value * np.ones(self.robot.nv * 2) # np.ones_like(ik.lambda_)
+        # ik.set_regularizer(lambda_)
+
         # Track robot motion
         for t in range(len(self.time)):
             i = 0
-            # print("time =", self.time[t])
+            print("time =", self.time[t])
             desired_velocities, jacobians = self.create_tasks(t, com_motion, contacts, eff_traj_poly)
-            desired_momentum = np.hstack((lmom[t, :], amom[t, :]))
+            if t == 0:
+                delta_momentum = np.zeros((6))
+            else:
+                delta_momentum = np.hstack((lmom[t, :], amom[t, :]))
 
             # Set weightsfor tasks
             weights = self.weights_value * np.ones((len(jacobians)))
@@ -286,17 +308,21 @@ class KinematicsOptimizer:
             # Add tasks to the cost function of the IK
             # ik.add_tasks(desired_velocities, jacobians, gains=0.5, weights=weights)
             ik.add_tasks(desired_velocities, jacobians, 
-                         centroidal_momentum=self.robot.centroidal_momentum, desired_momentums=desired_momentum,
+                         # centroidal_momentum=self.robot.centroidal_momentum, 
+                         # d_centroidal_momentum=self.robot.d_centroidal_momentum,
+                         # desired_momentum=delta_momentum,
                          gains=0.5, weights=weights)
 
-            if t == 0:
-                ik.centroidal_momentum = None
+            # if t == 0:
+            #     ik.centroidal_momentum = None
 
             q_previous = self.robot.q.copy()
 
             if t <= 0:
-                q_dot = self.robot.get_difference(self.robot.q, self.robot.q) 
+                q_dot = self.robot.get_difference(self.robot.q, self.robot.q)
+                q_dd = self.robot.get_difference(self.robot.dq, self.robot.dq)
                 self.robot.set_velocity(q_dot)
+                self.robot.set_acceleration(q_dd)
 
             # while norm_momentum(np.dot(np.array(self.robot.centroidal_momentum()), np.squeeze(np.array(self.robot.dq), 1)), desired_momentum) > self.eps and i < 100:
             # while norm(desired_velocities, ik.weights) + norm_momentum(np.dot(np.array(self.robot.centroidal_momentum()), np.squeeze(np.array(self.robot.dq), 1)), desired_momentum) > self.eps and i < 50:
@@ -304,11 +330,20 @@ class KinematicsOptimizer:
                 if i % self.max_iterations == 0 and i > 0:
                     print("Error:", norm(desired_velocities))
                     print("Used iterations:", i)
+                if t == 0:
+                    delta_momentum = np.zeros((6))
+                else:
+                    q_dot_intermediate = self.robot.get_difference(q_traj[-1], self.robot.q) / (self.time[t - 1] + ik.dt * max(i, 1) - self.time[t - 1])
+                    self.robot.centroidalMomentum(self.robot.q, q_dot_intermediate)
+                    delta_momentum = np.hstack((lmom[t, :], amom[t, :])) - np.squeeze(np.array(self.robot.data.hg.vector), 1)
+                ik.desired_momentum = delta_momentum
                 # delta_momentum = desired_momentum - np.dot(np.array(self.robot.centroidal_momentum()), np.squeeze(np.array(self.robot.dq), 1))
                 # print(delta_momentum[1:4])
                 # ik.desired_momentums = delta_momentum
-                G, h = self.create_constraints(z_floor, ik.dt)
+                G, h, A, b = self.create_constraints(z_floor, ik.dt)
                 q_sol = ik.multi_task_IK(G=G, h=h, soft_constrained=True)
+                # q_sol = ik.multi_task_IK_momentum(G=G, h=h, A=A, b=b, soft_constrained=True)
+                # q_sol_vel = q_sol[:14]
                 self.robot.update_configuration(np.transpose(np.matrix(q_sol)) * ik.dt)
                 # if t == 0:
                 #     delta_t = (self.time[t] - 0.0)
@@ -316,6 +351,7 @@ class KinematicsOptimizer:
                 #     delta_t = (self.time[t] - self.time[t - 1])
                 # q_diff = self.robot.get_difference(self.robot.q, q_previous) / ((i + 1) * ik.dt)
                 # self.robot.set_velocity(q_diff)
+
                 i += 1
 
             # actual_delta_momentum_array
@@ -324,7 +360,9 @@ class KinematicsOptimizer:
 
             if t > 0:
                 q_dot = self.robot.get_difference(q_traj[-1], self.robot.q) / (self.time[t] - self.time[t - 1])
+                q_dd = self.robot.get_difference(q_vel[-1], q_dot) / (self.time[t] - self.time[t - 1])
                 self.robot.set_velocity(q_dot)
+                self.robot.set_acceleration(q_dd)
 
             self.robot.centroidalMomentum(q_new, q_dot)
 
@@ -344,8 +382,9 @@ class KinematicsOptimizer:
                     joint_identifier = eff + "_" + joint
                     self.ik_motion[joint_identifier][t, :] = np.squeeze(self.robot.transformations_dict[joint_identifier](), 1)
 
-            # print("Finished after iteration:", i)
+            print("Finished after iteration:", i)
             q_traj.append(self.robot.q)
+            q_vel.append(self.robot.dq)
             ik.delete_tasks()
             self.robot.display(self.robot.q)
 
