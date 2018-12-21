@@ -39,10 +39,8 @@ namespace momentumopt {
        * @param[in]  ini_state                            initial state of the robot
        * @param[in]  contact_plan                         container of contact sequence to be used for dynamics planning
        * @param[in]  dyn_sequence                         dynamics sequence to be used as momentum tracking reference
-       * @param[in]  is_not_first_kindyn_iteration        signals if it is the first kinematics-dynamics iteration
        */
-      void optimize(const DynamicsState& ini_state, ContactPlanInterface* contact_plan,
-                    DynamicsSequence& dyn_sequence, bool is_not_first_kindyn_iteration = false);
+      void optimize(const DynamicsState& ini_state, ContactPlanInterface* contact_plan, DynamicsSequence& dyn_sequence, bool is_first_kinopt);
 
       /**
        * this function gives access to the optimized motion plan
@@ -76,7 +74,8 @@ namespace momentumopt {
        * function to initialize optimization variables: type [continuous or binary],
        * guess value [if any], upper and lower bounds for the variable
        */
-      void initializeKinematicVariables();
+      void initializePostureKinematicVariables();
+      void initializeTrajectoryKinematicVariables();
 
       /**
        * function to add each variable to the Model and assign a unique identifier
@@ -93,17 +92,17 @@ namespace momentumopt {
        * @param[in]  opt_var                               helper optimization variable for model predictive control
        */
       void saveSolution(solver::OptimizationVariable& opt_var);
-//      void storeSolution();
+      void storeSolution(const DynamicsState& ini_state, DynamicsSequence& dyn_sequence);
 
       /**
        * function that implements iterative inverse kinematics to track momentum,
        * end-effector motions, by a robot with a given joint configuration
        * @param[in/out]  current_state                     initial state and final state at end of iterative inverse kinematics
        * @param[in]      desired_state                     goal configuration to be achieved by iterative inverse kinematics
-       * @param[in]      is_not_initial_state              flag to turn on/off momentum tracking for moving the robot to initial state
-       * @param[in]      is_not_first_kinematic_iteration  flag to turn on/off momentum tracking for moving the robot to initial state
+       * @param[in]      is_initial_state                  flag to turn off/on momentum tracking for moving the robot to initial state
        */
-      void optimizePosture(KinematicsState& current_state, const DynamicsState& desired_state, bool is_not_initial_state = true, bool include_torque_limits = false);
+      void optimizeTrajectory(const DynamicsState& ini_state, DynamicsSequence& dyn_sequence);
+      void optimizePosture(KinematicsState& current_state, const DynamicsState& desired_state, bool is_initial_state = false);
 
       /*! helper function to display a kinematic motion */
       void displayMotion(const DynamicsSequence& dyn_sequence);
@@ -113,6 +112,9 @@ namespace momentumopt {
        * @param[in]  dyn_sequence                   dynamics sequence to be used as momentum tracking reference
        */
       void updateEndeffectorTrajectories(DynamicsSequence& dyn_sequence);
+
+      // quaternion to rotation vector
+      Eigen::Vector3d quaternionToRotationVector(const Eigen::Quaternion<double>& q) const;
 
     private:
       /*! Variables required for optimization */
@@ -167,17 +169,15 @@ namespace momentumopt {
 
       /*! helper optimization variables for the optimization problem */
       std::array<solver::OptimizationVariable, Problem::n_endeffs_> eef_pos_, eef_vel_, eef_ang_vel_;
-      solver::OptimizationVariable jnt_q_, jnt_qd_, total_qd_, total_qdd_, com_, comd_, lmom_, amom_,
-                                   base_position_, base_ang_vel_;
+      solver::OptimizationVariable jnt_q_, jnt_qd_, jnt_qdd_, total_qd_, total_qdd_, com_, comd_,
+                                   lmom_, amom_, base_position_, base_ang_vel_, slack_vars_;
 
       /*! helper matrices and vectors for the optimization problem */
       solver::OptimizationVariable::OptVector solution_;
       solver::OptimizationVariable::OptMatrix mat_guess_, mat_lb_, mat_ub_;
-//
-//      /*! helper matrices and vectors for the optimization problem */
-//      Eigen::MatrixXd centroidal_momentum_matrix_, base_jacobian_;
-//      std::array<Eigen::MatrixXd, Problem::n_endeffs_> endeffector_jacobian_;
 
+      std::array<Eigen::Vector3d, Problem::n_endeffs_> desired_eff_velocity_;
+      Eigen::Vector3d desired_com_velocity_, desired_lmom_velocity_, desired_amom_velocity_;
   };
 
 }

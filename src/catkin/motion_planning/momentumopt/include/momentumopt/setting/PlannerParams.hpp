@@ -29,7 +29,8 @@ namespace momentumopt {
 	PlannerIntParam_MaxNumTimeIterations,
 	PlannerIntParam_NumExtendedActiveDofs,
 	PlannerIntParam_NumActiveEndeffectors,
-    PlannerIntParam_MaxKinConvergenceIterations,
+	PlannerIntParam_MaxKinTrajectoryIterations,
+	PlannerIntParam_MaxKinConvergenceIterations,
 
 	// Kinematics parameters
 	PlannerIntParam_NumSubsamples,
@@ -74,6 +75,10 @@ namespace momentumopt {
 	PlannerDoubleParam_WeightTimeRegularization,
 
 	// Kinematics parameters
+    PlannerDoubleParam_FloorHeight,
+	PlannerDoubleParam_KinSlacksPenalty,
+	PlannerDoubleParam_KinIntegrationStep,
+	PlannerDoubleParam_LambdaRegularization,
     PlannerDoubleParam_KinConvergenceTolerance,
   };
 
