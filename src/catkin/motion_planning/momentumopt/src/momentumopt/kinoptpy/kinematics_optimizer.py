@@ -74,7 +74,7 @@ class KinematicsOptimizer:
         self.kinematic_interface = None
         self.robot = None
 
-    def initialize(self, planner_setting, max_iterations=1000, eps=0.001):
+    def initialize(self, planner_setting, max_iterations=50, eps=0.001):
         # self.kinematic_interface = kin_interface
         self.num_time_steps = planner_setting.get(PlannerIntParam_NumTimesteps)
         self.robot_weight = planner_setting.get(PlannerDoubleParam_RobotWeight) 

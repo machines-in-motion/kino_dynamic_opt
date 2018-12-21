@@ -249,7 +249,8 @@ class MotionExecutor():
         desired_com_func = desired_state("COM", self.time_vector, optimized_sequence=self.optimized_kin_plan)
         desired_lmom_func = desired_state("LMOM", self.time_vector, optimized_sequence=self.optimized_kin_plan)
         desired_amom_func = desired_state("AMOM", self.time_vector, optimized_sequence=self.optimized_kin_plan)
-        dyn_feedback = desired_state("DYN_FEEDBACK", self.time_vector, dynamics_feedback=self.dynamics_feedback)
+        if not self.dynamics_feedback is None:
+            dyn_feedback = desired_state("DYN_FEEDBACK", self.time_vector, dynamics_feedback=self.dynamics_feedback)
 
         time_horizon = 4.0
         max_num_iterations = int(time_horizon * 1000)
@@ -320,7 +321,10 @@ class MotionExecutor():
                         planned_force[eff_id * 3 : eff_id * 3 + 3] = force
                         jacobians_effs[eff_id * 3 : eff_id * 3 + 3, :] = jacobians_eff[eff]()
 
-                    use_dyn_feedback = True
+                    if self.dynamics_feedback is None:
+                        use_dyn_feedback = False
+                    else:
+                        use_dyn_feedback = True
 
                     if use_dyn_feedback:
                         if loop == 0:

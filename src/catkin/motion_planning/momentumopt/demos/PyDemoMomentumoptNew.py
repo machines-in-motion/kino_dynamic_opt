@@ -26,6 +26,9 @@ import os, sys, getopt, numpy as np, pinocchio as pin
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.momentumopt.kinopt.PinocchioKinematicsInterface import PinocchioKinematicsInterface
+from src.momentumopt.kinoptpy.kinematics_optimizer import create_time_vector
+from src.momentumexe.motion_execution import MotionExecutor
+
 
 class MotionPlanner():
 
@@ -33,6 +36,9 @@ class MotionPlanner():
         'define problem configuration'
         self.planner_setting = PlannerSetting()
         self.planner_setting.initialize(cfg_file)
+
+        self.dynlqr_setting = SolverLqrSetting()
+        self.dynlqr_setting.initialize(cfg_file, "solverlqr_dynamics")
 
         'define robot initial state'
         self.ini_state = DynamicsState()
@@ -67,6 +73,23 @@ class MotionPlanner():
             print("DynOpt", kd_iter+1)
             dyn_optimizer.optimize(self.ini_state, self.contact_plan, kin_optimizer.kinematicsSequence(), True)
 
+        optimized_kin_plan = kin_optimizer.kinematicsSequence()
+        optimized_dyn_plan = dyn_optimizer.dynamicsSequence()
+
+        time_vector = create_time_vector(dyn_optimizer.dynamicsSequence())
+
+
+        'define dynamics feedback controller'
+        dynamics_feedback = DynamicsFeedback()
+        print("DynFb Ini")
+        dynamics_feedback.initialize(self.dynlqr_setting, self.planner_setting)
+        print("DynFb Opt")
+        dynamics_feedback.optimize(self.ini_state, dyn_optimizer.dynamicsSequence())
+        # dynamics_feedback = None
+
+        print("DynFb Ret")
+        return optimized_kin_plan, optimized_dyn_plan, dynamics_feedback, self.planner_setting, time_vector
+
         
 'Main function for optimization demo'
 def main(argv):
@@ -86,7 +109,10 @@ def main(argv):
             cfg_file = arg
 
     motion_planner = MotionPlanner(cfg_file)
-    motion_planner.optimize_motion()
+    optimized_kin_plan, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector = motion_planner.optimize_motion()
+
+    motion_executor = MotionExecutor(optimized_kin_plan, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector)
+    motion_executor.execute_motion(plotting=True, tune_online=False)
 
     print('Done...')
 

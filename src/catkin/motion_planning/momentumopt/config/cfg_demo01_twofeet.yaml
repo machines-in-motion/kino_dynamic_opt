@@ -200,7 +200,7 @@ solverlqr_dynamics:
   
   problem_name: DynamicMomentumOptimization
   time_step: 0.05
-  time_horizon: 4.0
+  time_horizon: 3.001
   state_dimension: 9
   control_dimension: 12
   initial_state: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
