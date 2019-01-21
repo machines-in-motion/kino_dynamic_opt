@@ -40,7 +40,7 @@ The available motions are:
 * Lifting rear legs: cfg_quadruped_lift_rear.yaml
 * Jump: cfg_quadruped_jump.yaml
 
-For an explanation of the different settings in the configuration files, refer to cfg_quadruped_jump.yaml.
+For an explanation of the different settings in the configuration files, refer to [cfg_quadruped_jump.yaml](/src/catkin/motion_planning/momentumopt/config/cfg_quadruped_jump.yaml).
 
 ## Experimental Section
 Furthermore, there is a kinematic optimization over a horizon available, which allows for smoother trajectories, by running
@@ -62,4 +62,4 @@ Executing
 ```
 python3 ./PyDemoMomentumopt.py -i <path_to_config_file>
 ```
-automatically saves the quadruped_positions.dat and the quadruped_velocities.dat files in the <work_folder>/kino-dynamic-opt/src/catkin/motion_planning/momentumopt/demos directory. These files can then be supplied to dynamic graph and for example executed on the real robot.  
+automatically saves the `quadruped_positions.dat` and the `quadruped_velocities.dat` files in the `<work_folder>/kino-dynamic-opt/src/catkin/motion_planning/momentumopt/demos` directory. These files can then be supplied to dynamic graph and for example executed on the real robot.  
