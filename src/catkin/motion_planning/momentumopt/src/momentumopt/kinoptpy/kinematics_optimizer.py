@@ -77,10 +77,11 @@ class KinematicsOptimizer:
     def initialize(self, planner_setting, max_iterations=50, eps=0.001):
         # self.kinematic_interface = kin_interface
         self.num_time_steps = planner_setting.get(PlannerIntParam_NumTimesteps)
-        self.robot_weight = planner_setting.get(PlannerDoubleParam_RobotWeight) 
+        self.robot_weight = planner_setting.get(PlannerDoubleParam_RobotWeight)
 
         # Load the robot from URDF-model
         urdf = str(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + '/urdf/quadruped.urdf')
+        # print("urdf_path:", urdf)
         self.robot = QuadrupedWrapper(urdf)
         self.max_iterations = max_iterations
         self.eps = eps
@@ -259,10 +260,10 @@ class KinematicsOptimizer:
 
         weights = self.weights_value * np.ones((len(jacobians)))
         # Add tasks to the cost function of the IK
-        ik.add_tasks(desired_velocities, jacobians, 
+        ik.add_tasks(desired_velocities, jacobians,
                      gains=0.5, weights=weights)
 
-        q_dot = self.robot.get_difference(self.robot.q, self.robot.q) 
+        q_dot = self.robot.get_difference(self.robot.q, self.robot.q)
         self.robot.set_velocity(q_dot)
 
         i = 0
@@ -307,8 +308,8 @@ class KinematicsOptimizer:
 
             # Add tasks to the cost function of the IK
             # ik.add_tasks(desired_velocities, jacobians, gains=0.5, weights=weights)
-            ik.add_tasks(desired_velocities, jacobians, 
-                         # centroidal_momentum=self.robot.centroidal_momentum, 
+            ik.add_tasks(desired_velocities, jacobians,
+                         # centroidal_momentum=self.robot.centroidal_momentum,
                          # d_centroidal_momentum=self.robot.d_centroidal_momentum,
                          # desired_momentum=delta_momentum,
                          gains=0.5, weights=weights)
@@ -347,7 +348,7 @@ class KinematicsOptimizer:
                 self.robot.update_configuration(np.transpose(np.matrix(q_sol)) * ik.dt)
                 # if t == 0:
                 #     delta_t = (self.time[t] - 0.0)
-                # else: 
+                # else:
                 #     delta_t = (self.time[t] - self.time[t - 1])
                 # q_diff = self.robot.get_difference(self.robot.q, q_previous) / ((i + 1) * ik.dt)
                 # self.robot.set_velocity(q_diff)
@@ -441,7 +442,7 @@ class KinematicsOptimizer:
         for i, ax in enumerate(axes):
             ax.plot(self.time, self.ik_motion["COM"][:, i], "r", label="COM_IK")
             ax.plot(self.time, com_motion[:, i], "b", label="COM_DYN_OPT")
-            
+
             for eff in self.robot.effs:
                 for swing_time in swing_times[eff]:
                     t_0, t_1 = swing_time
@@ -460,7 +461,7 @@ class KinematicsOptimizer:
         for i, ax in enumerate(axes):
             ax.plot(self.time, self.ik_motion["LMOM"][:, i], "r", label="LMOM_IK")
             ax.plot(self.time, lmom[:, i], "b", label="LMOM_DYN_OPT")
-        
+
             for eff in self.robot.effs:
                 for swing_time in swing_times[eff]:
                     t_0, t_1 = swing_time
@@ -553,4 +554,3 @@ class KinematicsOptimizer:
         fig.suptitle("Desired Forces")
 
         plt.show()
-        

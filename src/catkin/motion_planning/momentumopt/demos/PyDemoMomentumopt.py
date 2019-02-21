@@ -35,7 +35,8 @@ class PinocchioKinematicsInterface(KinematicsInterface):
         KinematicsInterface.__init__(self)
 
     def initialize(self, planner_setting):
-        urdf = str(os.path.dirname(os.path.abspath(__file__)) + '/quadruped/quadruped.urdf')
+        urdf = str(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + '/urdf/quadruped.urdf')
+        #print("urdf_path:", urdf)
         self.robot = RobotWrapper(urdf, root_joint=pin.JointModelFreeFlyer())
         self.eff_names = {0: "BL_END", 1: "FL_END", 2: "BR_END", 3: "FR_END"}
 

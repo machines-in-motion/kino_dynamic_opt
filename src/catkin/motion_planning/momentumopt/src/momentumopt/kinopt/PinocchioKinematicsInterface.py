@@ -16,7 +16,7 @@ class PinocchioKinematicsInterface(KinematicsInterface):
     def initialize(self, planner_setting):
         package_dirs = [os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))]
         urdf = str(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + '/urdf/quadruped.urdf')
-        self.robot = RobotWrapper(urdf, root_joint=pin.JointModelFreeFlyer(), package_dirs=package_dirs)
+        self.robot = RobotWrapper.BuildFromURDF(urdf, package_dirs=package_dirs, root_joint=pin.JointModelFreeFlyer())
         self.robot.data = self.robot.model.createData()
 
         self.initDisplay(loadModel=True)
@@ -67,18 +67,18 @@ class PinocchioKinematicsInterface(KinematicsInterface):
                 h[eff_id*len(jnt_names)+jnt_id] = self.robot.data.oMf[nameToIndexMap].translation[-1][0, 0]
         self.constraintsMatrix = - G*dt
         self.constraintsVector = h - self.z_floor
-        
+
         return kin_state
 
     def integratePosture(self, kin_state, dt):
         self.robot.q = np.transpose(np.matrix(kin_state.robot_posture.generalized_joint_positions()))
         self.robot.dq = np.transpose(np.matrix(kin_state.robot_velocity.generalized_joint_velocities))
         self.robot.q = pin.integrate(self.robot.model, self.robot.q, self.robot.dq * dt)
-        
+
         kin_state.robot_posture.base_position = np.squeeze(np.asarray(self.robot.q[0:3]))
         kin_state.robot_posture.joint_positions = np.squeeze(np.asarray(self.robot.q[7:]))
         kin_state.robot_posture.base_orientation = np.squeeze(np.asarray(self.robot.q[3:7]))
-        
+
         return kin_state
 
     def differentiatePostures(self, ini_state, end_state, dt):
