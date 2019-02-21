@@ -4,7 +4,7 @@ import pinocchio as se3
 from pinocchio.robot_wrapper import RobotWrapper
 from pinocchio.utils import *
 
-class QuadrupedWrapper(RobotWrapper):
+class QuadrupedWrapper():
 
     def __init__(self, urdf, dt=0.01, q=None):
         package_dirs = [os.path.dirname(os.path.dirname(os.path.abspath(__file__)))]
@@ -43,7 +43,7 @@ class QuadrupedWrapper(RobotWrapper):
 
         # The free flyer has an idenitity placement
         identity_placement = np.matrix(se3.utils.se3ToXYZQUAT(se3.SE3.Identity())).T
-        print("shape:", NQ)
+        # print("shape:", NQ)
         self.q[:np.shape(identity_placement)[0]] = identity_placement
 
         self.num_ctrl_joints = self.q.shape[0] - identity_placement.shape[0]
@@ -65,7 +65,7 @@ class QuadrupedWrapper(RobotWrapper):
 
         self.q[7:] = q_reshape
 
-        print(self.q)
+        # print(self.q)
         self.set_configuration(self.q)
         self.display(self.q)
 
@@ -105,7 +105,7 @@ class QuadrupedWrapper(RobotWrapper):
         if internal:
             if name == "COM":
                 def eval_jac_internal_com():
-                    return self.Jcom(self.q)
+                    return self.robot.Jcom(self.q)
                 return eval_jac_internal_com
             else:
                 def eval_jac_internal():
@@ -153,7 +153,7 @@ class QuadrupedWrapper(RobotWrapper):
                 return self.data.oMf[index]
 
         def transformation_com():
-            return self.com(self.q)
+            return self.robot.com(self.q)
 
         if name == "COM":
             return transformation_com
