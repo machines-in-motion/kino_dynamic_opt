@@ -8,12 +8,13 @@ from pinocchio.utils import zero
 
 class Simulator(object):
     def __init__(self, robot_id, pinocchio_robot, joint_names, endeff_names):
-        self.nq = pinocchio_robot.nq
-        self.nv = pinocchio_robot.nv
+        self.pinocchio_robot = pinocchio_robot.robot
+        self.nq = self.pinocchio_robot.nq
+        self.nv = self.pinocchio_robot.nv
         self.nj = len(joint_names)
         self.nf = len(endeff_names)
         self.robot_id = robot_id
-        self.pinocchio_robot = pinocchio_robot
+
 
         self.joint_names = joint_names
         self.endeff_names = endeff_names
@@ -62,7 +63,7 @@ class Simulator(object):
 
         if len(cp) > 0:
             for ci in cp:
-                contact_normal = ci[7] 
+                contact_normal = ci[7]
                 normal_force = ci[9]
                 lateral_friction_direction_1 = ci[11]
                 lateral_friction_force_1 = ci[10]

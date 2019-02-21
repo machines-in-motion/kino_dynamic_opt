@@ -30,5 +30,5 @@ robot = RobotWrapper.BuildFromURDF(urdf, package_dirs=package_dirs, root_joint=s
 # robot.viewer.gui.addSphere('world/freff',.03,[1.0,0.0,0.0, 1.])
 
 
-idx = robot.index("COM")
+idx = robot.index("COM"
 robot.getJointJacobian("COM")

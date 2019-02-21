@@ -176,9 +176,9 @@ class MotionExecutor():
             else:
                 q_dot = self.robot.get_difference(q_previous, q_new) / (t_vec[loop] - t_vec[loop - 1])
 
-            self.robot.centroidalMomentum(q_new, q_dot)
+            self.robot.robot.centroidalMomentum(q_new, q_dot)
             q_previous = q_new.copy()
-            com_trajectory[loop, :] = np.squeeze(np.array(self.robot.com(q_new)), 1)
+            com_trajectory[loop, :] = np.squeeze(np.array(self.robot.robot.com(q_new)), 1)
             lmom_trajectory[loop, :] = np.squeeze(self.robot.data.hg.vector[:3], 1)
             amom_trajectory[loop, :] = np.squeeze(self.robot.data.hg.vector[3:], 1)
 
@@ -201,8 +201,8 @@ class MotionExecutor():
         else:
             q_dot = self.robot.get_difference(q_previous, q_new) / delta_t
 
-        self.robot.centroidalMomentum(q_new, q_dot)
-        com = np.squeeze(np.array(self.robot.com(q_new)), 1)
+        self.robot.robot.centroidalMomentum(q_new, q_dot)
+        com = np.squeeze(np.array(self.robot.robot.com(q_new)), 1)
         lmom = np.squeeze(np.array(self.robot.data.hg.vector[:3]), 1)
         amom = np.squeeze(np.array(self.robot.data.hg.vector[3:]), 1)
 
@@ -312,7 +312,7 @@ class MotionExecutor():
                     ptau += np.diag(D) * (dq_des - dq)[6:]
 
                     planned_force = np.zeros((3 * len(self.robot.effs)))
-                    jacobians_effs = np.zeros((3 * len(self.robot.effs), self.robot.nv))
+                    jacobians_effs = np.zeros((3 * len(self.robot.effs), self.robot.robot.nv))
                     for eff_id, eff in enumerate(self.robot.effs):
                         eff = eff + "_END"
                         force = self.optimized_dyn_plan.dynamics_states[time_id].effForce(eff_id) * robot_weight
