@@ -2,6 +2,14 @@
 
 This software provides methods for kino-dynamic optimization for multiped robots.
 
+## Install required packages
+
+Please make sure to install the following packages:
+
+```
+pip install quadprog
+```
+
 ## Getting started
 Clone the repository in the desired work folder <work_folder>
 ```
@@ -17,6 +25,12 @@ cd kino-dynamic-opt
 Once the code has been compiled, you can source the setup.bash file
 ```
 source ./devel/setup.bash
+```
+
+Also, make sure put the `devel/lib` folder in your PYTHONPATH
+
+```
+export PYTHONPATH=<you_current_kino-dynamic-op_dir>/devel/lib:$PYTHONPATH
 ```
 
 ## Running a demo 
