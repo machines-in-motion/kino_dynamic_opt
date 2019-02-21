@@ -95,7 +95,7 @@ class MotionPlanner():
         'optimize motion'
         dyn_optimizer = DynamicsOptimizer()
         dyn_optimizer.initialize(self.planner_setting)
-        
+
         'Kinematics Optimizer'
         kin_optimizer = KinematicsOptimizer()
         kin_optimizer.initialize(self.planner_setting)
@@ -109,13 +109,13 @@ class MotionPlanner():
             else:
                 kin_optimizer.optimize(self.ini_state, self.contact_plan.contactSequence(), dyn_optimizer.dynamicsSequence(), plotting=False)
             print("DynOpt", kd_iter+1)
-            dyn_optimizer.optimize(self.ini_state, self.contact_plan, kin_optimizer.kinematics_sequence, True)    
+            dyn_optimizer.optimize(self.ini_state, self.contact_plan, kin_optimizer.kinematics_sequence, True)
 
         optimized_kin_plan = kin_optimizer.kinematics_sequence
         optimized_dyn_plan = dyn_optimizer.dynamicsSequence()
 
         time_vector = create_time_vector(dyn_optimizer.dynamicsSequence())
-        
+
         'define dynamics feedback controller'
         dynamics_feedback = DynamicsFeedback()
         dynamics_feedback.initialize(self.dynlqr_setting, self.planner_setting)
@@ -125,14 +125,14 @@ class MotionPlanner():
                                     [currentCOM  - desiredCoM ]
           deltaForce = forceGain *  [currentLMOM - desiredLMOM]
                                     [currentAMOM - desiredAMOM]
-        
+
          Torque = PD(q,qdot) + J^T * (plannedForce + deltaForce)
          Remember that plannedForce of dyn_optimizer is normalized by robot weight
          (self.planner_setting.get(PlannerDoubleParam_RobotWeight)),
          so you need to multiply it by that amount for it to work!
          deltaForce comes already in the right units.
         '''
-        
+
         # print dyn_optimizer.solveTime()
         # print dyn_optimizer.dynamicsSequence().dynamics_states[planner_setting.get(PlannerIntParam_NumTimesteps)-1]
         # print contact_plan.contactSequence().contact_states(0)[0].position

@@ -8,8 +8,10 @@ class QuadrupedWrapper(RobotWrapper):
 
     def __init__(self, urdf, dt=0.01, q=None):
         package_dirs = [os.path.dirname(os.path.dirname(os.path.abspath(__file__)))]
-        RobotWrapper.__init__(self, urdf, root_joint=se3.JointModelFreeFlyer(), package_dirs=package_dirs)
-
+        #RobotWrapper.__init__(self, urdf, root_joint=se3.JointModelFreeFlyer(), package_dirs=package_dirs)
+        ## For pinocchio_v2
+        RobotWrapper.BuildFromURDF(urdf, package_dirs=package_dirs, root_joint=se3.JointModelFreeFlyer())
+        RobotWrapper.__init__(self)
         # Create data again after setting frames
         self.data = self.model.createData()
         if not q is None:
@@ -47,8 +49,8 @@ class QuadrupedWrapper(RobotWrapper):
         # Set initial configuration
         angle = np.deg2rad(60.0)
         q_dummy = np.zeros(self.num_ctrl_joints)
-        q_dummy[:int(self.num_ctrl_joints / 2)] = - angle 
-        q_dummy[:int(self.num_ctrl_joints / 2):2] = 0.5 * angle 
+        q_dummy[:int(self.num_ctrl_joints / 2)] = - angle
+        q_dummy[:int(self.num_ctrl_joints / 2):2] = 0.5 * angle
         q_dummy[int(self.num_ctrl_joints / 2):] = angle
         q_dummy[int(self.num_ctrl_joints / 2)::2] = - 0.5 * angle
 
@@ -58,7 +60,7 @@ class QuadrupedWrapper(RobotWrapper):
         q_reshape[1, 0] = angle
         q_reshape[2, 0] = - angle / 2
         q_reshape[3, 0] = angle
-        
+
         self.q[7:] = q_reshape
 
         self.set_configuration(self.q)
@@ -85,7 +87,7 @@ class QuadrupedWrapper(RobotWrapper):
             raise ValueError("Joint %s is not available." %name)
         if name == "universe" or name == "root_joint":
             raise ValueError("Joint %s is not available." %name)
-        
+
         index = self.model.getFrameId(name)
         range_ = None
         if dofs == "TRANSLATION":
@@ -149,7 +151,7 @@ class QuadrupedWrapper(RobotWrapper):
 
         def transformation_com():
             return self.com(self.q)
-        
+
         if name == "COM":
             return transformation_com
         else:
@@ -163,7 +165,7 @@ class QuadrupedWrapper(RobotWrapper):
                 return se3.log(transformation_func().inverse() * goal).vector / delta_t
             else:
                 raise ValueError("Implementation for %s not available" %dofs)
-            
+
         return eval_vel
 
     def init_jacobians_and_trafos(self):
@@ -239,7 +241,5 @@ class QuadrupedWrapper(RobotWrapper):
         self.viewer.gui.applyConfiguration('world/frhip', se3ToXYZQUAT(self.data.oMf[self.id_frame_fr_hfe]))
         self.viewer.gui.applyConfiguration('world/frknee', se3ToXYZQUAT(self.data.oMf[self.id_frame_fr_kfe]))
         self.viewer.gui.applyConfiguration('world/freff', se3ToXYZQUAT(self.data.oMf[self.id_frame_fr_end]))
-        
+
         self.viewer.gui.refresh()
-
-

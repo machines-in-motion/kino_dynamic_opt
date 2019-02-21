@@ -24,7 +24,7 @@ class PDController(object):
         self.D = D
 
     def control(self, p_des, v_des):
-        pos, vel, *other = p.getJointState(self.robot_id, self.joint_id)
+        pos, vel, other = p.getJointState(self.robot_id, self.joint_id)
         torque = self.P * (p_des - pos) + self.D * (v_des - vel)
         p.setJointMotorControl2(self.robot_id, self.joint_id, controlMode=p.TORQUE_CONTROL, force=torque, positionGain=0., velocityGain=0.)
         return torque
@@ -264,11 +264,11 @@ class MotionExecutor():
         forces_arr = np.zeros((max_num_iterations, len(sim.pinocchio_endeff_ids), 6))
 
         t_vec = np.zeros((max_num_iterations))
-        
+
         # t_0 = time()
 
-        robot_weight = self.planner_setting.get(PlannerDoubleParam_RobotWeight) 
-        
+        robot_weight = self.planner_setting.get(PlannerDoubleParam_RobotWeight)
+
         jacobians_eff = {}
         for eff in self.robot.effs:
             for joint in self.robot.joints_list:
@@ -287,7 +287,7 @@ class MotionExecutor():
             while executing:
                 loop = 0
                 time_id = 0
-                
+
                 swing_times = {}
                 for eff in self.robot.effs:
                     swing_times[eff] = []
@@ -308,7 +308,7 @@ class MotionExecutor():
                     dq_des = dq.copy()
                     dq_des[6:] = des_vel.reshape((-1, 1))
 
-                    ptau = np.diag(P) * se3.difference(self.robot.model, q, q_des)[6:] 
+                    ptau = np.diag(P) * se3.difference(self.robot.model, q, q_des)[6:]
                     ptau += np.diag(D) * (dq_des - dq)[6:]
 
                     planned_force = np.zeros((3 * len(self.robot.effs)))
@@ -358,7 +358,7 @@ class MotionExecutor():
                     t_vec[loop] = t
                     tau_arr[loop, :] = np.squeeze(np.array(ptau), 1)
                     for cnt_idx in range(len(forces)):
-                        endeff_id = np.where(np.array(sim.pinocchio_endeff_ids) == frame_ids[cnt_idx])[0][0] 
+                        endeff_id = np.where(np.array(sim.pinocchio_endeff_ids) == frame_ids[cnt_idx])[0][0]
                         forces_arr[loop, endeff_id, :] = forces[cnt_idx]
                         robot_endeff = self.robot.effs[endeff_id]
 
@@ -481,13 +481,13 @@ class MotionExecutor():
                     ax = axes[idx_1[0], idx_2[0]]
                     ax.plot(t_vec[:used_loops], desired_trajectories[joint_state][:used_loops, joint_index], "r", label="Desired")
                     ax.plot(t_vec[:used_loops], actual_trajectories[joint_state][:used_loops, joint_index], "b", label="Actual")
-                    
+
                     for eff in self.robot.effs:
                         for swing_time in swing_times[eff]:
                             t_0, t_1 = swing_time
                             ax.axvline(x=t_0, color=self.robot.colors[eff], linestyle="--", alpha=0.25)
                             ax.axvline(x=t_1, color=self.robot.colors[eff], linestyle="--", alpha=0.25)
-                    
+
                     ax.set_title(joint_pos)
                     ax.legend()
                     if joint_state == "joint_configs":
@@ -509,13 +509,13 @@ class MotionExecutor():
             for i, coord in enumerate(coords):
                 axes[i].plot(self.time_vector, desired_trajectories[momentum][:, i], "r", label="Desired " + momentum)
                 axes[i].plot(t_vec[:used_loops], actual_trajectories[momentum][:used_loops, i], "b", label="Actual " + momentum)
-                
+
                 for eff in self.robot.effs:
                     for swing_time in swing_times[eff]:
                         t_0, t_1 = swing_time
                         axes[i].axvline(x=t_0, color=self.robot.colors[eff], linestyle="--", alpha=0.25)
                         axes[i].axvline(x=t_1, color=self.robot.colors[eff], linestyle="--", alpha=0.25)
-                
+
                 axes[i].legend()
                 if momentum == "COM":
                     axes[i].set_ylabel(coord + " [m]")
@@ -557,7 +557,7 @@ class MotionExecutor():
 
                 ax.axhline(y=-2.0, color="k", linestyle="-")
                 ax.axhline(y=2.0, color="k", linestyle="-")
-                
+
                 ax.set_title(joint_name)
                 i += 1
 
@@ -604,4 +604,3 @@ class MotionExecutor():
         fig.suptitle("Forces")
 
         plt.show()
-
