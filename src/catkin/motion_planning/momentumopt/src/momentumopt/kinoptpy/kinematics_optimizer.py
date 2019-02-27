@@ -101,6 +101,7 @@ class KinematicsOptimizer:
                                         planner_setting.get(PlannerIntParam_NumDofs))
 
     def create_tasks(self, t, com_motion, contacts, eff_traj_poly):
+        desired_positions = []
         desired_velocities = []
         jacobians = []
 
@@ -126,16 +127,22 @@ class KinematicsOptimizer:
                 new_goal = [eff_traj_poly[eff][coord].eval(self.time[t]) for coord in range(3)]
                 new_goal = set_new_goal(new_goal)
 
+
+            desired_positions.append(np.reshape((self.robot.transformations_dict[eff + "_END"]()),(1,3)))
+
             self.robot.transformations_dict[eff + "_END_GOAL"] = new_goal
             desired_velocity = self.robot.get_desired_velocity(self.robot.transformations_dict[eff + "_END_GOAL"],
                                                                self.robot.transformations_dict[eff + "_END"], "TRANSLATION")
             desired_velocities.append(desired_velocity)
             jacobians.append(self.robot.jacobians_dict[eff + "_END"])
 
+        desired_positions = np.squeeze(desired_positions, axis=0)
+        desired_positions = np.reshape(desired_positions, (1,12))
         desired_velocities.append(desired_vel_com)
         jacobians.append(self.robot.jacobians_dict["COM"])
 
-        return desired_velocities, jacobians
+        return desired_positions, desired_velocities, jacobians
+
 
     def create_constraints(self, z_floor, dt, acceleration=False):
         # Create constraints for the robot end effectors, knees and hips to stay above the ground
@@ -175,7 +182,8 @@ class KinematicsOptimizer:
         return G, h, A, b
 
     def optimize(self, ini_state, contact_sequence, dynamics_sequence, plotting=False):
-        # Set floor's z coordinate to where the endeffector's z coordinates are
+
+        # Set floor's z     coordinate to where the endeffector's z coordinates are
         z_floor = ini_state.eff(0)[-1]
         self.robot.robot.viewer.gui.applyConfiguration('world/floor',[0.0, 0.0, z_floor,  0.0, 0.0, 0.0, 1.0])
         self.robot.robot.viewer.gui.refresh()
@@ -248,12 +256,43 @@ class KinematicsOptimizer:
                 joint_identifier = eff + "_" + joint
                 self.ik_motion[joint_identifier] = np.zeros((len(self.time), 3))
 
-        # q_dot = np.zeros((self.robot.model.nv))
-        # q_before = self.robot.q.copy()
+        ## adding variables to store end_eff trajectories and COM (position and Vel)
+        ## For impledance control
+
+        self.motion_eff = {}
+        #self.effs = ["BR", "BL", "FR", "FL"]  # order is important
+        self.motion_eff["trajectory"] = np.zeros((len(self.time), len(self.robot.effs) * 3))
+        self.motion_eff["velocity"] = np.zeros((len(self.time), len(self.robot.effs) * 3))
+        self.motion_eff["COM"] = com_motion
+        self.motion_eff["COM_vel"] = np.zeros((len(self.time), 3))
+        ## This takes end effectoer position wrt to base of foot (take a look at leg impedance)
+        self.motion_eff["trajectory_wrt_base"] = np.zeros((len(self.time), len(self.robot.effs) * 3))
+        self.motion_eff["velocity_wrt_base"] = np.zeros((len(self.time), len(self.robot.effs) * 3))
+
+        def get_effs_vel(desired_velocities, t):
+            ## retruns the value of the end effectors velocity at time t
+            vel = np.concatenate((np.concatenate((desired_velocities[0](t), desired_velocities[1](t))),
+                                np.concatenate((desired_velocities[2](t), desired_velocities[3](t)))
+            ))
+
+            return np.reshape(vel, (1, len(self.robot.effs)*3))
+
+
+        def get_desired_com_vel(desired_vel, t):
+            return np.reshape(desired_vel[4](t), (1,3))
+
 
         # set initial robot configuration
         t = 0
-        desired_velocities, jacobians = self.create_tasks(t, com_motion, contacts, eff_traj_poly)
+
+        #self.motion_eff["trajectory"][t] = get_effs_traj(eff_traj_poly, t)
+
+
+        desired_positions, desired_velocities, jacobians = self.create_tasks(t, com_motion, contacts, eff_traj_poly)
+
+        self.motion_eff["trajectory"][t] = desired_positions
+        self.motion_eff["velocity"][t] = get_effs_vel(desired_velocities, self.dt)
+        self.motion_eff["COM_vel"][t] = get_desired_com_vel(desired_velocities, self.dt)
 
         # Set regularizer
         lambda_ = self.lambda_value * np.ones_like(ik.lambda_)
@@ -273,9 +312,12 @@ class KinematicsOptimizer:
                 print("Error:", norm(desired_velocities))
                 print("Used iterations:", i)
             G, h, A, b = self.create_constraints(z_floor, ik.dt)
+            ## q_sol = dq
             q_sol = ik.multi_task_IK(G=G, h=h, soft_constrained=True)
             self.robot.update_configuration(np.transpose(np.matrix(q_sol)) * ik.dt)
             i += 1
+
+
 
         # desired_delta_momentum_array = np.zeros((len(self.time), 6))
         # actual_delta_momentum_array = np.zeros((len(self.time), 6))
@@ -287,7 +329,13 @@ class KinematicsOptimizer:
         for t in range(len(self.time)):
             i = 0
             print("time =", self.time[t])
-            desired_velocities, jacobians = self.create_tasks(t, com_motion, contacts, eff_traj_poly)
+
+            desired_positions, desired_velocities, jacobians = self.create_tasks(t, com_motion, contacts, eff_traj_poly)
+            self.motion_eff["trajectory"][t] = desired_positions
+            self.motion_eff["velocity"][t] = get_effs_vel(desired_velocities, self.dt)
+            self.motion_eff["COM_vel"][t] = get_desired_com_vel(desired_velocities, self.dt)
+            #print(t, self.motion_eff["trajectory"][t])
+
             if t == 0:
                 delta_momentum = np.zeros((6))
             else:
@@ -390,7 +438,61 @@ class KinematicsOptimizer:
             ik.delete_tasks()
             self.robot.display(self.robot.q)
 
-        # display_motion(self.robot, q_traj, self.time)
+
+        # ### Converting position and velocities relative to the base
+        self.motion_eff["trajectory_wrt_base"][: ,[0,1,2]] = np.subtract(np.subtract(self.motion_eff["trajectory"][: ,[0,1,2]], [0.1, -0.2, 0.0]),com_motion)
+        self.motion_eff["trajectory_wrt_base"][: ,[3,4,5]] = np.subtract(np.subtract(self.motion_eff["trajectory"][: ,[3,4,5]], [-0.1, -.2, 0]),com_motion)
+        self.motion_eff["trajectory_wrt_base"][: ,[6,7,8]] = np.subtract(np.subtract(self.motion_eff["trajectory"][: ,[6,7,8]], [0.1, .2, 0]),com_motion)
+        self.motion_eff["trajectory_wrt_base"][: ,[9,10,11]] = np.subtract(np.subtract(self.motion_eff["trajectory"][: ,[9,10,11]], [-0.1, .2, 0]),com_motion)
+
+        ## Not sure about the 0.27 division. Mass is 2.7 but after plotting the ration between lmom and com_vel 0.27 is observed
+        self.motion_eff["velocity_wrt_base"][: ,[0,1,2]] = np.subtract(self.motion_eff["velocity"][: ,[0,1,2]], np.divide(lmom, 0.27))
+        self.motion_eff["velocity_wrt_base"][: ,[3,4,5]] = np.subtract(self.motion_eff["velocity"][: ,[3,4,5]], np.divide(lmom, 0.27))
+        self.motion_eff["velocity_wrt_base"][: ,[6,7,8]] = np.subtract(self.motion_eff["velocity"][: ,[6,7,8]], np.divide(lmom, 0.27))
+        self.motion_eff["velocity_wrt_base"][: ,[9,10,11]] = np.subtract(self.motion_eff["velocity"][: ,[9,10,11]], np.divide(lmom, 0.27))
+
+
+        # #
+        # # display_motion(self.robot, q_traj, self.time)
+        # import matplotlib.pyplot as plt
+        # ## plots for des_position and velocity vas actual values. and Hip and Knee torques
+        # fig1, ax1 = plt.subplots(4,1, sharex = True)
+        # ax1[0].plot(self.motion_eff["trajectory"][ :, 9], color = "black", label = "BL_x")
+        # ax1[0].plot(self.motion_eff["trajectory"][ :, 10], color = "green", label = "BL_y")
+        # ax1[0].plot(self.motion_eff["trajectory"][ :, 11], color = "red", label = "BL_z")
+        # #ax1[0].plot(rel_pos_foot_z, color = "red", label = "actual_foot_pos_z")
+        # ax1[0].legend()
+        # ax1[0].set_xlabel("millisec")
+        # ax1[0].set_ylabel("m")
+        # ax1[0].grid()
+        #
+        # ax1[1].plot(self.motion_eff["trajectory_wrt_base"][:, 9] , color="black", label = "BL_x_rel_base")
+        # ax1[1].plot(self.motion_eff["trajectory_wrt_base"][:, 10] , color="green", label = "BL_y_rel_base")
+        # ax1[1].plot(self.motion_eff["trajectory_wrt_base"][:, 11] , color="red", label = "BL_z_rel_base")
+        # ax1[1].legend()
+        # ax1[1].set_xlabel("millisec")
+        # ax1[1].set_ylabel("m")
+        # ax1[1].grid()
+        #
+        # ax1[2].plot(com_motion[: ,0], color="black", label = "COM_x")
+        # ax1[2].plot(com_motion[: ,1], color="green", label = "COM_y")
+        # ax1[2].plot(com_motion[: ,2], color="red", label = "COM_z")
+        # ax1[2].legend()
+        # ax1[2].set_xlabel("millisec")
+        # ax1[2].set_ylabel("m")
+        # ax1[2].grid()
+
+        # ax1[3].plot(lmom, color="black", label = "COM_vel")
+        # ax1[3].legend()
+        # ax1[3].set_xlabel("millisec")
+        # ax1[3].set_ylabel("m")
+        # ax1[3].grid()
+
+
+        # plt.show()
+
+
+        print(len(self.motion_eff["velocity"]), len(self.ik_motion["joint_velocities"]))
 
         q_matrix = np.zeros((len(q_traj), q_traj[0].shape[0]))
         for i in range(len(q_traj)):
@@ -417,6 +519,7 @@ class KinematicsOptimizer:
             kinematic_state.robot_velocity.base_linear_velocity = self.ik_motion["base_linear_velocity"][time_id, :]
             kinematic_state.robot_velocity.base_angular_velocity = self.ik_motion["base_angular_velocity"][time_id, :]
             kinematic_state.robot_velocity.joint_velocities = self.ik_motion["joint_velocities"][time_id, :]
+
 
     def get_swing_times(self, contacts):
         swing_times = {}

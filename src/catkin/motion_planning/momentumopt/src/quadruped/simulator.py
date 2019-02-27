@@ -72,10 +72,10 @@ class Simulator(object):
 
                 if ci[4] in self.bullet_endeff_ids:
                     i = np.where(np.array(self.bullet_endeff_ids) == ci[4])[0][0]
-                else:
-                    if normal_force > 1e-5:
-                        print("Normal force at", p.getJointInfo(self.robot_id, ci[4])[1].decode('UTF-8'), ": ", normal_force)
-                    continue
+                #else:
+                    #if normal_force > 1e-5:
+                        # print("Normal force at", p.getJointInfo(self.robot_id, ci[4])[1].decode('UTF-8'), ": ", normal_force)
+                    #continue
 
                 active_contacts_frame_ids.append(self.pinocchio_endeff_ids[i])
                 force = np.zeros(6)

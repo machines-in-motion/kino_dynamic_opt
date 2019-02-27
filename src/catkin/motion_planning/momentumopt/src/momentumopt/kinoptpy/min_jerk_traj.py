@@ -33,8 +33,8 @@ class Polynomial:
     def differentiate(self):
         # pdb.set_trace()
         diff_coeff = np.zeros_like(self.coeffs)
-        diff_coeff[:, 0] = self.coeffs[:, 0].copy() * self.coeffs[:, 1].copy() 
-        diff_coeff[:, 1] = self.coeffs[:, 1].copy() - 1 
+        diff_coeff[:, 0] = self.coeffs[:, 0].copy() * self.coeffs[:, 1].copy()
+        diff_coeff[:, 1] = self.coeffs[:, 1].copy() - 1
         diff_coeff[diff_coeff[:, 1] < 0, :] = 0
         return diff_coeff
 
@@ -76,14 +76,14 @@ class Polynomial:
 
             b[i] = constraint[1]
 
-        x = np.linalg.solve(A, b) 
+        x = np.linalg.solve(A, b)
         # self.coeffs = coeff.copy()
         self.coeffs[:, 0] = x
         self.fitted = True
 
 
 def create_constraints(t, x, via=None):
-    # Generate minimum jerk trajectories for endeffector motion by 
+    # Generate minimum jerk trajectories for endeffector motion by
     # fitting a polynomial for every dimension (x, y, z).
     # t_0: Time when endeffector switches from being in contact to not being in contact
     # t_1: Time when endeffector switches from being not in contact to being in contact
@@ -173,4 +173,5 @@ def generate_eff_traj(contacts, z_max, z_min):
 
         eff_traj_poly[eff] = [poly_x, poly_y, poly_z]
 
+    # returns end eff trajectories
     return eff_traj_poly

@@ -83,6 +83,51 @@ def desired_state(specification, time_vector, optimized_sequence=None, dynamics_
 
     return desired_state_eval
 
+def interpolate(specification, time_vector, optimized_motion_eff=None, optimized_sequence=None, dynamics_feedback=None):
+    ## for impedance controller
+    ## interpolates end_eff velocity and positions to bring it to sample rate of 1khz
+
+    if optimized_motion_eff is None and dynamics_feedback is None and optimized_sequence is None:
+        raise ValueError("Specify desired positions, velocities or dynamic feedback gains.")
+
+    def desired_state_eval(t):
+        closest_idx = np.argmin(abs(time_vector - t))
+        # Determine interval
+        if time_vector[closest_idx] > t:
+            t1_idx = max(closest_idx - 1, 0)
+            t2_idx = closest_idx
+        else:
+            t1_idx = closest_idx
+            t2_idx = min(closest_idx + 1, len(time_vector) - 1)
+
+        state_1 = None
+        state_2 = None
+
+        if specification == "POSITION":
+            state_1 = optimized_motion_eff["trajectory_wrt_base"][t1_idx]
+            state_2 = optimized_motion_eff["trajectory_wrt_base"][t2_idx]
+        elif specification == "VELOCITY":
+            state_1 = optimized_motion_eff["velocity_wrt_base"][t1_idx]
+            state_2 = optimized_motion_eff["velocity_wrt_base"][t2_idx]
+        elif specification == "COM":
+            state_1 = optimized_sequence.kinematics_states[t1_idx].com
+            state_2 = optimized_sequence.kinematics_states[t2_idx].com
+        elif specification == "LMOM":
+            state_1 = optimized_sequence.kinematics_states[t1_idx].lmom
+            state_2 = optimized_sequence.kinematics_states[t2_idx].lmom
+
+        delta_t = t - time_vector[t1_idx]
+        if t2_idx <= 0:
+            state = state_1
+        elif t1_idx >= len(time_vector) - 1:
+            state = state_1
+        else:
+            # linearly interpolate between states
+            state = (state_2 - state_1) / (time_vector[t2_idx] - time_vector[t1_idx]) * delta_t + state_1
+
+        return state
+
+    return desired_state_eval
 
 def query_gain_from_user(K, gain_str, entered_joint_id):
     gain = ""

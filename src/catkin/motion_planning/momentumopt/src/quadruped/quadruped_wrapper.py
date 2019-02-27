@@ -163,6 +163,7 @@ class QuadrupedWrapper():
     def get_desired_velocity(self, goal, transformation_func, dofs=None):
         def eval_vel(delta_t):
             if dofs == "TRANSLATION":
+                #print("delta_t:" , delta_t)
                 return (goal - transformation_func()) / delta_t
             elif dofs is None:
                 return se3.log(transformation_func().inverse() * goal).vector / delta_t
