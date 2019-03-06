@@ -16,7 +16,7 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
-
+import time
 from pysolver import *
 from pymomentum import *
 from pysolverlqr import *
@@ -102,15 +102,29 @@ class MotionPlanner():
         kin_optimizer.initialize(self.planner_setting)
 
         print("DynOpt", 0)
+        start = time.time()
         dyn_optimizer.optimize(self.ini_state, self.contact_plan, kin_optimizer.kinematics_sequence, False)
+        end = time.time()
+        print("Dynopt - " ,end-start)
         for kd_iter in range(0, self.planner_setting.get(PlannerIntParam_KinDynIterations)):
             print("KinOpt", kd_iter+1)
             if kd_iter == self.planner_setting.get(PlannerIntParam_KinDynIterations) - 1:
+                start = time.time()
                 kin_optimizer.optimize(self.ini_state, self.contact_plan.contactSequence(), dyn_optimizer.dynamicsSequence(), plotting=False)
+                end = time.time()
+                print("kinopt - ", end-start)
+
             else:
+                start = time.time()
                 kin_optimizer.optimize(self.ini_state, self.contact_plan.contactSequence(), dyn_optimizer.dynamicsSequence(), plotting=False)
+                end = time.time()
+                print("kinopt - ", end-start)
+
             print("DynOpt", kd_iter+1)
+            start = time.time()
             dyn_optimizer.optimize(self.ini_state, self.contact_plan, kin_optimizer.kinematics_sequence, True)
+            end = time.time()
+            print("dynopt - ", end-start)
 
         optimized_kin_plan = kin_optimizer.kinematics_sequence
         optimized_dyn_plan = dyn_optimizer.dynamicsSequence()
@@ -166,7 +180,8 @@ def main(argv):
     optimized_kin_plan, optimized_motion_eff, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector = motion_planner.optimize_motion()
 
     # Create configuration and velocity file from motion plan for dynamic graph
-    create_file(time_vector, optimized_kin_plan)
+    #create_file(time_vector, optimized_kin_plan)
+    print("saving trajectories ...")
     create_trajectory_file_impedance(time_vector, optimized_motion_eff, optimized_kin_plan)
     simulation = True
 

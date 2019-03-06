@@ -328,7 +328,7 @@ class KinematicsOptimizer:
         # Track robot motion
         for t in range(len(self.time)):
             i = 0
-            print("time =", self.time[t])
+            #print("time =", self.time[t])
 
             desired_positions, desired_velocities, jacobians = self.create_tasks(t, com_motion, contacts, eff_traj_poly)
             self.motion_eff["trajectory"][t] = desired_positions
@@ -432,7 +432,7 @@ class KinematicsOptimizer:
                     joint_identifier = eff + "_" + joint
                     self.ik_motion[joint_identifier][t, :] = np.squeeze(self.robot.transformations_dict[joint_identifier](), 1)
 
-            print("Finished after iteration:", i)
+            #print("Finished after iteration:", i)
             q_traj.append(self.robot.q)
             q_vel.append(self.robot.dq)
             ik.delete_tasks()
@@ -446,10 +446,10 @@ class KinematicsOptimizer:
         self.motion_eff["trajectory_wrt_base"][: ,[9,10,11]] = np.subtract(np.subtract(self.motion_eff["trajectory"][: ,[9,10,11]], [-0.1, .2, 0]),com_motion)
 
         ## Not sure about the 0.27 division. Mass is 2.7 but after plotting the ration between lmom and com_vel 0.27 is observed
-        self.motion_eff["velocity_wrt_base"][: ,[0,1,2]] = np.subtract(self.motion_eff["velocity"][: ,[0,1,2]], np.divide(lmom, 0.27))
-        self.motion_eff["velocity_wrt_base"][: ,[3,4,5]] = np.subtract(self.motion_eff["velocity"][: ,[3,4,5]], np.divide(lmom, 0.27))
-        self.motion_eff["velocity_wrt_base"][: ,[6,7,8]] = np.subtract(self.motion_eff["velocity"][: ,[6,7,8]], np.divide(lmom, 0.27))
-        self.motion_eff["velocity_wrt_base"][: ,[9,10,11]] = np.subtract(self.motion_eff["velocity"][: ,[9,10,11]], np.divide(lmom, 0.27))
+        self.motion_eff["velocity_wrt_base"][: ,[0,1,2]] = np.subtract(self.motion_eff["velocity"][: ,[0,1,2]], np.divide(lmom, 0.22))
+        self.motion_eff["velocity_wrt_base"][: ,[3,4,5]] = np.subtract(self.motion_eff["velocity"][: ,[3,4,5]], np.divide(lmom, 0.22))
+        self.motion_eff["velocity_wrt_base"][: ,[6,7,8]] = np.subtract(self.motion_eff["velocity"][: ,[6,7,8]], np.divide(lmom, 0.22))
+        self.motion_eff["velocity_wrt_base"][: ,[9,10,11]] = np.subtract(self.motion_eff["velocity"][: ,[9,10,11]], np.divide(lmom, 0.22))
 
 
         # #
@@ -457,42 +457,42 @@ class KinematicsOptimizer:
         # import matplotlib.pyplot as plt
         # ## plots for des_position and velocity vas actual values. and Hip and Knee torques
         # fig1, ax1 = plt.subplots(4,1, sharex = True)
-        # ax1[0].plot(self.motion_eff["trajectory"][ :, 9], color = "black", label = "BL_x")
-        # ax1[0].plot(self.motion_eff["trajectory"][ :, 10], color = "green", label = "BL_y")
-        # ax1[0].plot(self.motion_eff["trajectory"][ :, 11], color = "red", label = "BL_z")
+        # ax1[0].plot(self.time, self.motion_eff["trajectory"][ :, 0], color = "black", label = "BL_x")
+        # ax1[0].plot(self.time, self.motion_eff["trajectory"][ :, 1], color = "green", label = "BL_y")
+        # ax1[0].plot(self.time, self.motion_eff["trajectory"][ :, 2], color = "red", label = "BL_z")
         # #ax1[0].plot(rel_pos_foot_z, color = "red", label = "actual_foot_pos_z")
         # ax1[0].legend()
         # ax1[0].set_xlabel("millisec")
         # ax1[0].set_ylabel("m")
         # ax1[0].grid()
         #
-        # ax1[1].plot(self.motion_eff["trajectory_wrt_base"][:, 9] , color="black", label = "BL_x_rel_base")
-        # ax1[1].plot(self.motion_eff["trajectory_wrt_base"][:, 10] , color="green", label = "BL_y_rel_base")
-        # ax1[1].plot(self.motion_eff["trajectory_wrt_base"][:, 11] , color="red", label = "BL_z_rel_base")
+        # ax1[1].plot(self.time, self.motion_eff["trajectory_wrt_base"][:, 0] , color="black", label = "BL_wrt_base_x")
+        # ax1[1].plot(self.time, self.motion_eff["trajectory_wrt_base"][:, 1] , color="green", label = "BL_wrt_base_y")
+        # ax1[1].plot(self.time, self.motion_eff["trajectory_wrt_base"][:, 2] , color="red", label = "BL_wrt_base_z")
         # ax1[1].legend()
         # ax1[1].set_xlabel("millisec")
         # ax1[1].set_ylabel("m")
         # ax1[1].grid()
         #
-        # ax1[2].plot(com_motion[: ,0], color="black", label = "COM_x")
-        # ax1[2].plot(com_motion[: ,1], color="green", label = "COM_y")
-        # ax1[2].plot(com_motion[: ,2], color="red", label = "COM_z")
+        # ax1[2].plot(self.time, com_motion[: ,0], color="black", label = "COM_x")
+        # ax1[2].plot(self.time, com_motion[: ,1], color="green", label = "COM_y")
+        # ax1[2].plot(self.time, com_motion[: ,2], color="red", label = "COM_z")
         # ax1[2].legend()
         # ax1[2].set_xlabel("millisec")
         # ax1[2].set_ylabel("m")
         # ax1[2].grid()
-
-        # ax1[3].plot(lmom, color="black", label = "COM_vel")
+        #
+        # ax1[3].plot(self.time, lmom, color="black", label = "COM_vel")
         # ax1[3].legend()
         # ax1[3].set_xlabel("millisec")
         # ax1[3].set_ylabel("m")
         # ax1[3].grid()
-
-
+        #
         # plt.show()
+        # plt.savefig("/is/am/ameduri/devel/plots/opt/0.png")
 
 
-        print(len(self.motion_eff["velocity"]), len(self.ik_motion["joint_velocities"]))
+        # print(len(self.motion_eff["velocity"]), len(self.ik_motion["joint_velocities"]))
 
         q_matrix = np.zeros((len(q_traj), q_traj[0].shape[0]))
         for i in range(len(q_traj)):

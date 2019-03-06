@@ -37,7 +37,7 @@ class InverseKinematics:
         self.d_centroidal_momentum = d_centroidal_momentum
         self.desired_delta_momentum = desired_momentum
 
-        if not len(desired_velocities) == len(jacobians): 
+        if not len(desired_velocities) == len(jacobians):
             raise ValueError("%d != %d. The number of desired velocities and jacobians have to be equal." %(len(desired_velocities), len(jacobians)))
         if not isinstance(gains, float):
             if len(jacobians) == len(gains):
@@ -79,7 +79,7 @@ class InverseKinematics:
 
     # Multi task inverse kinematics using QP to minimize sum(||J_i * q_dot - x_i_dot ||^2)
     def multi_task_IK(self, G=None, h=None, soft_constrained=False):
-        # Transform the multi task inverse kinematics into QP 
+        # Transform the multi task inverse kinematics into QP
         # min 0.5 * q_dot^T * P * q_dot + r^T * q_dot
         # with:
         # P = sum(2.0 * J_i^T * J_i)
@@ -89,25 +89,25 @@ class InverseKinematics:
             J_ = self.jacobians[i]()
             if i == 0:
                 P = self.weights[i] * 2.0 * np.dot(np.transpose(J_), J_)
-                r = self.weights[i] * (- 2.0) * np.squeeze(np.array(np.dot(np.transpose(J_), self.K_p[i] * self.desired_vels[i](self.dt)))) 
+                r = self.weights[i] * (- 2.0) * np.squeeze(np.array(np.dot(np.transpose(J_), self.K_p[i] * self.desired_vels[i](self.dt))))
             else:
                 P += self.weights[i] * 2.0 * np.dot(np.transpose(J_), J_)
-                r += self.weights[i] * (- 2.0) * np.squeeze(np.array(np.dot(np.transpose(J_), self.K_p[i] * self.desired_vels[i](self.dt)))) 
+                r += self.weights[i] * (- 2.0) * np.squeeze(np.array(np.dot(np.transpose(J_), self.K_p[i] * self.desired_vels[i](self.dt))))
 
-        # if not self.centroidal_momentum is None: 
+        # if not self.centroidal_momentum is None:
         #     # weight_momentum = 0.0001  # 1.0 * self.weights[0]
         #     weight_momentum = 0.0 * np.ones((6))
         #     weight_momentum[3:] = 0.1
         #     K_p_momentum = 1.0  # self.K_p[0]
         #     H_ = self.centroidal_momentum()
         #     P += 2.0 * np.dot(np.transpose(H_), np.dot(np.diag(weight_momentum), H_))
-        #     r += (- 2.0) * np.squeeze(np.array(np.dot(np.transpose(H_), np.dot(np.diag(weight_momentum), K_p_momentum * self.desired_momentums)))) 
+        #     r += (- 2.0) * np.squeeze(np.array(np.dot(np.transpose(H_), np.dot(np.diag(weight_momentum), K_p_momentum * self.desired_momentums))))
         #     # P = weight_momentum * 2.0 * np.dot(np.transpose(H_), H_)
-        #     # r = weight_momentum * (-2.0) * np.squeeze(np.array(np.dot(np.transpose(H_), K_p_momentum * self.desired_momentums))) 
+        #     # r = weight_momentum * (-2.0) * np.squeeze(np.array(np.dot(np.transpose(H_), K_p_momentum * self.desired_momentums)))
 
         # Add regularization term, since P is only guranteed to be positive semi-definite
         # P = P + lambda * I
-        regularizer = np.diag(self.lambda_)    
+        regularizer = np.diag(self.lambda_)
         P += regularizer
 
         P_orig_size = P.shape[0]
@@ -115,7 +115,6 @@ class InverseKinematics:
         if soft_constrained and not G is None and not h is None:
             P, r, G, h = self.create_soft_constraints(P, r, G, h)
 
-        # Feed P and r to QP solver
         q_sol = self.qp_solver.quadprog_solve_qp(P, r, G=G, h=h)
         q_sol = q_sol[:P_orig_size]
 
@@ -123,7 +122,7 @@ class InverseKinematics:
 
         # Multi task inverse kinematics using QP to minimize sum(||J_i * q_dot - x_i_dot ||^2)
     def multi_task_IK_momentum(self, G=None, h=None, A=None, b=None, soft_constrained=False):
-        # Transform the multi task inverse kinematics into QP 
+        # Transform the multi task inverse kinematics into QP
         # min 0.5 * q_dot^T * P * q_dot + r^T * q_dot
         # with:
         # P = sum(2.0 * J_i^T * J_i)
@@ -135,10 +134,10 @@ class InverseKinematics:
             J_ = np.hstack((J_, filled_with_zeros))
             if i == 0:
                 P = self.weights[i] * 2.0 * np.dot(J_.T, J_)
-                r = self.weights[i] * (- 2.0) * np.squeeze(np.array(np.dot(J_.T, self.K_p[i] * self.desired_vels[i](self.dt)))) 
+                r = self.weights[i] * (- 2.0) * np.squeeze(np.array(np.dot(J_.T, self.K_p[i] * self.desired_vels[i](self.dt))))
             else:
                 P += self.weights[i] * 2.0 * np.dot(J_.T, J_)
-                r += self.weights[i] * (- 2.0) * np.squeeze(np.array(np.dot(J_.T, self.K_p[i] * self.desired_vels[i](self.dt)))) 
+                r += self.weights[i] * (- 2.0) * np.squeeze(np.array(np.dot(J_.T, self.K_p[i] * self.desired_vels[i](self.dt))))
 
         # import pdb
         # pdb.set_trace()
@@ -153,16 +152,16 @@ class InverseKinematics:
         delta_momentum = np.hstack((self.desired_delta_momentum, np.zeros((6))))
 
         P += self.weights[0] * 2.0 * np.dot(A_centroidal.T, A_centroidal)
-        r += self.weights[0] * (- 2.0) * np.squeeze(np.array(np.dot(A_centroidal.T, self.K_p[0] * delta_momentum / self.dt))) 
+        r += self.weights[0] * (- 2.0) * np.squeeze(np.array(np.dot(A_centroidal.T, self.K_p[0] * delta_momentum / self.dt)))
 
         # Add regularization term, since P is only guranteed to be positive semi-definite
         # P = P + lambda * I
-        regularizer = np.diag(self.lambda_)    
+        regularizer = np.diag(self.lambda_)
         P += regularizer
 
         P_orig_size = P.shape[0]
 
-        # pdb.set_trace()        
+        # pdb.set_trace()
 
         # if soft_constrained and not G is None and not h is None:
         #     P, r, G, h = self.create_soft_constraints(P, r, G, h)
