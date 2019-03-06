@@ -54,14 +54,14 @@ contact_plan:
                             # -1.0 : no contact planning
 
   effcnt_rf:
-             [[0.0, 1.9,    0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
-              [2.1, 3.0,    0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
-  effcnt_lf: [[0.0, 1.9,   -0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
-              [2.1, 3.0,   -0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
-  effcnt_rh: [[0.0, 1.9,    0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
-              [2.1, 3.0,    0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
-  effcnt_lh: [[0.0, 1.9,   -0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
-              [2.1, 3.0,   -0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
+             [[0.0, 2.,    0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
+              [2.4, 4.0,    0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
+  effcnt_lf: [[0.0, 2.,   -0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
+              [2.4, 4.0,   -0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
+  effcnt_rh: [[0.0, 2.,    0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
+              [2.4, 4.0,    0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
+  effcnt_lh: [[0.0, 2.,   -0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
+              [2.4, 4.0,   -0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
 
   effvia_rf: []
   effvia_lf: []
@@ -120,11 +120,11 @@ planner_variables:
   # Dynamics parameters #
   #######################
 
-  heuristic: TimeOptimization  # Types: TrustRegion, SoftConstraint, TimeOptimization #
+  heuristic: SoftConstraint  # Types: TrustRegion, SoftConstraint, TimeOptimization #
   n_act_eefs: 4
   # time step discretization
-  time_step: 0.05
-  time_horizon: 3.0
+  time_step: 0.01
+  time_horizon: 4.0
   external_force: [0.00, 0.00, 0.00]
   com_displacement: [0.00, 0.00, 0.00]
   # Will only read via points if this number is great than 0
@@ -258,8 +258,8 @@ solverlqr_dynamics:
   ##########################
 
   problem_name: DynamicMomentumOptimization
-  time_step: 0.05
-  time_horizon: 3.0
+  time_step: 0.01
+  time_horizon: 4.0
   state_dimension: 9
   control_dimension: 12
   initial_state: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
