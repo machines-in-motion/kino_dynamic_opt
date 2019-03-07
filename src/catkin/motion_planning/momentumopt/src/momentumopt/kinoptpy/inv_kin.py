@@ -84,9 +84,12 @@ class InverseKinematics:
         # with:
         # P = sum(2.0 * J_i^T * J_i)
         # r = sum(- 2.0 * J_i^T * x_i_dot)
-
+        self.weights = [0.01]*len(self.jacobians)
+        #self.weights[-1] = 1.0
         for i in range(len(self.jacobians)):
             J_ = self.jacobians[i]()
+            # print(self.weights)
+
             if i == 0:
                 P = self.weights[i] * 2.0 * np.dot(np.transpose(J_), J_)
                 r = self.weights[i] * (- 2.0) * np.squeeze(np.array(np.dot(np.transpose(J_), self.K_p[i] * self.desired_vels[i](self.dt))))

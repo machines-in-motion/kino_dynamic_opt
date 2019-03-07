@@ -79,11 +79,11 @@ planner_variables:
   display_motion: True
   num_dofs: 8
   # Number of dynamic and kinematic optimization iterations
-  kd_iterations: 1
+  kd_iterations: 10
   num_subsamples: 3
   active_dofs: [0, 1, 2, 3, 4, 5, 6, 7]
-  min_joint_limits: [-2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5]
-  max_joint_limits: [ 2.5,  2.5,  2.5,  2.5,  2.5,  2.5,  2.5,  2.5]
+  min_joint_limits: [-1.5, -2.5, -1.5, -2.5, -1.5, -2.5, -1.5, -2.5]
+  max_joint_limits: [ 1.5,  2.5,  1.5,  2.5,  1.5,  2.5,  1.5,  2.5]
   default_joint_positions: [0.52, -1.04,  0.52, -1.04, -0.52,  1.04, -0.52,  1.04]
 
   #########################
@@ -152,7 +152,7 @@ planner_variables:
   friction_coeff: 0.2
   floor_height: -0.32
   # minimum allowed distance from the robot base to the floor
-  min_rel_height: 0.05
+  min_rel_height: 0.07
   friction_cone: LinearCone  # Types: LinearCone, SocCone #
   time_range: [0.02, 0.25]
   is_time_horizon_fixed: True

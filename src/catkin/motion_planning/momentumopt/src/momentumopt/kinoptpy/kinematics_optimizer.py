@@ -92,7 +92,7 @@ class KinematicsOptimizer:
         self.offset = 0.0  # set constraint for z directly on floor
         self.q_max_delta = 10.0  # maximum difference in joint velocity
         self.dt = 0.01  # dt for the incremental steps for the inverse kinematics
-        self.weights_value = 0.02  # value of the weights for all the tasks
+        self.weights_value = 10.0  # value of the weights for all the tasks
         self.lambda_value = 0.0001  # value of the regularization
         self.w_not_in_contact = 1.0  # weight for non active end effector tracking
 
@@ -452,43 +452,47 @@ class KinematicsOptimizer:
         self.motion_eff["velocity_wrt_base"][: ,[9,10,11]] = np.subtract(self.motion_eff["velocity"][: ,[9,10,11]], np.divide(lmom, 0.22))
 
 
-        # #
-        # # display_motion(self.robot, q_traj, self.time)
-        # import matplotlib.pyplot as plt
-        # ## plots for des_position and velocity vas actual values. and Hip and Knee torques
-        # fig1, ax1 = plt.subplots(4,1, sharex = True)
-        # ax1[0].plot(self.time, self.motion_eff["trajectory"][ :, 0], color = "black", label = "BL_x")
-        # ax1[0].plot(self.time, self.motion_eff["trajectory"][ :, 1], color = "green", label = "BL_y")
-        # ax1[0].plot(self.time, self.motion_eff["trajectory"][ :, 2], color = "red", label = "BL_z")
-        # #ax1[0].plot(rel_pos_foot_z, color = "red", label = "actual_foot_pos_z")
-        # ax1[0].legend()
-        # ax1[0].set_xlabel("millisec")
-        # ax1[0].set_ylabel("m")
-        # ax1[0].grid()
         #
-        # ax1[1].plot(self.time, self.motion_eff["trajectory_wrt_base"][:, 0] , color="black", label = "BL_wrt_base_x")
-        # ax1[1].plot(self.time, self.motion_eff["trajectory_wrt_base"][:, 1] , color="green", label = "BL_wrt_base_y")
-        # ax1[1].plot(self.time, self.motion_eff["trajectory_wrt_base"][:, 2] , color="red", label = "BL_wrt_base_z")
-        # ax1[1].legend()
-        # ax1[1].set_xlabel("millisec")
-        # ax1[1].set_ylabel("m")
-        # ax1[1].grid()
-        #
-        # ax1[2].plot(self.time, com_motion[: ,0], color="black", label = "COM_x")
-        # ax1[2].plot(self.time, com_motion[: ,1], color="green", label = "COM_y")
-        # ax1[2].plot(self.time, com_motion[: ,2], color="red", label = "COM_z")
-        # ax1[2].legend()
-        # ax1[2].set_xlabel("millisec")
-        # ax1[2].set_ylabel("m")
-        # ax1[2].grid()
-        #
-        # ax1[3].plot(self.time, lmom, color="black", label = "COM_vel")
-        # ax1[3].legend()
-        # ax1[3].set_xlabel("millisec")
-        # ax1[3].set_ylabel("m")
-        # ax1[3].grid()
-        #
-        # plt.show()
+#         # display_motion(self.robot, q_traj, self.time)
+        import matplotlib.pyplot as plt
+        ## plots for des_position and velocity vas actual values. and Hip and Knee torques
+        fig1, ax1 = plt.subplots(4,1, sharex = True)
+        ax1[0].plot(self.time, self.motion_eff["trajectory"][ :, 0], color = "black", label = "BL_x")
+        ax1[0].plot(self.time, self.motion_eff["trajectory"][ :, 1], color = "green", label = "BL_y")
+        ax1[0].plot(self.time, self.motion_eff["trajectory"][ :, 2], color = "red", label = "BL_z")
+        #ax1[0].plot(rel_pos_foot_z, color = "red", label = "actual_foot_pos_z")
+        ax1[0].legend()
+        ax1[0].set_xlabel("millisec")
+        ax1[0].set_ylabel("m")
+        ax1[0].grid()
+
+        ax1[1].plot(self.time, self.motion_eff["trajectory_wrt_base"][:, 0] , color="black", label = "BL_wrt_base_x")
+        ax1[1].plot(self.time, self.motion_eff["trajectory_wrt_base"][:, 1] , color="green", label = "BL_wrt_base_y")
+        ax1[1].plot(self.time, self.motion_eff["trajectory_wrt_base"][:, 2] , color="red", label = "BL_wrt_base_z")
+        ax1[1].legend()
+        ax1[1].set_xlabel("millisec")
+        ax1[1].set_ylabel("m")
+        ax1[1].grid()
+
+        ax1[2].plot(self.time, self.motion_eff["velocity_wrt_base"][:,0], color="black", label = "vel_x")
+        ax1[2].plot(self.time, self.motion_eff["velocity_wrt_base"][:,1], color="green", label = "vel_y")
+        ax1[2].plot(self.time, self.motion_eff["velocity_wrt_base"][:,2], color="green", label = "vel_y")
+
+#        ax1[2].plot(self.time, com_motion[: ,2], color="red", label = "COM_z")
+        ax1[2].legend()
+        ax1[2].set_xlabel("millisec")
+        ax1[2].set_ylabel("m")
+        ax1[2].grid()
+
+        ax1[3].plot(self.time, self.ik_motion["joint_velocities"][:,0], color="black", label = "joint_vel")
+        ax1[3].plot(self.time, self.ik_motion["joint_velocities"][:,1], color="green", label = "joint_vel")
+
+        ax1[3].legend()
+        ax1[3].set_xlabel("millisec")
+        ax1[3].set_ylabel("rad/sec")
+        ax1[3].grid()
+
+        plt.show()
         # plt.savefig("/is/am/ameduri/devel/plots/opt/0.png")
 
 
