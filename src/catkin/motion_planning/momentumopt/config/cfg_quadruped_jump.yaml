@@ -55,13 +55,13 @@ contact_plan:
 
   effcnt_rf:
              [[0.0, 2.,    0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
-              [2.4, 4.0,    0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
+              [2.4, 3.0,    0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
   effcnt_lf: [[0.0, 2.,   -0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
-              [2.4, 4.0,   -0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
+              [2.4, 3.0,   -0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
   effcnt_rh: [[0.0, 2.,    0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
-              [2.4, 4.0,    0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
+              [2.4, 3.0,    0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
   effcnt_lh: [[0.0, 2.,   -0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
-              [2.4, 4.0,   -0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
+              [2.4, 3.0,   -0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
 
   effvia_rf: []
   effvia_lf: []
@@ -79,7 +79,7 @@ planner_variables:
   display_motion: True
   num_dofs: 8
   # Number of dynamic and kinematic optimization iterations
-  kd_iterations: 10
+  kd_iterations: 2
   num_subsamples: 3
   active_dofs: [0, 1, 2, 3, 4, 5, 6, 7]
   min_joint_limits: [-1.5, -2.5, -1.5, -2.5, -1.5, -2.5, -1.5, -2.5]
@@ -124,7 +124,7 @@ planner_variables:
   n_act_eefs: 4
   # time step discretization
   time_step: 0.01
-  time_horizon: 4.0
+  time_horizon: 3.0
   external_force: [0.00, 0.00, 0.00]
   com_displacement: [0.00, 0.00, 0.00]
   # Will only read via points if this number is great than 0
@@ -259,7 +259,7 @@ solverlqr_dynamics:
 
   problem_name: DynamicMomentumOptimization
   time_step: 0.01
-  time_horizon: 4.0
+  time_horizon: 3.0
   state_dimension: 9
   control_dimension: 12
   initial_state: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]

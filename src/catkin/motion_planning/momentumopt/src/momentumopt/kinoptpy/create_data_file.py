@@ -50,6 +50,7 @@ def create_file(time_vector, optimized_sequence):
 def create_trajectory_file_impedance(time_vector, optimized_motion_eff, optimized_sequence):
     desired_pos = interpolate("POSITION", time_vector, optimized_motion_eff=optimized_motion_eff, optimized_sequence = optimized_sequence)
     desired_vel = interpolate("VELOCITY", time_vector, optimized_motion_eff=optimized_motion_eff, optimized_sequence = optimized_sequence)
+    desired_com = interpolate("COM", time_vector, optimized_motion_eff=optimized_motion_eff, optimized_sequence = optimized_sequence)
     # TODO: Desired forces
     # desired_forces = desired_state("FORCES", time_vector, optimized_sequence=optimized_sequence)
 
@@ -68,11 +69,13 @@ def create_trajectory_file_impedance(time_vector, optimized_motion_eff, optimize
     if using_quadruped:
         des_positions = np.zeros((num_points, 13))
         des_velocities = np.zeros((num_points, 13))
+        des_com = np.zeros((num_points, 4))
 
         for i in range(num_points):
             ## making des_pos and des_vel a 6d vector
             des_positions[i, :] = np.hstack((i, desired_pos(i / 1e3)))
             des_velocities[i, :] = np.hstack((i, desired_vel(i / 1e3)))
+            des_com[i, :] = np.hstack((i, desired_com(i / 1e3)))
 
         print("swapping x and y to match with current Configuration")
         for eff in range(4):
@@ -82,6 +85,10 @@ def create_trajectory_file_impedance(time_vector, optimized_motion_eff, optimize
             tmp = des_velocities[: ,(3*eff + 1)]
             des_velocities[: ,(3*eff + 1)] = des_velocities[: ,(3*eff + 2)]
             des_velocities[: ,(3*eff + 2)] = tmp
+
+        tmp = des_com[: ,1]
+        des_com[: ,1] = des_com[: ,2]
+        des_com[: ,2] = tmp
 
         des_positions_final = np.zeros((num_points, 24))
         des_velocities_final = np.zeros((num_points, 24))
@@ -95,6 +102,7 @@ def create_trajectory_file_impedance(time_vector, optimized_motion_eff, optimize
         print("saving trajectories....")
         np.savetxt("quadruped_positions_eff.dat", des_positions_final)
         np.savetxt("quadruped_velocities_eff.dat", des_velocities_final)
+        np.savetxt("quadruped_com.dat", des_com)
     # else:  # using teststand
     #     des_positions = np.zeros((num_points, 3))
     #     des_velocities = np.zeros((num_points, 3))
