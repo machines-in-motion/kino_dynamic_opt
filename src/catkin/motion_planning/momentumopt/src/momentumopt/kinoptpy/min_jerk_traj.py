@@ -126,6 +126,33 @@ def constant_poly(y_const):
     return Polynomial(coeffs=coeffs_)
 
 
+def poly_points(t, y_from, y_to, via=None):
+    constraints = create_constraints(t, [y_from, y_to], via=via)
+    poly = Polynomial()
+    poly.set_constraints(constraints[:, 0], constraints[:, 1], constraints[:, 2])
+    poly.fit()
+    return poly
+
+
+class PolynominalList(object):
+    """
+    This class holds a list of polynominals over different time windows
+    and for a given time evaluates the corresponding polynominal.
+    """
+    def __init__(self):
+        self.polynominals = []
+        self.times = []
+
+    def append(self, t, poly):
+        self.times.append(t)
+        self.polynominals.append(poly)
+
+    def eval(self, t):
+        i = 0
+        while i < len(self.times) - 1 and self.times[i][1] < t:
+            i += 1
+        return self.polynominals[i].eval(t)
+
 def generate_eff_traj(contacts, z_max, z_min):
     effs = contacts.keys()
     eff_traj_poly = {}
@@ -144,34 +171,25 @@ def generate_eff_traj(contacts, z_max, z_min):
             poly_y = constant_poly(y_pos)
             z_pos = position[2]
             poly_z = constant_poly(z_pos)
-        elif num_transitions == 1:
-            cnt_time_0 = cnt[0].end_time()
-            cnt_time_1 = cnt[1].start_time()
-            t = [cnt_time_0, cnt_time_1]
 
-            # TODO: Get rid of assumption that there is no movement in x-direction
-            x_pos = cnt[0].position()[0]
-            poly_x = constant_poly(x_pos)
-
-            y_idx = 1
-            y_values = [cnt[0].position()[y_idx], cnt[1].position()[y_idx]]
-            y_constraints = create_constraints(t, y_values)
-            poly_y = Polynomial()
-            poly_y.set_constraints(y_constraints[:, 0], y_constraints[:, 1], y_constraints[:, 2])
-            poly_y.fit()
-
-            z_idx = 2
-            z_values = [cnt[0].position()[z_idx], cnt[1].position()[z_idx]]
-            # z_via = cnt["contacts"][0][z_idx] + 0.5 * (max(com_motion[2]) - min(com_motion[2]))
-            z_via = 1.0 * max((z_max - z_min), 0.1) + cnt[0].position()[z_idx]
-            z_constraints = create_constraints(t, z_values, via=z_via)
-            poly_z = Polynomial()
-            poly_z.set_constraints(z_constraints[:, 0], z_constraints[:, 1], z_constraints[:, 2])
-            poly_z.fit()
+            eff_traj_poly[eff] = [poly_x, poly_y, poly_z]
         else:
-            raise NotImplementedError("Handling more than two contacts for each end effector has not been implemented yet.")
+            poly_traj = [
+                PolynominalList(), PolynominalList(), PolynominalList()
+            ]
+            for i in range(num_transitions):
+                t = [cnt[i].end_time(), cnt[i+1].start_time()]
 
-        eff_traj_poly[eff] = [poly_x, poly_y, poly_z]
+                for idx in range(3):
+                    via = None
+                    if idx == 2:
+                        via = 1.0 * max((z_max - z_min), 0.1) + cnt[i].position()[idx]
+                    poly = poly_points(t, cnt[i].position()[idx], cnt[i+1].position()[idx], via)
+                    poly_traj[idx].append(t, poly)
+
+            eff_traj_poly[eff] = poly_traj
+
+
 
     # returns end eff trajectories
     return eff_traj_poly
