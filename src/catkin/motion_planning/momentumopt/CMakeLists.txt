@@ -74,7 +74,7 @@ set(momentumopt_SRC_FILES ${momentumopt_SRC_FILES}
 
   # files for setting up environments
   src/momentumopt/setting/PlannerSetting.cpp
-  
+
   # utilities
   src/momentumopt/utilities/OrientationUtils.cpp
   src/momentumopt/utilities/TrajectoryGenerator.cpp
@@ -84,13 +84,13 @@ set(pymomentumopt_SRC_FILES ${pymomentumopt_SRC_FILES}
   # files for contacts planning
   srcpy/momentumopt/cntopt/PyTerrain.cpp
   srcpy/momentumopt/cntopt/PyContacts.cpp
-  
+
   # files for dynamics planning
   srcpy/momentumopt/dynopt/PyDynamics.cpp
-  
+
   # files for kinematics planning
   srcpy/momentumopt/kinopt/PyKinematics.cpp
-  
+
   # files for setting up environments
   srcpy/momentumopt/PyMomentumopt.cpp
   srcpy/momentumopt/setting/PyParams.cpp
@@ -142,3 +142,9 @@ set_target_properties(demo_momentumopt PROPERTIES COMPILE_DEFINITIONS CFG_SRC_PA
 
 pybind11_add_module(pymomentum ${pymomentumopt_SRC_FILES})
 target_link_libraries(pymomentum momentumopt)
+
+################
+# python setup #
+################
+
+catkin_python_setup()
