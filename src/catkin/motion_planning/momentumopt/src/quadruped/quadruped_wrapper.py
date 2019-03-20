@@ -88,7 +88,6 @@ class QuadrupedWrapper():
         if name == "universe" or name == "root_joint":
             raise ValueError("Joint %s is not available." %name)
 
-        index = self.model.getFrameId(name)
         range_ = None
         if dofs == "TRANSLATION":
             range_ = range(3)
@@ -105,6 +104,7 @@ class QuadrupedWrapper():
                     return self.robot.Jcom(self.q)
                 return eval_jac_internal_com
             else:
+                index = self.model.getFrameId(name)
                 def eval_jac_internal():
                     return se3.frameJacobian(self.model, self.data, self.q, index, se3.ReferenceFrame.LOCAL)[range_, :]
                 return eval_jac_internal
@@ -112,6 +112,7 @@ class QuadrupedWrapper():
             if name == "COM":
                 return self.Jcom
             else:
+                index = self.model.getFrameId(name)
                 def eval_jac_at_q(q):
                     return se3.frameJacobian(self.model, self.data, q, index, se3.ReferenceFrame.LOCAL)[range_, :]
                 return eval_jac_at_q
