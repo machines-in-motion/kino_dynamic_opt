@@ -163,7 +163,7 @@ def generate_eff_traj(contacts, z_max, z_min):
             z_idx = 2
             z_values = [cnt[0].position()[z_idx], cnt[1].position()[z_idx]]
             # z_via = cnt["contacts"][0][z_idx] + 0.5 * (max(com_motion[2]) - min(com_motion[2]))
-            z_via = max(0.5*(z_max - z_min), 0.1) + cnt[0].position()[z_idx]
+            z_via = max(3.5*(z_max - z_min), 0.1) + cnt[0].position()[z_idx]
             z_constraints = create_constraints(t, z_values, via=z_via)
             poly_z = Polynomial()
             poly_z.set_constraints(z_constraints[:, 0], z_constraints[:, 1], z_constraints[:, 2])

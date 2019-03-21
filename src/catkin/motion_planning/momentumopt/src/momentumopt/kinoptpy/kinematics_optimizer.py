@@ -457,26 +457,26 @@ class KinematicsOptimizer:
 
         pos_hips_world_arr_BL = []
         pos_hips_world_arr_FL = []
-        # for t in range(0,len(self.time)):
-        #     #xyzq = np.reshape(self.motion_eff["COM"][t], (7,1))
-        #     xyzq = np.reshape(self.motion_eff["COM"][t], (7,1))
-        #
-        #     homo = XYZQUATToSe3(xyzq)
-        #     ## position of hip(BL, BR, FL, FR) wrt world
-        #     pos_hips_world = np.add(np.matmul(homo.rotation, pos_hips_base), np.transpose([com_motion[t]]))
-        #     pos_hips_world_arr_BL.append(np.transpose(pos_hips_world[: ,0]))
-        #     pos_hips_world_arr_FL.append(np.transpose(pos_hips_world[: ,2]))
-        #     self.motion_eff["trajectory_wrt_base"][t][0:3] = np.subtract(self.motion_eff["trajectory"][t][0:3], np.transpose(pos_hips_world[: ,0]))
-        #     self.motion_eff["trajectory_wrt_base"][t][3:6] = np.subtract(self.motion_eff["trajectory"][t][3:6], np.transpose(pos_hips_world[: ,1]))
-        #     self.motion_eff["trajectory_wrt_base"][t][6:9] = np.subtract(self.motion_eff["trajectory"][t][6:9], np.transpose(pos_hips_world[: ,2]))
-        #     self.motion_eff["trajectory_wrt_base"][t][9:12] = np.subtract(self.motion_eff["trajectory"][t][9:12], np.transpose(pos_hips_world[: ,3]))
-        #
+        for t in range(0,len(self.time)):
+            #xyzq = np.reshape(self.motion_eff["COM"][t], (7,1))
+            xyzq = np.reshape(self.motion_eff["COM"][t], (7,1))
+
+            homo = XYZQUATToSe3(xyzq)
+            ## position of hip(BL, BR, FL, FR) wrt world
+            pos_hips_world = np.add(np.matmul(homo.rotation, pos_hips_base), np.transpose([com_motion[t]]))
+            pos_hips_world_arr_BL.append(np.transpose(pos_hips_world[: ,0]))
+            pos_hips_world_arr_FL.append(np.transpose(pos_hips_world[: ,2]))
+            self.motion_eff["trajectory_wrt_base"][t][0:3] = np.subtract(self.motion_eff["trajectory"][t][0:3], np.transpose(pos_hips_world[: ,0]))
+            self.motion_eff["trajectory_wrt_base"][t][3:6] = np.subtract(self.motion_eff["trajectory"][t][3:6], np.transpose(pos_hips_world[: ,1]))
+            self.motion_eff["trajectory_wrt_base"][t][6:9] = np.subtract(self.motion_eff["trajectory"][t][6:9], np.transpose(pos_hips_world[: ,2]))
+            self.motion_eff["trajectory_wrt_base"][t][9:12] = np.subtract(self.motion_eff["trajectory"][t][9:12], np.transpose(pos_hips_world[: ,3]))
 
 
-        self.motion_eff["trajectory_wrt_base"][: ,[0,1,2]] = np.subtract(np.subtract(self.motion_eff["trajectory"][: ,[0,1,2]], [0.1, -0.2, 0.0]),com_motion)
-        self.motion_eff["trajectory_wrt_base"][: ,[3,4,5]] = np.subtract(np.subtract(self.motion_eff["trajectory"][: ,[3,4,5]], [-0.1, -.2, 0]),com_motion)
-        self.motion_eff["trajectory_wrt_base"][: ,[6,7,8]] = np.subtract(np.subtract(self.motion_eff["trajectory"][: ,[6,7,8]], [0.1, .2, 0]),com_motion)
-        self.motion_eff["trajectory_wrt_base"][: ,[9,10,11]] = np.subtract(np.subtract(self.motion_eff["trajectory"][: ,[9,10,11]], [-0.1, .2, 0]),com_motion)
+
+        # self.motion_eff["trajectory_wrt_base"][: ,[0,1,2]] = np.subtract(np.subtract(self.motion_eff["trajectory"][: ,[0,1,2]], [0.1, -0.2, 0.0]),com_motion)
+        # self.motion_eff["trajectory_wrt_base"][: ,[3,4,5]] = np.subtract(np.subtract(self.motion_eff["trajectory"][: ,[3,4,5]], [-0.1, -.2, 0]),com_motion)
+        # self.motion_eff["trajectory_wrt_base"][: ,[6,7,8]] = np.subtract(np.subtract(self.motion_eff["trajectory"][: ,[6,7,8]], [0.1, .2, 0]),com_motion)
+        # self.motion_eff["trajectory_wrt_base"][: ,[9,10,11]] = np.subtract(np.subtract(self.motion_eff["trajectory"][: ,[9,10,11]], [-0.1, .2, 0]),com_motion)
 
         ## Not sure about the 0.27 division. Mass is 2.7 but after plotting the ration between lmom and com_vel 0.27 is observed
         self.motion_eff["velocity_wrt_base"][: ,[0,1,2]] = np.subtract(self.motion_eff["velocity"][: ,[0,1,2]], np.divide(lmom, 0.22))
