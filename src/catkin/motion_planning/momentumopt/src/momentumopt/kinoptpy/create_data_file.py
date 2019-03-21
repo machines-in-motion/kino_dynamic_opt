@@ -6,11 +6,13 @@ from src.momentumexe.motion_execution import desired_state, interpolate
 
 sample_frequency = 1000 # 1kHz
 
-def create_file(time_vector, optimized_sequence):
+def create_file(time_vector, optimized_sequence, optimized_dyn_plan, robot_weight):
     desired_pos = desired_state("POSITION", time_vector, optimized_sequence=optimized_sequence)
     desired_vel = desired_state("VELOCITY", time_vector, optimized_sequence=optimized_sequence)
-    # TODO: Desired forces
-    # desired_forces = desired_state("FORCES", time_vector, optimized_sequence=optimized_sequence)
+    desired_gen_pos = desired_state("GENERALIZED_POSITION", time_vector, optimized_sequence=optimized_sequence)
+    desired_gen_vel = desired_state("GENERALIZED_VELOCITY", time_vector, optimized_sequence=optimized_sequence)
+    desired_forces = desired_state("FORCES", time_vector, optimized_sequence=optimized_sequence,
+                                    optimized_dyn_plan=optimized_dyn_plan)
 
     max_time = 0 # time horizon in seconds
 
@@ -23,16 +25,17 @@ def create_file(time_vector, optimized_sequence):
 
     using_quadruped = True
 
+    def dump_data(output_file, desired_fn):
+        np.savetxt(output_file, np.vstack([
+            np.hstack((i, desired_fn(i / 1e3))) for i in range(num_points)
+        ]))
+
     if using_quadruped:
-        des_positions = np.zeros((num_points, 9))
-        des_velocities = np.zeros((num_points, 9))
-
-        for i in range(num_points):
-            des_positions[i, :] = np.hstack((i, desired_pos(i / 1e3)))
-            des_velocities[i, :] = np.hstack((i, desired_vel(i / 1e3)))
-
-        np.savetxt("quadruped_positions.dat", des_positions)
-        np.savetxt("quadruped_velocities.dat", des_velocities)
+        dump_data("quadruped_positions.dat", desired_pos)
+        dump_data("quadruped_velocities.dat", desired_vel)
+        dump_data("quadruped_forces.dat", desired_forces)
+        dump_data("quadruped_generalized_positions.dat", desired_gen_pos)
+        dump_data("quadruped_generalized_velocities.dat", desired_gen_vel)
     else:  # using teststand
         des_positions = np.zeros((num_points, 3))
         des_velocities = np.zeros((num_points, 3))

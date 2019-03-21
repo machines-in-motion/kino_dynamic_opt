@@ -72,6 +72,7 @@ namespace momentumopt {
       Eigen::Vector3d& endeffectorTorque(int eff_id) { return eff_torques_[eff_id]; }
       Eigen::Vector3d& endeffectorTorqueAtContactPoint(int eff_id) { return eefs_trqs_contact_point_[eff_id]; }
 
+      const long endeffectorNum() { return eff_cops_.size(); }
       const Eigen::Vector3d& endeffectorCoP(int eff_id) const { return eff_cops_[eff_id]; }
       const Eigen::Vector3d& endeffectorForce(int eff_id) const { return eff_forces_[eff_id]; }
       const Eigen::Vector3d& endeffectorTorque(int eff_id) const { return eff_torques_[eff_id]; }

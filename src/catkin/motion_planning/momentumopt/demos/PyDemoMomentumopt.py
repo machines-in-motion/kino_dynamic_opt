@@ -180,8 +180,8 @@ def main(argv):
     optimized_kin_plan, optimized_motion_eff, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector = motion_planner.optimize_motion()
 
     # Create configuration and velocity file from motion plan for dynamic graph
-    #create_file(time_vector, optimized_kin_plan)
-    print("saving trajectories ...")
+    create_file(time_vector, optimized_kin_plan, optimized_dyn_plan,
+            motion_planner.planner_setting.get(PlannerDoubleParam_RobotWeight))
     create_trajectory_file_impedance(time_vector, optimized_motion_eff, optimized_kin_plan)
     simulation = True
 

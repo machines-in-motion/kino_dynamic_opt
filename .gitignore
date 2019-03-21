@@ -2,6 +2,7 @@ build/
 devel/
 src/CMakeLists.txt
 
+*.dat
 *.pyc
 
 *.project

@@ -34,9 +34,16 @@ class PDController(object):
         self.D = D
 
 
-def desired_state(specification, time_vector, optimized_sequence=None, dynamics_feedback=None):
+def desired_state(specification, time_vector, optimized_sequence=None, dynamics_feedback=None,
+                    optimized_dyn_plan=None):
     if optimized_sequence is None and dynamics_feedback is None:
         raise ValueError("Specify desired positions, velocities or dynamic feedback gains.")
+
+    def eff_force_vector(dynamic_state):
+        """ Combines the forces at each endeffector into a single vector. """
+        return np.hstack([
+            dynamic_state.effForce(eff_id) for eff_id in range(dynamic_state.effNum())
+        ])
 
     def desired_state_eval(t):
         closest_idx = np.argmin(abs(time_vector - t))
@@ -57,6 +64,15 @@ def desired_state(specification, time_vector, optimized_sequence=None, dynamics_
         elif specification == "VELOCITY":
             state_1 = optimized_sequence.kinematics_states[t1_idx].robot_velocity.joint_velocities
             state_2 = optimized_sequence.kinematics_states[t2_idx].robot_velocity.joint_velocities
+        elif specification == "GENERALIZED_POSITION":
+            state_1 = optimized_sequence.kinematics_states[t1_idx].robot_posture.generalized_joint_positions
+            state_2 = optimized_sequence.kinematics_states[t2_idx].robot_posture.generalized_joint_positions
+        elif specification == "GENERALIZED_VELOCITY":
+            state_1 = optimized_sequence.kinematics_states[t1_idx].robot_velocity.generalized_joint_velocities
+            state_2 = optimized_sequence.kinematics_states[t2_idx].robot_velocity.generalized_joint_velocities
+        elif specification == 'FORCES':
+            state_1 = eff_force_vector(optimized_dyn_plan.dynamics_states[t1_idx])
+            state_2 = eff_force_vector(optimized_dyn_plan.dynamics_states[t2_idx])
         elif specification == "COM":
             state_1 = optimized_sequence.kinematics_states[t1_idx].com
             state_2 = optimized_sequence.kinematics_states[t2_idx].com
