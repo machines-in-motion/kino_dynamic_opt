@@ -251,6 +251,9 @@ class KinematicsOptimizer:
         self.ik_motion["base_linear_velocity"] = np.zeros((len(self.time), 3))
         self.ik_motion["base_angular_velocity"] = np.zeros((len(self.time), 3))
         self.ik_motion["joint_velocities"] = np.zeros((len(self.time), self.robot.num_ctrl_joints))
+        self.ik_motion["base_linear_acceleration"] = np.zeros((len(self.time), 3))
+        self.ik_motion["base_angular_acceleration"] = np.zeros((len(self.time), 3))
+        self.ik_motion["joint_accelerations"] = np.zeros((len(self.time), self.robot.num_ctrl_joints))
         for eff in self.robot.effs :
             for joint in self.robot.joints_list:
                 joint_identifier = eff + "_" + joint
@@ -410,7 +413,7 @@ class KinematicsOptimizer:
 
             if t > 0:
                 q_dot = self.robot.get_difference(q_traj[-1], self.robot.q) / (self.time[t] - self.time[t - 1])
-                q_dd = self.robot.get_difference(q_vel[-1], q_dot) / (self.time[t] - self.time[t - 1])
+                q_dd = (q_dot - q_vel[-1]) / (self.time[t] - self.time[t - 1])
                 self.robot.set_velocity(q_dot)
                 self.robot.set_acceleration(q_dd)
 
@@ -427,6 +430,11 @@ class KinematicsOptimizer:
             self.ik_motion["base_linear_velocity"][t, :] = np.squeeze(np.array(q_dot[:3]), 1)
             self.ik_motion["base_angular_velocity"][t, :] = np.squeeze(np.array(q_dot[3:6]), 1)
             self.ik_motion["joint_velocities"][t, :] = np.squeeze(np.array(q_dot[num_uncontrolled_joints - 1:]), 1)
+
+            self.ik_motion["base_linear_acceleration"][t, :] = np.squeeze(np.array(q_dd[:3]), 1)
+            self.ik_motion["base_angular_acceleration"][t, :] = np.squeeze(np.array(q_dd[3:6]), 1)
+            self.ik_motion["joint_accelerations"][t, :] = np.squeeze(np.array(q_dd[num_uncontrolled_joints - 1:]), 1)
+
             for eff in self.robot.effs :
                 for joint in self.robot.joints_list:
                     joint_identifier = eff + "_" + joint
@@ -491,9 +499,6 @@ class KinematicsOptimizer:
 
         # plt.show()
 
-
-        print(len(self.motion_eff["velocity"]), len(self.ik_motion["joint_velocities"]))
-
         q_matrix = np.zeros((len(q_traj), q_traj[0].shape[0]))
         for i in range(len(q_traj)):
             q_matrix[i, :] = np.squeeze(np.array(q_traj[i]))
@@ -519,6 +524,10 @@ class KinematicsOptimizer:
             kinematic_state.robot_velocity.base_linear_velocity = self.ik_motion["base_linear_velocity"][time_id, :]
             kinematic_state.robot_velocity.base_angular_velocity = self.ik_motion["base_angular_velocity"][time_id, :]
             kinematic_state.robot_velocity.joint_velocities = self.ik_motion["joint_velocities"][time_id, :]
+
+            kinematic_state.robot_acceleration.base_linear_acceleration = self.ik_motion["base_linear_acceleration"][time_id, :]
+            kinematic_state.robot_acceleration.base_angular_acceleration = self.ik_motion["base_angular_acceleration"][time_id, :]
+            kinematic_state.robot_acceleration.joint_accelerations = self.ik_motion["joint_accelerations"][time_id, :]
 
 
     def get_swing_times(self, contacts):

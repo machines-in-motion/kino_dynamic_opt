@@ -167,6 +167,7 @@ def main(argv):
 
     # Create configuration and velocity file from motion plan for dynamic graph
     create_file(time_vector, optimized_kin_plan, optimized_dyn_plan,
+            dynamics_feedback,
             motion_planner.planner_setting.get(PlannerDoubleParam_RobotWeight))
     create_trajectory_file_impedance(time_vector, optimized_motion_eff, optimized_kin_plan)
     simulation = True
