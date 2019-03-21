@@ -31,15 +31,15 @@ def create_file(time_vector, optimized_sequence, optimized_dyn_plan, dynamics_fe
 
     using_quadruped = True
 
-    def dump_data(output_file, desired_fn):
+    def dump_data(output_file, desired_fn, scale=1.):
         np.savetxt(output_file, np.vstack([
-            np.hstack((i, desired_fn(i / 1e3))) for i in range(num_points)
+            np.hstack((i, scale * desired_fn(i / 1e3))) for i in range(num_points)
         ]))
 
     if using_quadruped:
         dump_data("quadruped_positions.dat", desired_pos)
         dump_data("quadruped_velocities.dat", desired_vel)
-        dump_data("quadruped_forces.dat", desired_forces)
+        dump_data("quadruped_forces.dat", desired_forces, robot_weight)
         dump_data("quadruped_generalized_positions.dat", desired_gen_pos)
         dump_data("quadruped_generalized_velocities.dat", desired_gen_vel)
         dump_data("quadruped_generalized_acceleration.dat", desired_gen_acc)

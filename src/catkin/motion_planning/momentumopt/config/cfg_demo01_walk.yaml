@@ -70,7 +70,7 @@ planner_variables:
   #########################
   # Kinematics parameters #
   #########################
-  
+
   load_kinematics: True
   display_motion: True
   num_dofs: 8
@@ -186,7 +186,7 @@ planner_variables:
   ##################
   # Solver setting #
   ##################
-  
+
   use_default_solver_setting: False
 
 
@@ -215,16 +215,16 @@ solverlqr_dynamics:
   ##########################
   # Lqr problem parameters #
   ##########################
-  
+
   problem_name: DynamicMomentumOptimization
   time_step: 0.05
-  time_horizon: 4.0
+  time_horizon: 6.0
   state_dimension: 9
   control_dimension: 12
   initial_state: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-  
+
   has_control_limits: False
-  
+
   #######################
   # Storage information #
   #######################
@@ -238,7 +238,7 @@ solverlqr_dynamics:
   user_parameters:
     control_cost: [0.001, 0.001, 0.001]
     com_tracking: [1.0, 1.0, 1.0]
-    lmom_tracking: [0.1, 0.1, 0.1] 
+    lmom_tracking: [0.1, 0.1, 0.1]
     amom_tracking: [0.1, 0.1, 0.1]
     com_final_tracking: [1.0, 1.0, 1.0]
     lmom_final_tracking: [0.1, 0.1, 0.1]
@@ -250,7 +250,7 @@ solver_variables:
   ###########################
   # Branch and Bound solver #
   ###########################
-  
+
   BnB_verbose: False
   BnB_max_iterations: 1000
   BnB_integer_tolerance: 1e-4
@@ -260,7 +260,7 @@ solver_variables:
   ##########################
   # Convergence tolerances #
   ##########################
-  
+
   feasibility_tolerance: 1e-7
   max_residual_tolerance: 1e-3
   absolute_suboptimality_gap: 1e-7
@@ -273,8 +273,8 @@ solver_variables:
   ############################
   # Equilibration parameters #
   ############################
-  
-  equil_iterations: 3  
+
+  equil_iterations: 3
   scaling_factor: 1.0
   equil_upper_bound: 1.0e3
   equil_lower_bound: 1.0e-3
@@ -282,14 +282,14 @@ solver_variables:
   ############################
   # Linear System parameters #
   ############################
-  
+
   dyn_reg_thresh: 1e-13
   lin_sys_accuracy: 1e-14
   err_reduction_factor: 6.0
   num_iter_ref_lin_solve: 9
   static_regularization: 7e-8
   dynamic_regularization: 2e-7
-  
+
   cg_step_rate: 2.0
   cg_full_precision: 1e-9
   cg_residual_bound: 1e-18
@@ -305,7 +305,7 @@ solver_variables:
   min_centering_step: 1e-4
   max_centering_step: 1.00
   step_length_scaling: 0.99
-  
+
   over_relaxation: 1.5
   optinfo_interval: 100
   converged_interval: 20
@@ -317,13 +317,13 @@ solver_variables:
 
   verbose: False
   warm_start: False
-  
+
   max_iters: 100
   ipsolver_max_iters: 100
   ipsolver_warm_iters: 100
   conicsolver_max_iters: 300
   conicsolver_warm_iters: 300
-  
+
   num_itrefs_trustregion: 2
   trust_region_threshold: 0.15
   soft_constraint_weight_full: 1.0e4

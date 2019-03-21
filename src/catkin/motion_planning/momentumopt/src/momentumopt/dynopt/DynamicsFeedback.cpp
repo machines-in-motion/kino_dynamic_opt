@@ -14,6 +14,9 @@ namespace momentumopt {
     this->stateSeq().state(0).stateVector().segment<3>(3) = ini_state.linearMomentum();
     this->stateSeq().state(0).stateVector().segment<3>(6) = ini_state.angularMomentum();
 
+    assert(this->tdim() == this->dynamicsSequence().size() &&
+          "LQR and trajectory optimization size do not match.");
+
     for (int time_id=0; time_id<this->dynamicsSequence().size(); time_id++) {
       this->controlSeq().control(time_id).feedforward().setZero();
       for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++)
