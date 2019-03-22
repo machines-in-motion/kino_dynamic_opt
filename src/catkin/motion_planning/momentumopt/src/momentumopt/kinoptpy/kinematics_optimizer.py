@@ -5,10 +5,10 @@ import pinocchio as se3
 from pinocchio.utils import *
 from pymomentum import *
 
-from src.momentumopt.kinoptpy.min_jerk_traj import generate_eff_traj
-from src.quadruped.quadruped_wrapper import QuadrupedWrapper
-from src.momentumopt.kinoptpy.inv_kin import InverseKinematics
-from src.momentumopt.kinoptpy.utils import norm, display_motion, norm_momentum
+from momentumopt.kinoptpy.min_jerk_traj import generate_eff_traj
+from quadruped.quadruped_wrapper import QuadrupedWrapper
+from momentumopt.kinoptpy.inv_kin import InverseKinematics
+from momentumopt.kinoptpy.utils import norm, display_motion, norm_momentum
 
 
 class Contact:

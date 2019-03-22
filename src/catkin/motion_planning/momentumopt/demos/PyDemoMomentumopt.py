@@ -25,9 +25,9 @@ from pinocchio.robot_wrapper import RobotWrapper
 import os, sys, getopt, numpy as np, pinocchio as pin
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from src.momentumopt.kinoptpy.kinematics_optimizer import KinematicsOptimizer, create_time_vector
-from src.momentumexe.motion_execution import MotionExecutor
-from src.momentumopt.kinoptpy.create_data_file import create_file, create_trajectory_file_impedance
+from momentumopt.kinoptpy.kinematics_optimizer import KinematicsOptimizer, create_time_vector
+from momentumexe.motion_execution import MotionExecutor
+from momentumopt.kinoptpy.create_data_file import create_file, create_trajectory_file_impedance
 
 'Kinematics Interface using Pinocchio'
 class PinocchioKinematicsInterface(KinematicsInterface):
@@ -62,6 +62,38 @@ class PinocchioKinematicsInterface(KinematicsInterface):
         for eff_id in range(0, len(self.eff_names)):
             kin_state.endeffector_positions[eff_id] = self.robot.data.oMf[self.robot.model.getFrameId(self.eff_names[eff_id])].translation
 
+
+def plot_com_motion(dynamics_states, kinematics_states):
+    fig, axes = plt.subplots(3, 3, figsize=(12, 8), sharex=True)
+    axes = np.array(axes)
+
+    def states_to_vec(states):
+        com = np.vstack([s.com for s in states])
+        lmom = np.vstack([s.lmom for s in states])
+        amom = np.vstack([s.amom for s in states])
+        return com, lmom, amom
+
+
+    for i, (title, dyn, kin) in enumerate(zip(
+        ['com', 'lmom', 'amom'],
+        states_to_vec(dynamics_states),
+        states_to_vec(kinematics_states))):
+
+        axes[0, i].set_title(title)
+
+        for j in range(3):
+            axes[j, i].plot(dyn[:, j], label='desired')
+            axes[j, i].plot(kin[:, j], label='actual')
+
+    [ax.grid(True) for ax in axes.reshape(-1)]
+
+    for i, label in enumerate(['x', 'y', 'z']):
+        axes[i, 0].set_ylabel(label + ' [m]')
+        axes[2, i].set_xlabel('time steps [5ms]')
+
+    axes[0, 2].legend()
+
+    plt.show()
 
 class MotionPlanner():
 
@@ -171,6 +203,8 @@ def main(argv):
             motion_planner.planner_setting.get(PlannerDoubleParam_RobotWeight))
     create_trajectory_file_impedance(time_vector, optimized_motion_eff, optimized_kin_plan)
     simulation = True
+
+    # plot_com_motion(optimized_dyn_plan.dynamics_states, optimized_kin_plan.kinematics_states)
 
     if simulation:
         motion_executor = MotionExecutor(optimized_kin_plan, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector)

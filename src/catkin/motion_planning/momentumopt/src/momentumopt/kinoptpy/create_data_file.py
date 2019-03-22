@@ -2,7 +2,7 @@ import numpy as np
 
 from pymomentum import *
 
-from src.momentumexe.motion_execution import desired_state, interpolate
+from momentumexe.motion_execution import desired_state, interpolate
 
 sample_frequency = 1000 # 1kHz
 

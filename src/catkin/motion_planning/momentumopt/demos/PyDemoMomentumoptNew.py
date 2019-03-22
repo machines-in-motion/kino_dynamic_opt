@@ -25,9 +25,9 @@ from pinocchio.robot_wrapper import RobotWrapper
 import os, sys, getopt, numpy as np, pinocchio as pin
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from src.momentumopt.kinopt.PinocchioKinematicsInterface import PinocchioKinematicsInterface
-from src.momentumopt.kinoptpy.kinematics_optimizer import create_time_vector
-from src.momentumexe.motion_execution import MotionExecutor
+from momentumopt.kinopt.PinocchioKinematicsInterface import PinocchioKinematicsInterface
+from momentumopt.kinoptpy.kinematics_optimizer import create_time_vector
+from momentumexe.motion_execution import MotionExecutor
 
 
 class MotionPlanner():
@@ -58,12 +58,12 @@ class MotionPlanner():
         'Dynamics optimizer'
         dyn_optimizer = DynamicsOptimizer()
         dyn_optimizer.initialize(self.planner_setting)
-        
+
         'Kinematics optimizer'
         kin_optimizer = KinematicsOptimizer()
         kin_interface = PinocchioKinematicsInterface()
         kin_optimizer.initialize(self.planner_setting, kin_interface)
-        
+
         'Motion optimization'
         print("DynOpt", 0)
         dyn_optimizer.optimize(self.ini_state, self.contact_plan, kin_optimizer.kinematicsSequence(), False)
@@ -90,7 +90,7 @@ class MotionPlanner():
         print("DynFb Ret")
         return optimized_kin_plan, optimized_dyn_plan, dynamics_feedback, self.planner_setting, time_vector
 
-        
+
 'Main function for optimization demo'
 def main(argv):
 

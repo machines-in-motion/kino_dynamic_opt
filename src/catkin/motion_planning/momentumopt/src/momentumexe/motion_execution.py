@@ -8,9 +8,9 @@ from pinocchio.utils import zero
 
 from pymomentum import *
 
-from src.quadruped.quadruped_wrapper import QuadrupedWrapper
-from src.quadruped.simulator import Simulator
-from src.momentumopt.kinoptpy.utils import isfloat
+from quadruped.quadruped_wrapper import QuadrupedWrapper
+from quadruped.simulator import Simulator
+from momentumopt.kinoptpy.utils import isfloat
 
 
 np.set_printoptions(precision=2, suppress=True, linewidth=140)
