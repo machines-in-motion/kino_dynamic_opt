@@ -331,7 +331,7 @@ class KinematicsOptimizer:
         # Track robot motion
         for t in range(len(self.time)):
             i = 0
-            print("time =", self.time[t])
+            # print("time =", self.time[t])
 
             desired_positions, desired_velocities, jacobians = self.create_tasks(t, com_motion, contacts, eff_traj_poly)
             self.motion_eff["trajectory"][t] = desired_positions
@@ -419,7 +419,7 @@ class KinematicsOptimizer:
 
             self.robot.robot.centroidalMomentum(q_new, q_dot)
 
-            self.ik_motion["COM"][t, :] = np.squeeze(self.robot.transformations_dict["COM"](), 1)
+            self.ik_motion["COM"][t, :] = np.squeeze(self.robot.robot.com(q_new), 1)
             self.ik_motion["LMOM"][t, :] = np.squeeze(self.robot.data.hg.vector[:3], 1)
             self.ik_motion["AMOM"][t, :] = np.squeeze(self.robot.data.hg.vector[3:], 1)
 
@@ -440,9 +440,9 @@ class KinematicsOptimizer:
                     joint_identifier = eff + "_" + joint
                     self.ik_motion[joint_identifier][t, :] = np.squeeze(self.robot.transformations_dict[joint_identifier](), 1)
 
-            print("Finished after iteration:", i)
-            q_traj.append(self.robot.q)
-            q_vel.append(self.robot.dq)
+            # print("Finished after iteration:", i)
+            q_traj.append(self.robot.q.copy())
+            q_vel.append(self.robot.dq.copy())
             ik.delete_tasks()
             self.robot.display(self.robot.q)
 
