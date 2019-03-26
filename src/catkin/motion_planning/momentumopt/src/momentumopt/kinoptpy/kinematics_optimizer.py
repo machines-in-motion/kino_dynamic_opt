@@ -455,28 +455,28 @@ class KinematicsOptimizer:
                                     [-0.2, -0.2, 0.2, 0.2],
                                     [0.0, 0.0, 0.0, 0.0]])
 
-        pos_hips_world_arr_BL = []
-        pos_hips_world_arr_FL = []
-        for t in range(0,len(self.time)):
-            #xyzq = np.reshape(self.motion_eff["COM"][t], (7,1))
-            xyzq = np.reshape(self.motion_eff["COM"][t], (7,1))
+        # pos_hips_world_arr_BL = []
+        # pos_hips_world_arr_FL = []
+        # for t in range(0,len(self.time)):
+        #     #xyzq = np.reshape(self.motion_eff["COM"][t], (7,1))
+        #     xyzq = np.reshape(self.motion_eff["COM"][t], (7,1))
+        #
+        #     homo = XYZQUATToSe3(xyzq)
+        #     ## position of hip(BL, BR, FL, FR) wrt world
+        #     pos_hips_world = np.add(np.matmul(homo.rotation, pos_hips_base), np.transpose([com_motion[t]]))
+        #     pos_hips_world_arr_BL.append(np.transpose(pos_hips_world[: ,0]))
+        #     pos_hips_world_arr_FL.append(np.transpose(pos_hips_world[: ,2]))
+        #     self.motion_eff["trajectory_wrt_base"][t][0:3] = np.subtract(self.motion_eff["trajectory"][t][0:3], np.transpose(pos_hips_world[: ,0]))
+        #     self.motion_eff["trajectory_wrt_base"][t][3:6] = np.subtract(self.motion_eff["trajectory"][t][3:6], np.transpose(pos_hips_world[: ,1]))
+        #     self.motion_eff["trajectory_wrt_base"][t][6:9] = np.subtract(self.motion_eff["trajectory"][t][6:9], np.transpose(pos_hips_world[: ,2]))
+        #     self.motion_eff["trajectory_wrt_base"][t][9:12] = np.subtract(self.motion_eff["trajectory"][t][9:12], np.transpose(pos_hips_world[: ,3]))
 
-            homo = XYZQUATToSe3(xyzq)
-            ## position of hip(BL, BR, FL, FR) wrt world
-            pos_hips_world = np.add(np.matmul(homo.rotation, pos_hips_base), np.transpose([com_motion[t]]))
-            pos_hips_world_arr_BL.append(np.transpose(pos_hips_world[: ,0]))
-            pos_hips_world_arr_FL.append(np.transpose(pos_hips_world[: ,2]))
-            self.motion_eff["trajectory_wrt_base"][t][0:3] = np.subtract(self.motion_eff["trajectory"][t][0:3], np.transpose(pos_hips_world[: ,0]))
-            self.motion_eff["trajectory_wrt_base"][t][3:6] = np.subtract(self.motion_eff["trajectory"][t][3:6], np.transpose(pos_hips_world[: ,1]))
-            self.motion_eff["trajectory_wrt_base"][t][6:9] = np.subtract(self.motion_eff["trajectory"][t][6:9], np.transpose(pos_hips_world[: ,2]))
-            self.motion_eff["trajectory_wrt_base"][t][9:12] = np.subtract(self.motion_eff["trajectory"][t][9:12], np.transpose(pos_hips_world[: ,3]))
 
 
-
-        # self.motion_eff["trajectory_wrt_base"][: ,[0,1,2]] = np.subtract(np.subtract(self.motion_eff["trajectory"][: ,[0,1,2]], [0.1, -0.2, 0.0]),com_motion)
-        # self.motion_eff["trajectory_wrt_base"][: ,[3,4,5]] = np.subtract(np.subtract(self.motion_eff["trajectory"][: ,[3,4,5]], [-0.1, -.2, 0]),com_motion)
-        # self.motion_eff["trajectory_wrt_base"][: ,[6,7,8]] = np.subtract(np.subtract(self.motion_eff["trajectory"][: ,[6,7,8]], [0.1, .2, 0]),com_motion)
-        # self.motion_eff["trajectory_wrt_base"][: ,[9,10,11]] = np.subtract(np.subtract(self.motion_eff["trajectory"][: ,[9,10,11]], [-0.1, .2, 0]),com_motion)
+        self.motion_eff["trajectory_wrt_base"][: ,[0,1,2]] = np.subtract(np.subtract(self.motion_eff["trajectory"][: ,[0,1,2]], [0.1, -0.2, 0.0]),com_motion)
+        self.motion_eff["trajectory_wrt_base"][: ,[3,4,5]] = np.subtract(np.subtract(self.motion_eff["trajectory"][: ,[3,4,5]], [-0.1, -.2, 0]),com_motion)
+        self.motion_eff["trajectory_wrt_base"][: ,[6,7,8]] = np.subtract(np.subtract(self.motion_eff["trajectory"][: ,[6,7,8]], [0.1, .2, 0]),com_motion)
+        self.motion_eff["trajectory_wrt_base"][: ,[9,10,11]] = np.subtract(np.subtract(self.motion_eff["trajectory"][: ,[9,10,11]], [-0.1, .2, 0]),com_motion)
 
         ## Not sure about the 0.27 division. Mass is 2.7 but after plotting the ration between lmom and com_vel 0.27 is observed
         self.motion_eff["velocity_wrt_base"][: ,[0,1,2]] = np.subtract(self.motion_eff["velocity"][: ,[0,1,2]], np.divide(lmom, 0.22))
@@ -487,9 +487,9 @@ class KinematicsOptimizer:
 
         # import matplotlib.pyplot as plt
         # ## plots for des_position and velocity vas actual values. and Hip and Knee torques
-        # pos_hips_world_arr_BL = np.reshape(pos_hips_world_arr_BL, (len(pos_hips_world_arr_BL), 3))
-        # pos_hips_world_arr_FL = np.reshape(pos_hips_world_arr_FL, (len(pos_hips_world_arr_FL), 3))
-        # print(np.shape(pos_hips_world_arr_BL))
+        # # pos_hips_world_arr_BL = np.reshape(pos_hips_world_arr_BL, (len(pos_hips_world_arr_BL), 3))
+        # # pos_hips_world_arr_FL = np.reshape(pos_hips_world_arr_FL, (len(pos_hips_world_arr_FL), 3))
+        # # print(np.shape(pos_hips_world_arr_BL))
         # fig1, ax1 = plt.subplots(7,1, sharex = True)
         #
         # ax1[0].plot(self.time, com_motion[: ,0] , color="black", label = "com_y")
@@ -501,14 +501,14 @@ class KinematicsOptimizer:
         # ax1[0].grid()
         #
         #
-        # ax1[1].plot(self.time, pos_hips_world_arr_BL[: ,0], color = "black", label = "BLH_y")
-        # ax1[1].plot(self.time, pos_hips_world_arr_BL[: ,1], color = "green", label = "BLH_x")
-        # ax1[1].plot(self.time, pos_hips_world_arr_BL[: ,2], color = "red", label = "BLH_z")
-        # #ax1[0].plot(rel_pos_foot_z, color = "red", label = "actual_foot_pos_z")
-        # ax1[1].legend()
-        # ax1[1].set_xlabel("millisec")
-        # ax1[1].set_ylabel("m")
-        # ax1[1].grid()
+        # # ax1[1].plot(self.time, pos_hips_world_arr_BL[: ,0], color = "black", label = "BLH_y")
+        # # ax1[1].plot(self.time, pos_hips_world_arr_BL[: ,1], color = "green", label = "BLH_x")
+        # # ax1[1].plot(self.time, pos_hips_world_arr_BL[: ,2], color = "red", label = "BLH_z")
+        # # #ax1[0].plot(rel_pos_foot_z, color = "red", label = "actual_foot_pos_z")
+        # # ax1[1].legend()
+        # # ax1[1].set_xlabel("millisec")
+        # # ax1[1].set_ylabel("m")
+        # # ax1[1].grid()
         #
         # ax1[2].plot(self.time, self.motion_eff["trajectory"][ :, 0], color = "black", label = "BL_y")
         # ax1[2].plot(self.time, self.motion_eff["trajectory"][ :, 1], color = "green", label = "BL_x")
@@ -527,13 +527,13 @@ class KinematicsOptimizer:
         # ax1[3].set_ylabel("m")
         # ax1[3].grid()
         #
-        # ax1[4].plot(self.time, pos_hips_world_arr_FL[: ,0] , color="black", label = "FLH_y")
-        # ax1[4].plot(self.time, pos_hips_world_arr_FL[: ,1] , color="green", label = "FLH_x")
-        # ax1[4].plot(self.time, pos_hips_world_arr_FL[: ,2] , color="red", label = "FLH_z")
-        # ax1[4].legend()
-        # ax1[4].set_xlabel("millisec")
-        # ax1[4].set_ylabel("m")
-        # ax1[4].grid()
+        # # ax1[4].plot(self.time, pos_hips_world_arr_FL[: ,0] , color="black", label = "FLH_y")
+        # # ax1[4].plot(self.time, pos_hips_world_arr_FL[: ,1] , color="green", label = "FLH_x")
+        # # ax1[4].plot(self.time, pos_hips_world_arr_FL[: ,2] , color="red", label = "FLH_z")
+        # # ax1[4].legend()
+        # # ax1[4].set_xlabel("millisec")
+        # # ax1[4].set_ylabel("m")
+        # # ax1[4].grid()
         #
         #
         # ax1[5].plot(self.time, self.motion_eff["trajectory"][ :, 6], color = "black", label = "FL_y")

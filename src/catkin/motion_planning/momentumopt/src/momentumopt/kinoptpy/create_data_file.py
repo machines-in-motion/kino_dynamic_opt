@@ -80,40 +80,32 @@ def create_trajectory_file_impedance(time_vector, optimized_motion_eff, optimize
             des_velocities[i, :] = np.hstack((i, desired_vel(i / 1e3)))
             des_com[i, :] = np.hstack((i, desired_com(i / 1e3)))
 
-        print("swapping x and y to match with current Configuration")
-        for eff in range(4):
-            tmp = des_positions[: ,(3*eff + 1)]
-            des_positions[: ,(3*eff + 1)] = des_positions[: ,(3*eff + 2)]
-            des_positions[: ,(3*eff + 2)] = tmp
-            tmp = des_velocities[: ,(3*eff + 1)]
-            des_velocities[: ,(3*eff + 1)] = des_velocities[: ,(3*eff + 2)]
-            des_velocities[: ,(3*eff + 2)] = tmp
 
-        tmp = des_com[: ,1]
+
+        swp_com = des_com[: ,1]
         des_com[: ,1] = des_com[: ,2]
-        des_com[: ,2] = tmp
+        des_com[: ,2] = swp_com
 
         des_positions_final = np.zeros((num_points, 24))
         des_velocities_final = np.zeros((num_points, 24))
 
+        print("swapping x and y to match with current Configuration")
         for i in range(num_points):
             for eff in range(4):
                 des_positions_final[i][6*eff:6*(eff+1)] = np.hstack((des_positions[i][3*(eff)+1:3*(eff+1) + 1], [0.0, 0.0, 0.0]))
+                swp_pos = des_positions_final[i][6*eff]
+                des_positions_final[i][6*eff] = des_positions_final[i][6*eff+1]
+                des_positions_final[i][6*eff+1] = swp_pos
+
                 des_velocities_final[i][6*eff:6*(eff+1)] = np.hstack((des_velocities[i][3*(eff)+1:3*(eff+1) + 1], [0.0, 0.0, 0.0]))
+                swp_vel = des_velocities_final[i][6*eff]
+                des_velocities_final[i][6*eff] = des_velocities_final[i][6*eff+1]
+                des_velocities_final[i][6*eff+1] = swp_vel
+
+
 
         #print(desired_pos)
         print("saving trajectories....")
         np.savetxt("quadruped_positions_eff.dat", des_positions_final)
         np.savetxt("quadruped_velocities_eff.dat", des_velocities_final)
         np.savetxt("quadruped_com.dat", des_com)
-    # else:  # using teststand
-    #     des_positions = np.zeros((num_points, 3))
-    #     des_velocities = np.zeros((num_points, 3))
-    #
-    #     for i in range(num_points):
-    #         # Only using the motion of the BL leg with the joints BL_HFE and BL_KFE
-    #         des_positions[i, :] = np.hstack((i, desired_pos(i / sample_frequency)[:2]))
-    #         des_velocities[i, :] = np.hstack((i, desired_vel(i / sample_frequency)[:2]))
-    #
-    #     np.savetxt("teststand_positions.dat", des_positions)
-    #     np.savetxt("teststand_velocities.dat", des_velocities)
