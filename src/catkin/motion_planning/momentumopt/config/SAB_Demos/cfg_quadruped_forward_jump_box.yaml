@@ -54,14 +54,14 @@ contact_plan:
                             # -1.0 : no contact planning
 
   effcnt_rf:
-             [[0.0, 2.,    0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
-              [2.45, 3.0,    0.10, 0.25, -0.16,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
-  effcnt_lf: [[0.0, 2.,   -0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
-              [2.45, 3.0,   -0.10, 0.25, -0.16,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
-  effcnt_rh: [[0.0, 2.0,    0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
-              [2.45, 3.0,    0.10,  0.65, -0.16,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
-  effcnt_lh: [[0.0, 1.0,   -0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
-              [2.45, 3.0,    -0.10,  0.65, -0.16,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
+             [[0.0, 2.27,    0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
+              [2.65, 3.0,    0.10, 0.25, -0.16,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
+  effcnt_lf: [[0.0, 2.27,   -0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
+              [2.65, 3.0,   -0.10, 0.25, -0.16,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
+  effcnt_rh: [[0.0, 2.27,    0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
+              [2.65, 3.0,    0.10,  0.65, -0.16,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
+  effcnt_lh: [[0.0, 2.27,   -0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
+              [2.65, 3.0,    -0.10,  0.65, -0.16,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
 
   effvia_rf: []
   effvia_lf: []
@@ -79,7 +79,7 @@ planner_variables:
   display_motion: True
   num_dofs: 8
   # Number of dynamic and kinematic optimization iterations
-  kd_iterations: 2
+  kd_iterations: 3
   num_subsamples: 3
   active_dofs: [0, 1, 2, 3, 4, 5, 6, 7]
   min_joint_limits: [-1.5, -2.5, -1.5, -2.5, -1.5, -2.5, -1.5, -2.5]
@@ -121,14 +121,14 @@ planner_variables:
   time_step: 0.01
   time_horizon: 3.0
   external_force: [0.00, 0.00, 0.00]
-  com_displacement: [0.00, 0.45, 0.13]
+  com_displacement: [0.00, 0.45, 0.16]
   # Will only read via points if this number is great than 0
   num_com_viapoints: 0
   # via point definition
   # [2.50                 # activation time of the via point
   #  0.500, 0.45,  0.00]  # position (x, y, z)
   com_viapoints:
-    via0: [2.8,    0.00, 0.45,  0.13]
+    via0: [1.45,    0.00, 0.45,  0.16]
 
   #####################
   # Timing parameters #
@@ -147,7 +147,7 @@ planner_variables:
   friction_coeff: 0.2
   floor_height: -0.32
   # minimum allowed distance from the robot base to the floor
-  min_rel_height: 0.09
+  min_rel_height: 0.12
   friction_cone: LinearCone  # Types: LinearCone, SocCone #
   time_range: [0.02, 0.25]
   is_time_horizon_fixed: True
@@ -180,7 +180,7 @@ planner_variables:
   w_lmomd:         [ 0.080,  0.005,  0.005]
   w_amom_final:    [ 10.00,  10.00,  10.00]
   w_lmom_final:    [ 10.00,  10.00,  10.00]
-  w_com_via:       [ 0.000,  0.000,  0.000]
+  w_com_via:       [ 0.000,  1.000,  10.000]
   w_frc_arm:       [ 0.001,  0.001,  0.001]
   w_frc_leg:       [ 0.001,  0.001,  0.001]
   w_dfrc_arm:      [ 0.000,  0.000,  0.010]  # [ 0.000,  0.000,  0.000]
