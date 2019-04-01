@@ -510,52 +510,52 @@ class KinematicsOptimizer:
         # ax1[1].set_ylabel("m")
         # ax1[1].grid()
 
-        ax1[2].plot(self.time, self.motion_eff["trajectory"][ :, 0], color = "black", label = "BL_y")
-        ax1[2].plot(self.time, self.motion_eff["trajectory"][ :, 1], color = "green", label = "BL_x")
-        ax1[2].plot(self.time, self.motion_eff["trajectory"][ :, 2], color = "red", label = "BL_z")
-        #ax1[0].plot(rel_pos_foot_z, color = "red", label = "actual_foot_pos_z")
-        ax1[2].legend()
-        ax1[2].set_xlabel("millisec")
-        ax1[2].set_ylabel("m")
-        ax1[2].grid()
-
-        ax1[3].plot(self.time, self.motion_eff["trajectory_wrt_base"][:, 0] , color="black", label = "BL_wrt_base_y")
-        ax1[3].plot(self.time, self.motion_eff["trajectory_wrt_base"][:, 1] , color="green", label = "BL_wrt_base_x")
-        ax1[3].plot(self.time, self.motion_eff["trajectory_wrt_base"][:, 2] , color="red", label = "BL_wrt_base_z")
-        ax1[3].legend()
-        ax1[3].set_xlabel("millisec")
-        ax1[3].set_ylabel("m")
-        ax1[3].grid()
-
-        # ax1[4].plot(self.time, pos_hips_world_arr_FL[: ,0] , color="black", label = "FLH_y")
-        # ax1[4].plot(self.time, pos_hips_world_arr_FL[: ,1] , color="green", label = "FLH_x")
-        # ax1[4].plot(self.time, pos_hips_world_arr_FL[: ,2] , color="red", label = "FLH_z")
-        # ax1[4].legend()
-        # ax1[4].set_xlabel("millisec")
-        # ax1[4].set_ylabel("m")
-        # ax1[4].grid()
-
-
-        ax1[5].plot(self.time, self.motion_eff["trajectory"][ :, 6], color = "black", label = "FL_y")
-        ax1[5].plot(self.time, self.motion_eff["trajectory"][ :, 7], color = "green", label = "FL_x")
-        ax1[5].plot(self.time, self.motion_eff["trajectory"][ :, 8], color = "red", label = "FL_z")
-        #ax1[0].plot(rel_pos_foot_z, color = "red", label = "actual_foot_pos_z")
-        ax1[5].legend()
-        ax1[5].set_xlabel("millisec")
-        ax1[5].set_ylabel("m")
-        ax1[5].grid()
-
-        ax1[6].plot(self.time, self.motion_eff["trajectory_wrt_base"][:, 6] , color="black", label = "FL_wrt_base_y")
-        ax1[6].plot(self.time, self.motion_eff["trajectory_wrt_base"][:, 7] , color="green", label = "FL_wrt_base_x")
-        ax1[6].plot(self.time, self.motion_eff["trajectory_wrt_base"][:, 8] , color="red", label = "FL_wrt_base_z")
-
-        ax1[6].legend()
-        ax1[6].set_xlabel("millisec")
-        ax1[6].set_ylabel("rad/sec")
-        ax1[6].grid()
-
-
-        plt.show()
+        # ax1[2].plot(self.time, self.motion_eff["trajectory"][ :, 0], color = "black", label = "BL_y")
+        # ax1[2].plot(self.time, self.motion_eff["trajectory"][ :, 1], color = "green", label = "BL_x")
+        # ax1[2].plot(self.time, self.motion_eff["trajectory"][ :, 2], color = "red", label = "BL_z")
+        # #ax1[0].plot(rel_pos_foot_z, color = "red", label = "actual_foot_pos_z")
+        # ax1[2].legend()
+        # ax1[2].set_xlabel("millisec")
+        # ax1[2].set_ylabel("m")
+        # ax1[2].grid()
+        #
+        # ax1[3].plot(self.time, self.motion_eff["trajectory_wrt_base"][:, 0] , color="black", label = "BL_wrt_base_y")
+        # ax1[3].plot(self.time, self.motion_eff["trajectory_wrt_base"][:, 1] , color="green", label = "BL_wrt_base_x")
+        # ax1[3].plot(self.time, self.motion_eff["trajectory_wrt_base"][:, 2] , color="red", label = "BL_wrt_base_z")
+        # ax1[3].legend()
+        # ax1[3].set_xlabel("millisec")
+        # ax1[3].set_ylabel("m")
+        # ax1[3].grid()
+        #
+        # # ax1[4].plot(self.time, pos_hips_world_arr_FL[: ,0] , color="black", label = "FLH_y")
+        # # ax1[4].plot(self.time, pos_hips_world_arr_FL[: ,1] , color="green", label = "FLH_x")
+        # # ax1[4].plot(self.time, pos_hips_world_arr_FL[: ,2] , color="red", label = "FLH_z")
+        # # ax1[4].legend()
+        # # ax1[4].set_xlabel("millisec")
+        # # ax1[4].set_ylabel("m")
+        # # ax1[4].grid()
+        #
+        #
+        # ax1[5].plot(self.time, self.motion_eff["trajectory"][ :, 6], color = "black", label = "FL_y")
+        # ax1[5].plot(self.time, self.motion_eff["trajectory"][ :, 7], color = "green", label = "FL_x")
+        # ax1[5].plot(self.time, self.motion_eff["trajectory"][ :, 8], color = "red", label = "FL_z")
+        # #ax1[0].plot(rel_pos_foot_z, color = "red", label = "actual_foot_pos_z")
+        # ax1[5].legend()
+        # ax1[5].set_xlabel("millisec")
+        # ax1[5].set_ylabel("m")
+        # ax1[5].grid()
+        #
+        # ax1[6].plot(self.time, self.motion_eff["trajectory_wrt_base"][:, 6] , color="black", label = "FL_wrt_base_y")
+        # ax1[6].plot(self.time, self.motion_eff["trajectory_wrt_base"][:, 7] , color="green", label = "FL_wrt_base_x")
+        # ax1[6].plot(self.time, self.motion_eff["trajectory_wrt_base"][:, 8] , color="red", label = "FL_wrt_base_z")
+        #
+        # ax1[6].legend()
+        # ax1[6].set_xlabel("millisec")
+        # ax1[6].set_ylabel("rad/sec")
+        # ax1[6].grid()
+        #
+        #
+        # plt.show()
 
         q_matrix = np.zeros((len(q_traj), q_traj[0].shape[0]))
         for i in range(len(q_traj)):
