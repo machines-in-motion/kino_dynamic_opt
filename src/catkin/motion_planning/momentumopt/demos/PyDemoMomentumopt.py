@@ -94,11 +94,11 @@ class MotionPlanner():
 
     def optimize_motion(self):
         'optimize motion'
-        dyn_optimizer = DynamicsOptimizer()
+        dyn_optimizer = self.dyn_optimizer = DynamicsOptimizer()
         dyn_optimizer.initialize(self.planner_setting)
 
         'Kinematics Optimizer'
-        kin_optimizer = KinematicsOptimizer()
+        kin_optimizer = self.kin_optimizer = KinematicsOptimizer()
         kin_optimizer.initialize(self.planner_setting)
 
         print("DynOpt", 0)
@@ -110,13 +110,13 @@ class MotionPlanner():
             print("KinOpt", kd_iter+1)
             if kd_iter == self.planner_setting.get(PlannerIntParam_KinDynIterations) - 1:
                 start = time.time()
-                kin_optimizer.optimize(self.ini_state, self.contact_plan.contactSequence(), dyn_optimizer.dynamicsSequence(), plotting=False)
+                kin_optimizer.optimize(self.ini_state, self.contact_plan.contactSequence(), dyn_optimizer.dynamicsSequence(), plotting=True)
                 end = time.time()
                 print("kinopt - ", end-start)
 
             else:
                 start = time.time()
-                kin_optimizer.optimize(self.ini_state, self.contact_plan.contactSequence(), dyn_optimizer.dynamicsSequence(), plotting=False)
+                kin_optimizer.optimize(self.ini_state, self.contact_plan.contactSequence(), dyn_optimizer.dynamicsSequence(), plotting=True)
                 end = time.time()
                 print("kinopt - ", end-start)
 
@@ -126,19 +126,12 @@ class MotionPlanner():
             end = time.time()
             print("dynopt - ", end-start)
 
-        print(1)
         optimized_kin_plan = kin_optimizer.kinematics_sequence
         optimized_dyn_plan = dyn_optimizer.dynamicsSequence()
 
-        print(2)
-
         optimized_motion_eff = kin_optimizer.motion_eff
 
-        print(3)
-
         time_vector = create_time_vector(dyn_optimizer.dynamicsSequence())
-
-        print(4)
 
         # 'define dynamics feedback controller'
         # dynamics_feedback = DynamicsFeedback()

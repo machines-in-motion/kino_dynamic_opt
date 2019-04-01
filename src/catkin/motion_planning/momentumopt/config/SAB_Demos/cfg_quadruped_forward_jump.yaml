@@ -79,7 +79,7 @@ planner_variables:
   display_motion: True
   num_dofs: 8
   # Number of dynamic and kinematic optimization iterations
-  kd_iterations: 2
+  kd_iterations: 1
   num_subsamples: 3
   active_dofs: [0, 1, 2, 3, 4, 5, 6, 7]
   min_joint_limits: [-1.5, -2.5, -1.5, -2.5, -1.5, -2.5, -1.5, -2.5]

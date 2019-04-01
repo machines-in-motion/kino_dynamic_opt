@@ -79,6 +79,10 @@ class QuadrupedWrapper():
     def update_configuration(self, delta_q):
         self.q = se3.integrate(self.model, self.q, delta_q)
 
+        # Compute joint and frame placements
+        # se3.forwardKinematics(self.model, self.data, self.q)
+        # se3.framesKinematics(self.model, self.data)
+
     def get_difference(self, q_1, q_2):
         return se3.difference(self.model, q_1, q_2)
 
