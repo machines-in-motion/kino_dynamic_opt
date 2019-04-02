@@ -91,40 +91,36 @@ class MotionPlanner():
         self.contact_plan.initialize(self.planner_setting)
         self.contact_plan.optimize(self.ini_state, self.terrain_description)
 
-
-    def optimize_motion(self):
         'optimize motion'
-        dyn_optimizer = self.dyn_optimizer = DynamicsOptimizer()
-        dyn_optimizer.initialize(self.planner_setting)
+        self.dyn_optimizer = DynamicsOptimizer()
+        self.dyn_optimizer.initialize(self.planner_setting)
 
         'Kinematics Optimizer'
-        kin_optimizer = self.kin_optimizer = KinematicsOptimizer()
-        kin_optimizer.initialize(self.planner_setting)
+        self.kin_optimizer = KinematicsOptimizer()
+        self.kin_optimizer.initialize(self.planner_setting)
 
-        print("DynOpt", 0)
+    def optimize_dynamics(self, kd_iter):
+        print("DynOpt", kd_iter)
         start = time.time()
-        dyn_optimizer.optimize(self.ini_state, self.contact_plan, kin_optimizer.kinematics_sequence, False)
-        end = time.time()
-        print("Dynopt - " ,end-start)
+        self.dyn_optimizer.optimize(self.ini_state, self.contact_plan,
+                                    self.kin_optimizer.kinematics_sequence, kd_iter > 0)
+        print("Dynopt - " , time.time() -start)
+
+    def optimize_kinematics(self, kd_iter, plotting=False):
+        print("KinOpt", kd_iter)
+        start = time.time()
+        self.kin_optimizer.optimize(self.ini_state, self.contact_plan.contactSequence(),
+                                    self.dyn_optimizer.dynamicsSequence(), plotting=plotting)
+        print("kinopt - ", time.time() - start)
+
+    def optimize_motion(self):
+        dyn_optimizer = self.dyn_optimizer
+        kin_optimizer = self.kin_optimizer
+
+        self.optimize_dynamics(0)
         for kd_iter in range(0, self.planner_setting.get(PlannerIntParam_KinDynIterations)):
-            print("KinOpt", kd_iter+1)
-            if kd_iter == self.planner_setting.get(PlannerIntParam_KinDynIterations) - 1:
-                start = time.time()
-                kin_optimizer.optimize(self.ini_state, self.contact_plan.contactSequence(), dyn_optimizer.dynamicsSequence(), plotting=True)
-                end = time.time()
-                print("kinopt - ", end-start)
-
-            else:
-                start = time.time()
-                kin_optimizer.optimize(self.ini_state, self.contact_plan.contactSequence(), dyn_optimizer.dynamicsSequence(), plotting=True)
-                end = time.time()
-                print("kinopt - ", end-start)
-
-            print("DynOpt", kd_iter+1)
-            start = time.time()
-            dyn_optimizer.optimize(self.ini_state, self.contact_plan, kin_optimizer.kinematics_sequence, True)
-            end = time.time()
-            print("dynopt - ", end-start)
+            self.optimize_kinematics(kd_iter + 1)
+            self.optimize_dynamics(kd_iter + 1, plotting=False)
 
         optimized_kin_plan = kin_optimizer.kinematics_sequence
         optimized_dyn_plan = dyn_optimizer.dynamicsSequence()
