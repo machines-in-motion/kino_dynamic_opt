@@ -91,8 +91,7 @@ class KinematicsOptimizer:
         # TODO: Set these using a config file
         self.offset = 0.0  # set constraint for z directly on floor
         self.q_max_delta = 10.0  # maximum difference in joint velocity
-        print("Warning: Please change dt according to config file....")
-        self.dt = 0.01  # dt for the incremental steps for the inverse kinematics
+        self.dt = planner_setting.get(PlannerDoubleParam_TimeStep)  # dt for the incremental steps for the inverse kinematics
         self.weights_value = 10.0  # value of the weights for all the tasks
         self.lambda_value = 0.0001  # value of the regularization
         self.w_not_in_contact = 1.0  # weight for non active end effector tracking
