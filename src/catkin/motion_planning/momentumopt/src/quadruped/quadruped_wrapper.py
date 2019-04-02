@@ -86,6 +86,12 @@ class QuadrupedWrapper():
     def get_difference(self, q_1, q_2):
         return se3.difference(self.model, q_1, q_2)
 
+    def get_world_oriented_frame_jacobian(self, index):
+        jac = se3.frameJacobian(self.model, self.data, self.q, index, se3.ReferenceFrame.LOCAL)
+        world_R_joint = se3.SE3(self.data.oMf[index].rotation, zero(3))
+        return world_R_joint.action.dot(jac)
+
+
     def get_jacobian(self, name, dofs=None, internal=True):
         if not self.model.existFrame(name) and not name == "COM":
             raise ValueError("Joint %s is not available." %name)
@@ -110,7 +116,8 @@ class QuadrupedWrapper():
             else:
                 index = self.model.getFrameId(name)
                 def eval_jac_internal():
-                    return se3.frameJacobian(self.model, self.data, self.q, index, se3.ReferenceFrame.LOCAL)[range_, :]
+                    return self.get_world_oriented_frame_jacobian(index)[range_, :]
+                    # return se3.frameJacobian(self.model, self.data, self.q, index, se3.ReferenceFrame.LOCAL)[range_, :]
                 return eval_jac_internal
         else:
             if name == "COM":
@@ -118,7 +125,8 @@ class QuadrupedWrapper():
             else:
                 index = self.model.getFrameId(name)
                 def eval_jac_at_q(q):
-                    return se3.frameJacobian(self.model, self.data, q, index, se3.ReferenceFrame.LOCAL)[range_, :]
+                    return self.get_world_oriented_frame_jacobian(index)[range_, :]
+                    # return se3.frameJacobian(self.model, self.data, q, index, se3.ReferenceFrame.LOCAL)[range_, :]
                 return eval_jac_at_q
 
     def get_centroidal_momentum(self):
