@@ -131,7 +131,7 @@ class QuadrupedWrapper():
 
     def get_centroidal_momentum(self):
         def eval_centroidal_momentum():
-            self.centroidalMomentum(self.q, self.dq)
+            self.robot.centroidalMomentum(self.q, self.dq)
             centroidal_momentum_matrix = self.data.Ag
             return centroidal_momentum_matrix
 
@@ -139,7 +139,7 @@ class QuadrupedWrapper():
 
     def get_d_centroidal_momentum(self):
         def eval_d_centroidal_momentum():
-            self.centroidalMomentum(self.q, self.dq)
+            self.robot.centroidalMomentum(self.q, self.dq)
             d_centroidal_momentum_matrix = self.data.dAg
             return d_centroidal_momentum_matrix
 
