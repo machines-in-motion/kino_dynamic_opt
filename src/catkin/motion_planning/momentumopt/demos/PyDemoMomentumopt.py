@@ -29,6 +29,8 @@ from src.momentumopt.kinoptpy.kinematics_optimizer import KinematicsOptimizer, c
 from src.momentumexe.motion_execution import MotionExecutor
 from src.momentumopt.kinoptpy.create_data_file import create_file, create_trajectory_file_impedance
 
+import matplotlib.pyplot as plt
+
 'Kinematics Interface using Pinocchio'
 class PinocchioKinematicsInterface(KinematicsInterface):
     def __init__(self):
@@ -112,6 +114,28 @@ class MotionPlanner():
         self.kin_optimizer.optimize(self.ini_state, self.contact_plan.contactSequence(),
                                     self.dyn_optimizer.dynamicsSequence(), plotting=plotting)
         print("kinopt - ", time.time() - start)
+
+    def plot_centroidal(self):
+        fig, axes = plt.subplots(3, 1, figsize=(6, 8), sharex=True)
+
+        dynseq = self.dyn_optimizer.dynamicsSequence()
+        kinseq = self.kin_optimizer.kinematics_sequence
+
+        for i, (ax, prop) in enumerate(zip(axes, ['com', 'lmom', 'amom'])):
+            data_dyn = np.array([getattr(ds, prop) for ds in dynseq.dynamics_states])
+            data_kin = np.array([getattr(ds, prop) for ds in kinseq.kinematics_states])
+
+            for dyn, kin, label in zip(data_dyn.T, data_kin.T, ['{}_{}'.format(prop, d) for d in ['x', 'y', 'z']]):
+                line = ax.plot(dyn, label=label, alpha=0.75)[0]
+                ax.plot(kin, '--', color=line.get_color())[0]
+
+            ax.legend()
+            ax.grid(True)
+
+        fig.suptitle('Centroidal info for dyn (-) and kin (--)')
+        fig.tight_layout(rect=[0, 0, 1., 0.95])
+
+        return fig, axes
 
     def optimize_motion(self):
         dyn_optimizer = self.dyn_optimizer
