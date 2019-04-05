@@ -18,6 +18,8 @@ class QuadWrapper():
         self.visualiser = visualiser
 
         package_dirs = str([os.path.dirname(os.path.dirname(os.path.abspath(__file__)))])
+        print('urdf', urdf)
+        print('package_dirs', package_dirs)
         self.robot = RobotWrapper.BuildFromURDF(urdf, package_dirs=package_dirs,root_joint=pin.JointModelFreeFlyer())
 
         ## setting robot parameters

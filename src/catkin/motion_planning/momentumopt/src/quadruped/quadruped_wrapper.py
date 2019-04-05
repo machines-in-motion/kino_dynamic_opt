@@ -11,10 +11,12 @@ class QuadrupedWrapper():
         ## For pinocchio_v2
         # RobotWrapper.BuildFromURDF(urdf, package_dirs=package_dirs, root_joint=se3.JointModelFreeFlyer())
         # RobotWrapper.__init__(self)
+        print('urdf', urdf)
+        print('package_dirs', package_dirs)
         self.robot = RobotWrapper.BuildFromURDF(urdf, package_dirs=package_dirs, root_joint=se3.JointModelFreeFlyer())
         # Create data again after setting frames
         self.model = self.robot.model
-        self.data = self.robot.model.createData()
+        self.data = self.robot.data
         if not q is None:
             self.set_configuration(q)
         else:

@@ -106,6 +106,7 @@ namespace momentumopt {
       std::vector<ContactState>& endeffectorContacts(int eff_id) { return endeffector_contacts_[eff_id]; }
       const std::vector<ContactState>& endeffectorContacts(int eff_id) const { return endeffector_contacts_[eff_id]; }
       void endeffectorContacts(int eff_id, const std::vector<ContactState>& endeffector_contacts) { endeffector_contacts_[eff_id] = endeffector_contacts; }
+      const long endeffectorNum() { return endeffector_contacts_.size(); }
 
       std::string toString() const;
       friend std::ostream& operator<<(std::ostream &os, const ContactSequence& obj) { return os << obj.toString(); }
