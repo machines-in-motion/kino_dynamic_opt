@@ -67,7 +67,7 @@ class PinocchioKinematicsInterface(KinematicsInterface):
 
 class MotionPlanner():
 
-    def __init__(self, cfg_file):
+    def __init__(self, cfg_file, KinOpt=KinematicsOptimizer):
         'define problem configuration'
         self.planner_setting = PlannerSetting()
         self.planner_setting.initialize(cfg_file)
@@ -98,7 +98,7 @@ class MotionPlanner():
         self.dyn_optimizer.initialize(self.planner_setting)
 
         'Kinematics Optimizer'
-        self.kin_optimizer = KinematicsOptimizer()
+        self.kin_optimizer = KinOpt()
         self.kin_optimizer.initialize(self.planner_setting)
 
     def optimize_dynamics(self, kd_iter):
@@ -136,6 +136,12 @@ class MotionPlanner():
         fig.tight_layout(rect=[0, 0, 1., 0.95])
 
         return fig, axes
+
+    def replay_kinematics(self):
+        for ks in self.kin_optimizer.kinematics_sequence.kinematics_states:
+            q = ks.robot_posture.generalized_joint_positions
+            self.kin_optimizer.robot.display(np.matrix(q).T)
+            time.sleep(self.kin_optimizer.dt)
 
     def optimize_motion(self):
         dyn_optimizer = self.dyn_optimizer
