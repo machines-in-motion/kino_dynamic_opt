@@ -167,7 +167,8 @@ class MomentumKinematicsOptimizer(object):
         amom_ref = np.zeros(3)
         endeff_pos_ref = np.array([self.init_state.effPosition(i) for i in range(self.init_state.effNum())])
         endeff_vel_ref = np.matrix(np.zeros((self.init_state.effNum(), 3)))
-        quad_goal = se3.Quaternion(se3.rpy.rpyToMatrix(np.matrix([0.0, 0, 0]).T))
+        quad_goal = se3.Quaternion(se3.rpy.rpyToMatrix(np.matrix([0.0, 0, np.pi/4.]).T))
+        q[3:7] = quad_goal.coeffs()
 
         for iters in range(self.max_iterations):
             # Adding small P controller for the base orientation to always start with flat

@@ -49,7 +49,7 @@ class PointContactInverseKinematics(object):
 
     def fill_jacobians(self, q):
         # REVIEW(jviereck): The Ludo invkin sets the angular momentum part to the identity.
-        self.J[:6, :] = self.rotate_J(self.robot.data.Ag, self.base_id)
+        self.J[:6, :] = self.robot.data.Ag
 #         self.J[:3, :] = robot.data.Jcom * invkin.mass
         for i, idx in enumerate(self.endeff_ids):
             self.J[6 + 3 * i: 6 + 3 * (i + 1), :] = self.get_world_oriented_frame_jacobian(q, idx)[:3]
