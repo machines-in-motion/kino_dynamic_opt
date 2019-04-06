@@ -84,6 +84,12 @@ class MomentumKinematicsOptimizer(object):
     def __init__(self):
         self.q_init = None
         self.dq_init = None
+        self.reg_orientation = 1e-2
+
+    def reset(self):
+        self.kinematics_sequence = KinematicsSequence()
+        self.kinematics_sequence.resize(self.planner_setting.get(PlannerIntParam_NumTimesteps),
+                                        self.planner_setting.get(PlannerIntParam_NumDofs))
 
     def initialize(self, planner_setting, max_iterations=50, eps=0.001, endeff_traj_generator=endeff_traj_generator):
         self.planner_setting = planner_setting
@@ -100,10 +106,7 @@ class MomentumKinematicsOptimizer(object):
         # print("urdf_path:", urdf)
         self.robot = QuadrupedWrapper(urdf)
 
-
-        self.kinematics_sequence = KinematicsSequence()
-        self.kinematics_sequence.resize(planner_setting.get(PlannerIntParam_NumTimesteps),
-                                        planner_setting.get(PlannerIntParam_NumDofs))
+        self.reset()
 
         # Holds dynamics and kinematics results
         self.com_dyn = np.zeros((self.num_time_steps, 3))
@@ -174,7 +177,7 @@ class MomentumKinematicsOptimizer(object):
             # Adding small P controller for the base orientation to always start with flat
             # oriented base.
             quad_q = se3.Quaternion(float(q[6]), float(q[3]), float(q[4]), float(q[5]))
-            amom_ref = -1e-2 * se3.log((quad_q * quad_goal).matrix())
+            amom_ref = 1e-2 * se3.log((quad_goal * quad_q.inverse()).matrix())
 
             res = self.inv_kin.compute(q, dq, com_ref, lmom_ref, amom_ref,
                                       endeff_pos_ref, endeff_vel_ref)
@@ -204,15 +207,15 @@ class MomentumKinematicsOptimizer(object):
         if self.q_init is None:
             self.optimize_initial_position(init_state)
 
-        # momentum_ref[:3]
-        self.inv_kin.w_com_tracking[:3] = 1e-2
-        self.inv_kin.w_com_tracking[3:] = 100.
-
         # Compute inverse kinematics over the full trajectory.
         q, dq = self.q_init.copy(), self.dq_init.copy()
         for it in range(self.num_time_steps):
+            quad_goal = se3.Quaternion(se3.rpy.rpyToMatrix(np.matrix([0.0, 0, np.pi/4.]).T))
+            quad_q = se3.Quaternion(float(q[6]), float(q[3]), float(q[4]), float(q[5]))
+            amom_ref = (self.reg_orientation * se3.log((quad_goal * quad_q.inverse()).matrix()).T + self.amom_dyn[it]).reshape(-1)
+
             dq = self.inv_kin.compute(
-                    q, dq, self.com_dyn[it], self.lmom_dyn[it], self.amom_dyn[it],
+                    q, dq, self.com_dyn[it], self.lmom_dyn[it], amom_ref,
                     self.endeff_pos_ref[it], self.endeff_vel_ref[it])
 
             # Fill the kinematics results for it.
