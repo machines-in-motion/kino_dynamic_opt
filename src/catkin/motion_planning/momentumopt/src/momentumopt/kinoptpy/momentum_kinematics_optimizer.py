@@ -71,13 +71,21 @@ def endeff_traj_generator(mom_kin_optimizer):
     # Compute the endeffector position and velocity trajectories.
     endeff_pos_ref = np.zeros((num_time_steps, num_eff, 3))
     endeff_vel_ref = np.zeros((num_time_steps, num_eff, 3))
+    endeff_contact = np.zeros((num_time_steps, num_eff))
 
     for it in range(num_time_steps):
         for eff, name in enumerate(mom_kin_optimizer.eff_names):
             endeff_pos_ref[it][eff] = [eff_traj_poly[name][i].eval(it * dt) for i in range(3)]
             endeff_vel_ref[it][eff] = [eff_traj_poly[name][i].deval(it * dt) for i in range(3)]
 
-    return endeff_pos_ref, endeff_vel_ref
+            # HACK: If the velocity is zero, assume the endeffector is in
+            # contact with the ground.
+            if np.all(endeff_vel_ref[it][eff] == 0.):
+                endeff_contact[it][eff] = 1.
+            else:
+                endeff_contact[it][eff] = 0.
+
+    return endeff_pos_ref, endeff_vel_ref, endeff_contact
 
 
 class MomentumKinematicsOptimizer(object):
@@ -131,7 +139,8 @@ class MomentumKinematicsOptimizer(object):
           self.amom_dyn[it] = self.dynamic_sequence.dynamics_states[it].amom
 
     def fill_endeffector_trajectory(self):
-        self.endeff_pos_ref, self.endeff_vel_ref = self.endeff_traj_generator(self)
+        self.endeff_pos_ref, self.endeff_vel_ref, self.endeff_contact = \
+                self.endeff_traj_generator(self)
 
     def fill_kinematic_result(self, it, q, dq):
         hg = self.inv_kin.robot.centroidalMomentum(q, dq)
@@ -170,7 +179,8 @@ class MomentumKinematicsOptimizer(object):
         amom_ref = np.zeros(3)
         endeff_pos_ref = np.array([self.init_state.effPosition(i) for i in range(self.init_state.effNum())])
         endeff_vel_ref = np.matrix(np.zeros((self.init_state.effNum(), 3)))
-        quad_goal = se3.Quaternion(se3.rpy.rpyToMatrix(np.matrix([0.0, 0, np.pi/4.]).T))
+        endeff_contact = np.ones(self.init_state.effNum())
+        quad_goal = se3.Quaternion(se3.rpy.rpyToMatrix(np.matrix([0.0, 0, 0.]).T))
         q[3:7] = quad_goal.coeffs()
 
         for iters in range(self.max_iterations):
@@ -180,7 +190,7 @@ class MomentumKinematicsOptimizer(object):
             amom_ref = 1e-2 * se3.log((quad_goal * quad_q.inverse()).matrix())
 
             res = self.inv_kin.compute(q, dq, com_ref, lmom_ref, amom_ref,
-                                      endeff_pos_ref, endeff_vel_ref)
+                                      endeff_pos_ref, endeff_vel_ref, endeff_contact)
             q = se3.integrate(self.robot.model, q, res)
             self.robot.display(q)
 
@@ -210,13 +220,14 @@ class MomentumKinematicsOptimizer(object):
         # Compute inverse kinematics over the full trajectory.
         q, dq = self.q_init.copy(), self.dq_init.copy()
         for it in range(self.num_time_steps):
-            quad_goal = se3.Quaternion(se3.rpy.rpyToMatrix(np.matrix([0.0, 0, np.pi/4.]).T))
+            quad_goal = se3.Quaternion(se3.rpy.rpyToMatrix(np.matrix([0.0, 0, 0.]).T))
             quad_q = se3.Quaternion(float(q[6]), float(q[3]), float(q[4]), float(q[5]))
             amom_ref = (self.reg_orientation * se3.log((quad_goal * quad_q.inverse()).matrix()).T + self.amom_dyn[it]).reshape(-1)
 
             dq = self.inv_kin.compute(
                     q, dq, self.com_dyn[it], self.lmom_dyn[it], amom_ref,
-                    self.endeff_pos_ref[it], self.endeff_vel_ref[it])
+                    self.endeff_pos_ref[it], self.endeff_vel_ref[it],
+                    self.endeff_contact[it])
 
             # Fill the kinematics results for it.
             self.fill_kinematic_result(it, q, dq)

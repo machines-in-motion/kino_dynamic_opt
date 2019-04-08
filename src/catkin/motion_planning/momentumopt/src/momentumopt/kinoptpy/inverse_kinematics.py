@@ -24,7 +24,8 @@ class PointContactInverseKinematics(object):
         self.nv = self.model.nv
 
         # Tracking weights
-        self.w_endeff_tracking = np.ones(self.ne * 3)
+        self.w_endeff_tracking = 1.
+        self.w_endeff_contact = 1.
         self.w_com_tracking = np.ones(6)
 
         # P gains for tracking the position
@@ -62,7 +63,16 @@ class PointContactInverseKinematics(object):
                 self.p_endeff_tracking * (
                     endeff_pos_ref[i] - self.robot.data.oMf[idx].translation.T).T
 
-    def compute(self, q, dq, com_ref, lmom_ref, amom_ref, endeff_pos_ref, endeff_vel_ref):
+    def fill_weights(self, endeff_contact):
+        w = [self.w_com_tracking]
+        for eff in endeff_contact:
+            if eff == 1.: # If in contact
+                w.append(self.w_endeff_contact * np.ones(3))
+            else:
+                w.append(self.w_endeff_tracking * np.ones(3))
+        self.w = np.diag(np.hstack(w))
+
+    def compute(self, q, dq, com_ref, lmom_ref, amom_ref, endeff_pos_ref, endeff_vel_ref, endeff_contact):
         """
         Arguments:
             q: Current robot state
@@ -81,7 +91,7 @@ class PointContactInverseKinematics(object):
 
         self.fill_jacobians(q)
         self.fill_vel_des(q, dq, com_ref, lmom_ref, amom_ref, endeff_pos_ref, endeff_vel_ref)
-        self.w = np.diag(np.hstack([self.w_com_tracking, self.w_endeff_tracking]))
+        self.fill_weights(endeff_contact)
 
         return np.matrix(self.qp_solver.quadprog_solve_qp(
             self.J.T.dot(self.w).dot(self.J),

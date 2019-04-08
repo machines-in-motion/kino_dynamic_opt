@@ -32,6 +32,9 @@ class QuadrupedWrapper():
         self.initDisplay(loadModel=True)
         self.robot.viewer.gui.addFloor('world/floor')
 
+        self.robot.viewer.gui.applyConfiguration('world/floor',[0.0, 0.0, -0.32,  0.0, 0.0, 0.0, 1.0])
+        self.robot.viewer.gui.refresh()
+
         self.set_init_config()
 
         self.init_jacobians_and_trafos()
