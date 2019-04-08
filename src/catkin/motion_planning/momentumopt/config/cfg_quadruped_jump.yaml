@@ -54,14 +54,14 @@ contact_plan:
                             # -1.0 : no contact planning
 
   effcnt_rf:
-             [[0.0, 1.9,    0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
-              [2.1, 5.0,    0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
-  effcnt_lf: [[0.0, 1.9,   -0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0], 
-              [2.1, 5.0,   -0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
-  effcnt_rh: [[0.0, 1.9,    0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
-              [2.1, 5.0,    0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
-  effcnt_lh: [[0.0, 1.9,   -0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
-              [2.1, 5.0,   -0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
+             [[0.0, 2.,    0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
+              [2.4, 3.0,    0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
+  effcnt_lf: [[0.0, 2.,   -0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
+              [2.4, 3.0,   -0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
+  effcnt_rh: [[0.0, 2.,    0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
+              [2.4, 3.0,    0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
+  effcnt_lh: [[0.0, 2.,   -0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
+              [2.4, 3.0,   -0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
 
   effvia_rf: []
   effvia_lf: []
@@ -73,7 +73,7 @@ planner_variables:
   #########################
   # Kinematics parameters #
   #########################
-  
+
   load_kinematics: True
 
   display_motion: True
@@ -82,8 +82,8 @@ planner_variables:
   kd_iterations: 2
   num_subsamples: 3
   active_dofs: [0, 1, 2, 3, 4, 5, 6, 7]
-  min_joint_limits: [-2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5]
-  max_joint_limits: [ 2.5,  2.5,  2.5,  2.5,  2.5,  2.5,  2.5,  2.5]
+  min_joint_limits: [-1.5, -2.5, -1.5, -2.5, -1.5, -2.5, -1.5, -2.5]
+  max_joint_limits: [ 1.5,  2.5,  1.5,  2.5,  1.5,  2.5,  1.5,  2.5]
   default_joint_positions: [0.52, -1.04,  0.52, -1.04, -0.52,  1.04, -0.52,  1.04]
 
   #########################
@@ -120,11 +120,11 @@ planner_variables:
   # Dynamics parameters #
   #######################
 
-  heuristic: TimeOptimization  # Types: TrustRegion, SoftConstraint, TimeOptimization #
+  heuristic: SoftConstraint  # Types: TrustRegion, SoftConstraint, TimeOptimization #
   n_act_eefs: 4
   # time step discretization
-  time_step: 0.05
-  time_horizon: 4.0
+  time_step: 0.01
+  time_horizon: 3.0
   external_force: [0.00, 0.00, 0.00]
   com_displacement: [0.00, 0.00, 0.00]
   # Will only read via points if this number is great than 0
@@ -152,7 +152,7 @@ planner_variables:
   friction_coeff: 0.2
   floor_height: -0.32
   # minimum allowed distance from the robot base to the floor
-  min_rel_height: 0.1
+  min_rel_height: 0.07
   friction_cone: LinearCone  # Types: LinearCone, SocCone #
   time_range: [0.02, 0.25]
   is_time_horizon_fixed: True
@@ -227,7 +227,7 @@ planner_variables:
   ##################
   # Solver setting #
   ##################
-  
+
   use_default_solver_setting: False
 
 
@@ -256,16 +256,16 @@ solverlqr_dynamics:
   ##########################
   # Lqr problem parameters #
   ##########################
-  
+
   problem_name: DynamicMomentumOptimization
-  time_step: 0.05
-  time_horizon: 4.0
+  time_step: 0.01
+  time_horizon: 3.0
   state_dimension: 9
   control_dimension: 12
   initial_state: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-  
+
   has_control_limits: False
-  
+
   #######################
   # Storage information #
   #######################
@@ -279,7 +279,7 @@ solverlqr_dynamics:
   user_parameters:
     control_cost: [0.001, 0.001, 0.001]
     com_tracking: [1.0, 1.0, 1.0]
-    lmom_tracking: [0.1, 0.1, 0.1] 
+    lmom_tracking: [0.1, 0.1, 0.1]
     amom_tracking: [0.1, 0.1, 0.1]
     com_final_tracking: [1.0, 1.0, 1.0]
     lmom_final_tracking: [0.1, 0.1, 0.1]
@@ -291,7 +291,7 @@ solver_variables:
   ###########################
   # Branch and Bound solver #
   ###########################
-  
+
   BnB_verbose: False
   BnB_max_iterations: 1000
   BnB_integer_tolerance: 1e-4
@@ -301,7 +301,7 @@ solver_variables:
   ##########################
   # Convergence tolerances #
   ##########################
-  
+
   feasibility_tolerance: 1e-7
   max_residual_tolerance: 1e-3
   absolute_suboptimality_gap: 1e-7
@@ -314,8 +314,8 @@ solver_variables:
   ############################
   # Equilibration parameters #
   ############################
-  
-  equil_iterations: 3  
+
+  equil_iterations: 3
   scaling_factor: 1.0
   equil_upper_bound: 1.0e3
   equil_lower_bound: 1.0e-3
@@ -323,14 +323,14 @@ solver_variables:
   ############################
   # Linear System parameters #
   ############################
-  
+
   dyn_reg_thresh: 1e-13
   lin_sys_accuracy: 1e-14
   err_reduction_factor: 6.0
   num_iter_ref_lin_solve: 9
   static_regularization: 7e-8
   dynamic_regularization: 2e-7
-  
+
   cg_step_rate: 2.0
   cg_full_precision: 1e-9
   cg_residual_bound: 1e-18
@@ -346,7 +346,7 @@ solver_variables:
   min_centering_step: 1e-4
   max_centering_step: 1.00
   step_length_scaling: 0.99
-  
+
   over_relaxation: 1.5
   optinfo_interval: 100
   converged_interval: 20
@@ -358,13 +358,13 @@ solver_variables:
 
   verbose: False
   warm_start: False
-  
+
   max_iters: 100
   ipsolver_max_iters: 100
   ipsolver_warm_iters: 100
   conicsolver_max_iters: 300
   conicsolver_warm_iters: 300
-  
+
   num_itrefs_trustregion: 2
   trust_region_threshold: 0.15
   soft_constraint_weight_full: 1.0e4

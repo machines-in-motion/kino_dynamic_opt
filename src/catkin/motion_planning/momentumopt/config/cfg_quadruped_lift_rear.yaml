@@ -4,7 +4,7 @@ initial_robot_configuration:
   # Initial robot configuration #
   ###############################
 
-  com: [0.0, 0.0, -0.1]
+  com: [0.0, 0.0, -0.08]
   amom: [0.0, 0.0, 0.0]
   lmom: [0.0, 0.0, 0.0]
   eef_ctrl:
@@ -40,11 +40,11 @@ contact_plan:
   # effcnt_lh: [[0.0, 1.5,   -0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
   #             [2.5, 5.0,   -0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
   effcnt_rf: [[0.0, 1.5,    0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
-              [2.5, 5.0,    0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
-  effcnt_lf: [[0.0, 1.5,   -0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0], 
-              [2.5, 5.0,   -0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
-  effcnt_rh: [[0.0, 5.0,    0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
-  effcnt_lh: [[0.0, 5.0,   -0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
+              [2.0, 3.0,    0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
+  effcnt_lf: [[0.0, 1.5,   -0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
+              [2.0, 3.0,   -0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
+  effcnt_rh: [[0.0, 3.0,    0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
+  effcnt_lh: [[0.0, 3.0,   -0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
 
   effvia_rf: []
   effvia_lf: []
@@ -56,17 +56,17 @@ planner_variables:
   #########################
   # Kinematics parameters #
   #########################
-  
+
   load_kinematics: True
 
   display_motion: True
   num_dofs: 8
-  kd_iterations: 2
+  kd_iterations: 5
   num_subsamples: 3
   active_dofs: [0, 1, 2, 3, 4, 5, 6, 7]
   min_joint_limits: [-2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5]
   max_joint_limits: [ 2.5,  2.5,  2.5,  2.5,  2.5,  2.5,  2.5,  2.5]
-  default_joint_positions: [0.52, -1.04,  0.52, -1.04, -0.52,  1.04, -0.52,  1.04]
+  default_joint_positions: [-0.52, 1.04,  -0.52, 1.04, -0.52,  1.04, -0.52,  1.04]
 
   #########################
   # Kinematics parameters #
@@ -105,7 +105,7 @@ planner_variables:
   heuristic: TimeOptimization  # Types: TrustRegion, SoftConstraint, TimeOptimization #
   n_act_eefs: 4
   time_step: 0.05
-  time_horizon: 4.0
+  time_horizon: 3.0
   external_force: [0.00, 0.00, 0.00]
   com_displacement: [0.00, 0.00, 0.00]
   num_com_viapoints: 0
@@ -130,7 +130,7 @@ planner_variables:
   floor_height: -0.32
   min_rel_height: 0.08
   friction_cone: LinearCone  # Types: LinearCone, SocCone #
-  time_range: [0.02, 0.25]
+  time_range: [0.05, 0.05]
   is_time_horizon_fixed: True
   torque_range: [0.0, 0.0]
   eff_offset_rf: [ 0.100, -0.200,  0.000]
@@ -141,7 +141,7 @@ planner_variables:
   cop_range_lf: [ 0.00,  0.00,  0.00,  0.00]
   cop_range_rh: [ 0.00,  0.00,  0.00,  0.00]
   cop_range_lh: [ 0.00,  0.00,  0.00,  0.00]
-  max_eef_lengths: [0.29,  0.29,  0.29,  0.29]
+  max_eef_lengths: [0.28,  0.28,  0.28,  0.28]
   has_torque_limits: False
   min_torque_limits: [-0.675, -0.675, -0.675, -0.675, -0.675, -0.675, -0.675, -0.675]
   max_torque_limits: [ 0.675,  0.675,  0.675,  0.675,  0.675,  0.675,  0.675,  0.675]
@@ -154,10 +154,10 @@ planner_variables:
   w_trq_leg:       0.000
   w_time_penalty:  0.000
   w_time:          1000.0
-  w_com:           [ 1000.,  1000.,  10000]
-  w_amom:          [ 1.000,  0.010,  0.010]
-  w_lmom:          [ 0.005,  0.001,  0.001]
-  w_amomd:         [ 0.100,  0.100,  0.100]
+  w_com:           [ 1000.,  1000.,  1000]
+  w_amom:          &w_amom [10000.0,  10000.0,  1000.0]
+  w_lmom:          &w_lmom [ 0.005,  0.001,  0.001]
+  w_amomd:         [ 0.010,  100.00,  0.010]
   w_lmomd:         [ 0.080,  0.005,  0.005]
   w_amom_final:    [ 10.00,  10.00,  10.00]
   w_lmom_final:    [ 10.00,  10.00,  10.00]
@@ -167,8 +167,8 @@ planner_variables:
   w_dfrc_arm:      [ 0.000,  0.000,  0.010]  # [ 0.000,  0.000,  0.000]
   w_dfrc_leg:      [ 0.000,  0.000,  0.010]  # [ 0.000,  0.000,  0.000]
   w_com_track:     [ 0.000,  0.000,  0.000]
-  w_lmom_track:    [ 1.000,  10.00,  10.00]
-  w_amom_track:    [ 100.0,  1.000,  1.000]
+  w_lmom_track:    *w_lmom
+  w_amom_track:    *w_amom
 
   ######################
   # Kinematics weights #
@@ -203,7 +203,7 @@ planner_variables:
   ##################
   # Solver setting #
   ##################
-  
+
   use_default_solver_setting: False
 
 
@@ -232,16 +232,16 @@ solverlqr_dynamics:
   ##########################
   # Lqr problem parameters #
   ##########################
-  
+
   problem_name: DynamicMomentumOptimization
   time_step: 0.05
-  time_horizon: 4.0
+  time_horizon: 3.0
   state_dimension: 9
   control_dimension: 12
   initial_state: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-  
+
   has_control_limits: False
-  
+
   #######################
   # Storage information #
   #######################
@@ -267,7 +267,7 @@ solver_variables:
   ###########################
   # Branch and Bound solver #
   ###########################
-  
+
   BnB_verbose: False
   BnB_max_iterations: 1000
   BnB_integer_tolerance: 1e-4
@@ -277,7 +277,7 @@ solver_variables:
   ##########################
   # Convergence tolerances #
   ##########################
-  
+
   feasibility_tolerance: 1e-7
   max_residual_tolerance: 1e-3
   absolute_suboptimality_gap: 1e-7
@@ -290,8 +290,8 @@ solver_variables:
   ############################
   # Equilibration parameters #
   ############################
-  
-  equil_iterations: 3  
+
+  equil_iterations: 3
   scaling_factor: 1.0
   equil_upper_bound: 1.0e3
   equil_lower_bound: 1.0e-3
@@ -299,14 +299,14 @@ solver_variables:
   ############################
   # Linear System parameters #
   ############################
-  
+
   dyn_reg_thresh: 1e-13
   lin_sys_accuracy: 1e-14
   err_reduction_factor: 6.0
   num_iter_ref_lin_solve: 9
   static_regularization: 7e-8
   dynamic_regularization: 2e-7
-  
+
   cg_step_rate: 2.0
   cg_full_precision: 1e-9
   cg_residual_bound: 1e-18
@@ -322,7 +322,7 @@ solver_variables:
   min_centering_step: 1e-4
   max_centering_step: 1.00
   step_length_scaling: 0.99
-  
+
   over_relaxation: 1.5
   optinfo_interval: 100
   converged_interval: 20
@@ -334,13 +334,13 @@ solver_variables:
 
   verbose: False
   warm_start: False
-  
+
   max_iters: 100
   ipsolver_max_iters: 100
   ipsolver_warm_iters: 100
   conicsolver_max_iters: 300
   conicsolver_warm_iters: 300
-  
+
   num_itrefs_trustregion: 2
   trust_region_threshold: 0.15
   soft_constraint_weight_full: 1.0e4

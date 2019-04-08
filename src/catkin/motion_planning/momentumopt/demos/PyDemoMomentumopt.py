@@ -16,7 +16,7 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
-
+import time
 from pysolver import *
 from pymomentum import *
 from pysolverlqr import *
@@ -24,10 +24,11 @@ from pinocchio.utils import *
 from pinocchio.robot_wrapper import RobotWrapper
 import os, sys, getopt, numpy as np, pinocchio as pin
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from momentumopt.kinoptpy.kinematics_optimizer import KinematicsOptimizer, create_time_vector
 from momentumexe.motion_execution import MotionExecutor
 from momentumopt.kinoptpy.create_data_file import create_file, create_trajectory_file_impedance
+
+import matplotlib.pyplot as plt
 
 'Kinematics Interface using Pinocchio'
 class PinocchioKinematicsInterface(KinematicsInterface):
@@ -97,7 +98,7 @@ def plot_com_motion(dynamics_states, kinematics_states):
 
 class MotionPlanner():
 
-    def __init__(self, cfg_file):
+    def __init__(self, cfg_file, KinOpt=KinematicsOptimizer):
         'define problem configuration'
         self.planner_setting = PlannerSetting()
         self.planner_setting.initialize(cfg_file)
@@ -123,26 +124,64 @@ class MotionPlanner():
         self.contact_plan.initialize(self.planner_setting)
         self.contact_plan.optimize(self.ini_state, self.terrain_description)
 
-
-    def optimize_motion(self):
         'optimize motion'
-        dyn_optimizer = DynamicsOptimizer()
-        dyn_optimizer.initialize(self.planner_setting)
+        self.dyn_optimizer = DynamicsOptimizer()
+        self.dyn_optimizer.initialize(self.planner_setting)
 
         'Kinematics Optimizer'
-        kin_optimizer = KinematicsOptimizer()
-        kin_optimizer.initialize(self.planner_setting)
+        self.kin_optimizer = KinOpt()
+        self.kin_optimizer.initialize(self.planner_setting)
 
-        print("DynOpt", 0)
-        dyn_optimizer.optimize(self.ini_state, self.contact_plan, kin_optimizer.kinematics_sequence, False)
+    def optimize_dynamics(self, kd_iter):
+        print("DynOpt", kd_iter)
+        start = time.time()
+        self.dyn_optimizer.optimize(self.ini_state, self.contact_plan,
+                                    self.kin_optimizer.kinematics_sequence, kd_iter > 0)
+        print("Dynopt - " , time.time() -start)
+
+    def optimize_kinematics(self, kd_iter, plotting=False):
+        print("KinOpt", kd_iter)
+        start = time.time()
+        self.kin_optimizer.optimize(self.ini_state, self.contact_plan.contactSequence(),
+                                    self.dyn_optimizer.dynamicsSequence(), plotting=plotting)
+        print("kinopt - ", time.time() - start)
+
+    def plot_centroidal(self):
+        fig, axes = plt.subplots(3, 1, figsize=(6, 8), sharex=True)
+
+        dynseq = self.dyn_optimizer.dynamicsSequence()
+        kinseq = self.kin_optimizer.kinematics_sequence
+
+        for i, (ax, prop) in enumerate(zip(axes, ['com', 'lmom', 'amom'])):
+            data_dyn = np.array([getattr(ds, prop) for ds in dynseq.dynamics_states])
+            data_kin = np.array([getattr(ds, prop) for ds in kinseq.kinematics_states])
+
+            for dyn, kin, label in zip(data_dyn.T, data_kin.T, ['{}_{}'.format(prop, d) for d in ['x', 'y', 'z']]):
+                line = ax.plot(dyn, label=label, alpha=0.75)[0]
+                ax.plot(kin, '--', color=line.get_color())[0]
+
+            ax.legend()
+            ax.grid(True)
+
+        fig.suptitle('Centroidal info for dyn (-) and kin (--)')
+        fig.tight_layout(rect=[0, 0, 1., 0.95])
+
+        return fig, axes
+
+    def replay_kinematics(self, start=0, end=None):
+        for ks in self.kin_optimizer.kinematics_sequence.kinematics_states[start:end]:
+            q = ks.robot_posture.generalized_joint_positions
+            self.kin_optimizer.robot.display(np.matrix(q).T)
+            time.sleep(self.kin_optimizer.dt)
+
+    def optimize_motion(self):
+        dyn_optimizer = self.dyn_optimizer
+        kin_optimizer = self.kin_optimizer
+
+        self.optimize_dynamics(0)
         for kd_iter in range(0, self.planner_setting.get(PlannerIntParam_KinDynIterations)):
-            print("KinOpt", kd_iter+1)
-            if kd_iter == self.planner_setting.get(PlannerIntParam_KinDynIterations) - 1:
-                kin_optimizer.optimize(self.ini_state, self.contact_plan.contactSequence(), dyn_optimizer.dynamicsSequence(), plotting=False)
-            else:
-                kin_optimizer.optimize(self.ini_state, self.contact_plan.contactSequence(), dyn_optimizer.dynamicsSequence(), plotting=False)
-            print("DynOpt", kd_iter+1)
-            dyn_optimizer.optimize(self.ini_state, self.contact_plan, kin_optimizer.kinematics_sequence, True)
+            self.optimize_kinematics(kd_iter + 1, plotting=False)
+            self.optimize_dynamics(kd_iter + 1)
 
         optimized_kin_plan = kin_optimizer.kinematics_sequence
         optimized_dyn_plan = dyn_optimizer.dynamicsSequence()
@@ -151,22 +190,23 @@ class MotionPlanner():
 
         time_vector = create_time_vector(dyn_optimizer.dynamicsSequence())
 
-        'define dynamics feedback controller'
-        dynamics_feedback = DynamicsFeedback()
-        dynamics_feedback.initialize(self.dynlqr_setting, self.planner_setting)
-        dynamics_feedback.optimize(self.ini_state, dyn_optimizer.dynamicsSequence())
-        '''
-        Access feedback gains using: dynamics_feedback.forceGain(time_id)
-                                    [currentCOM  - desiredCoM ]
-          deltaForce = forceGain *  [currentLMOM - desiredLMOM]
-                                    [currentAMOM - desiredAMOM]
-
-         Torque = PD(q,qdot) + J^T * (plannedForce + deltaForce)
-         Remember that plannedForce of dyn_optimizer is normalized by robot weight
-         (self.planner_setting.get(PlannerDoubleParam_RobotWeight)),
-         so you need to multiply it by that amount for it to work!
-         deltaForce comes already in the right units.
-        '''
+        dynamics_feedback = None
+        # 'define dynamics feedback controller'
+        # dynamics_feedback = DynamicsFeedback()
+        # dynamics_feedback.initialize(self.dynlqr_setting, self.planner_setting)
+        # dynamics_feedback.optimize(self.ini_state, dyn_optimizer.dynamicsSequence())
+        # '''
+        # Access feedback gains using: dynamics_feedback.forceGain(time_id)
+        #                             [currentCOM  - desiredCoM ]
+        #   deltaForce = forceGain *  [currentLMOM - desiredLMOM]
+        #                             [currentAMOM - desiredAMOM]
+        #
+        #  Torque = PD(q,qdot) + J^T * (plannedForce + deltaForce)
+        #  Remember that plannedForce of dyn_optimizer is normalized by robot weight
+        #  (self.planner_setting.get(PlannerDoubleParam_RobotWeight)),
+        #  so you need to multiply it by that amount for it to work!
+        #  deltaForce comes already in the right units.
+        # '''
 
         # print dyn_optimizer.solveTime()
         # print dyn_optimizer.dynamicsSequence().dynamics_states[planner_setting.get(PlannerIntParam_NumTimesteps)-1]
@@ -202,7 +242,7 @@ def main(argv):
             dynamics_feedback,
             motion_planner.planner_setting.get(PlannerDoubleParam_RobotWeight))
     create_trajectory_file_impedance(time_vector, optimized_motion_eff, optimized_kin_plan)
-    simulation = True
+    simulation = False
 
     # plot_com_motion(optimized_dyn_plan.dynamics_states, optimized_kin_plan.kinematics_states)
 

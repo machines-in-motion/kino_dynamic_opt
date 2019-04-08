@@ -43,7 +43,8 @@ void init_contacts(py::module &m)
   py::class_<ContactSequence>(m, "ContactSequence")
     .def(py::init<>())
     .def("contact_states", (const std::vector<ContactState>& (ContactSequence::*)(int) const) &ContactSequence::endeffectorContacts)
-	.def("__repr__", [](const ContactSequence &cnt_seq) { return cnt_seq.toString(); } );
+    .def("eff_num", (const long (ContactSequence::*)() const) &ContactSequence::endeffectorNum)
+    .def("__repr__", [](const ContactSequence &cnt_seq) { return cnt_seq.toString(); } );
 
   py::class_<ContactPlanInterface, ContactPlanFromFile>(m, "ContactPlanFromFile")
     .def(py::init<>())

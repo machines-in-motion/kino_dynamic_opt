@@ -43,6 +43,18 @@ class Polynomial:
             raise ValueError("Polynomial has not been fitted yet.")
         return np.sum(np.power(x, self.coeffs[:, 1]) * self.coeffs[:, 0])
 
+    def deval(self, x):
+        if not self.fitted:
+            raise ValueError("Polynomial has not been fitted yet.")
+
+        # HACK: For a constant polynominal, don't use the normal equation
+        # as it leads to division by zero.
+        if self.coeffs.shape[0] == 1:
+            return 0.
+        else:
+            coeffs = self.differentiate()
+            return np.sum(np.power(x, coeffs[:, 1]) * coeffs[:, 0])
+
     def set_constraints(self, x_values, y_values, derivative_orders):
         for i in range(len(x_values)):
             self.set_constraint(x_values[i], y_values[i], derivative_orders[i])
@@ -147,11 +159,18 @@ class PolynominalList(object):
         self.times.append(t)
         self.polynominals.append(poly)
 
-    def eval(self, t):
+    def get_poly(self, t):
         i = 0
         while i < len(self.times) - 1 and self.times[i][1] < t:
             i += 1
-        return self.polynominals[i].eval(t)
+        return self.polynominals[i]
+
+    def eval(self, t):
+        return self.get_poly(t).eval(t)
+
+    def deval(self, t):
+        return self.get_poly(t).deval(t)
+
 
 def generate_eff_traj(contacts, z_max, z_min):
     effs = contacts.keys()
@@ -159,37 +178,31 @@ def generate_eff_traj(contacts, z_max, z_min):
 
     for eff in effs:
         cnt = contacts[eff]
-        num_transitions = len(cnt) - 1
+        num_contacts = len(cnt)
 
-        # TODO: Implement for an arbitrary amount of contact transitions
-        if num_transitions == 0:
-            # TODO: This should not be needed actually
-            position = cnt[0].position()
-            x_pos = position[0]
-            poly_x = constant_poly(x_pos)
-            y_pos = position[1]
-            poly_y = constant_poly(y_pos)
-            z_pos = position[2]
-            poly_z = constant_poly(z_pos)
+        poly_traj = [
+            PolynominalList(), PolynominalList(), PolynominalList()
+        ]
 
-            eff_traj_poly[eff] = [poly_x, poly_y, poly_z]
-        else:
-            poly_traj = [
-                PolynominalList(), PolynominalList(), PolynominalList()
-            ]
-            for i in range(num_transitions):
+        for i in range(num_contacts):
+            # Create a constant polynominal for endeffector on the ground.
+            t = [cnt[i].start_time(), cnt[i].end_time()]
+            for idx in range(3):
+                poly_traj[idx].append(t, constant_poly(cnt[i].position()[idx]))
+
+            # If there is a contact following, add the transition between
+            # the two contact points.
+            if i < num_contacts - 1:
                 t = [cnt[i].end_time(), cnt[i+1].start_time()]
 
                 for idx in range(3):
                     via = None
                     if idx == 2:
-                        via = 1.0 * max((z_max - z_min), 0.1) + cnt[i].position()[idx]
+                        via = max(0.68*(z_max - z_min), 0.1) + cnt[i].position()[idx]
                     poly = poly_points(t, cnt[i].position()[idx], cnt[i+1].position()[idx], via)
                     poly_traj[idx].append(t, poly)
 
-            eff_traj_poly[eff] = poly_traj
-
-
+        eff_traj_poly[eff] = poly_traj
 
     # returns end eff trajectories
     return eff_traj_poly

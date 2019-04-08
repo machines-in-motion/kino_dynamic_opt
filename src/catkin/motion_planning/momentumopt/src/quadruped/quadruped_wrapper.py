@@ -11,6 +11,8 @@ class QuadrupedWrapper():
         ## For pinocchio_v2
         # RobotWrapper.BuildFromURDF(urdf, package_dirs=package_dirs, root_joint=se3.JointModelFreeFlyer())
         # RobotWrapper.__init__(self)
+        print('urdf', urdf)
+        print('package_dirs', package_dirs)
         self.robot = RobotWrapper.BuildFromURDF(urdf, package_dirs=package_dirs, root_joint=se3.JointModelFreeFlyer())
         # Create data again after setting frames
         self.model = self.robot.model
@@ -29,6 +31,9 @@ class QuadrupedWrapper():
 
         self.initDisplay(loadModel=True)
         self.robot.viewer.gui.addFloor('world/floor')
+
+        self.robot.viewer.gui.applyConfiguration('world/floor',[0.0, 0.0, -0.32,  0.0, 0.0, 0.0, 1.0])
+        self.robot.viewer.gui.refresh()
 
         self.set_init_config()
 
@@ -79,8 +84,18 @@ class QuadrupedWrapper():
     def update_configuration(self, delta_q):
         self.q = se3.integrate(self.model, self.q, delta_q)
 
+        # Compute joint and frame placements
+        # se3.forwardKinematics(self.model, self.data, self.q)
+        # se3.framesKinematics(self.model, self.data)
+
     def get_difference(self, q_1, q_2):
         return se3.difference(self.model, q_1, q_2)
+
+    def get_world_oriented_frame_jacobian(self, index):
+        jac = se3.frameJacobian(self.model, self.data, self.q, index, se3.ReferenceFrame.LOCAL)
+        world_R_joint = se3.SE3(self.data.oMf[index].rotation, zero(3))
+        return world_R_joint.action.dot(jac)
+
 
     def get_jacobian(self, name, dofs=None, internal=True):
         if not self.model.existFrame(name) and not name == "COM":
@@ -106,7 +121,8 @@ class QuadrupedWrapper():
             else:
                 index = self.model.getFrameId(name)
                 def eval_jac_internal():
-                    return se3.frameJacobian(self.model, self.data, self.q, index, se3.ReferenceFrame.LOCAL)[range_, :]
+                    return self.get_world_oriented_frame_jacobian(index)[range_, :]
+                    # return se3.frameJacobian(self.model, self.data, self.q, index, se3.ReferenceFrame.LOCAL)[range_, :]
                 return eval_jac_internal
         else:
             if name == "COM":
@@ -114,12 +130,13 @@ class QuadrupedWrapper():
             else:
                 index = self.model.getFrameId(name)
                 def eval_jac_at_q(q):
-                    return se3.frameJacobian(self.model, self.data, q, index, se3.ReferenceFrame.LOCAL)[range_, :]
+                    return self.get_world_oriented_frame_jacobian(index)[range_, :]
+                    # return se3.frameJacobian(self.model, self.data, q, index, se3.ReferenceFrame.LOCAL)[range_, :]
                 return eval_jac_at_q
 
     def get_centroidal_momentum(self):
         def eval_centroidal_momentum():
-            self.centroidalMomentum(self.q, self.dq)
+            self.robot.centroidalMomentum(self.q, self.dq)
             centroidal_momentum_matrix = self.data.Ag
             return centroidal_momentum_matrix
 
@@ -127,7 +144,7 @@ class QuadrupedWrapper():
 
     def get_d_centroidal_momentum(self):
         def eval_d_centroidal_momentum():
-            self.centroidalMomentum(self.q, self.dq)
+            self.robot.centroidalMomentum(self.q, self.dq)
             d_centroidal_momentum_matrix = self.data.dAg
             return d_centroidal_momentum_matrix
 
