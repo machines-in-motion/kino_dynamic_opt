@@ -9,7 +9,7 @@ from pinocchio.utils import zero
 from pymomentum import *
 
 from quadruped.quadruped_wrapper import QuadrupedWrapper
-from momentumopt.kinoptpy.min_jerk_traj import generate_eff_traj
+from momentumopt.kinoptpy.min_jerk_traj import *
 
 from pymomentum import \
     PlannerVectorParam_KinematicDefaultJointPositions, \
@@ -47,45 +47,87 @@ def get_contact_plan(contact_states, effs):
     return contacts
 
 
-def endeff_traj_generator(mom_kin_optimizer):
-    """
-    Computes the endeffector positions and velocities.
+def generate_eff_traj(contacts, z_offset):
+    effs = contacts.keys()
+    eff_traj_poly = {}
 
-    Returns endeff_pos_ref, endeff_vel_ref
-        [0]: endeff_pos_ref: np.array, shape=[num_time_steps, num_eff, 3={x, y, z}]
-        [1]: endeff_vel_ref: np.array, shape=[num_time_steps, num_eff, 3={x, y, z}]
-    """
+    for eff in effs:
+        cnt = contacts[eff]
+        num_contacts = len(cnt)
 
-    dt = mom_kin_optimizer.dt
-    num_eff = len(mom_kin_optimizer.eff_names)
-    num_time_steps = mom_kin_optimizer.num_time_steps
+        poly_traj = [
+            PolynominalList(), PolynominalList(), PolynominalList()
+        ]
 
-    contacts = get_contact_plan(mom_kin_optimizer.contact_sequence.contact_states,
-                                mom_kin_optimizer.eff_names)
+        for i in range(num_contacts):
+            # Create a constant polynominal for endeffector on the ground.
+            t = [cnt[i].start_time(), cnt[i].end_time()]
+            for idx in range(3):
+                poly_traj[idx].append(t, constant_poly(cnt[i].position()[idx]))
 
-    # Generate minimum jerk trajectories
-    z_max = max(mom_kin_optimizer.com_dyn[:, 2])
-    z_min = min(mom_kin_optimizer.com_dyn[:, 2])
-    eff_traj_poly = generate_eff_traj(contacts, z_max, z_min)
+            # If there is a contact following, add the transition between
+            # the two contact points.
+            if i < num_contacts - 1:
+                t = [cnt[i].end_time(), cnt[i+1].start_time()]
 
-    # Compute the endeffector position and velocity trajectories.
-    endeff_pos_ref = np.zeros((num_time_steps, num_eff, 3))
-    endeff_vel_ref = np.zeros((num_time_steps, num_eff, 3))
-    endeff_contact = np.zeros((num_time_steps, num_eff))
+                for idx in range(3):
+                    via = None
+                    if idx == 2:
+                        via = z_offset + cnt[i].position()[idx]
+                    poly = poly_points(t, cnt[i].position()[idx], cnt[i+1].position()[idx], via)
+                    poly_traj[idx].append(t, poly)
 
-    for it in range(num_time_steps):
-        for eff, name in enumerate(mom_kin_optimizer.eff_names):
-            endeff_pos_ref[it][eff] = [eff_traj_poly[name][i].eval(it * dt) for i in range(3)]
-            endeff_vel_ref[it][eff] = [eff_traj_poly[name][i].deval(it * dt) for i in range(3)]
+        eff_traj_poly[eff] = poly_traj
 
-            # HACK: If the velocity is zero, assume the endeffector is in
-            # contact with the ground.
-            if np.all(endeff_vel_ref[it][eff] == 0.):
-                endeff_contact[it][eff] = 1.
-            else:
-                endeff_contact[it][eff] = 0.
+    # returns end eff trajectories
+    return eff_traj_poly
 
-    return endeff_pos_ref, endeff_vel_ref, endeff_contact
+
+class EndeffectorTrajectoryGenerator(object):
+    def __init__(self):
+        self.z_offset = 0.1
+
+    def get_z_bound(self, mom_kin_optimizer):
+        z_max = min(max(mom_kin_optimizer.com_dyn[:, 2]), self.max_bound)
+        z_min = max(min(mom_kin_optimizer.com_dyn[:, 2]), self.min_bound)
+        return z_max, z_min
+
+    def __call__(self, mom_kin_optimizer):
+        """
+        Computes the endeffector positions and velocities.
+
+        Returns endeff_pos_ref, endeff_vel_ref
+            [0]: endeff_pos_ref: np.array, shape=[num_time_steps, num_eff, 3={x, y, z}]
+            [1]: endeff_vel_ref: np.array, shape=[num_time_steps, num_eff, 3={x, y, z}]
+        """
+        dt = mom_kin_optimizer.dt
+        num_eff = len(mom_kin_optimizer.eff_names)
+        num_time_steps = mom_kin_optimizer.num_time_steps
+
+        contacts = get_contact_plan(mom_kin_optimizer.contact_sequence.contact_states,
+                                    mom_kin_optimizer.eff_names)
+
+        # Generate minimum jerk trajectories
+        eff_traj_poly = generate_eff_traj(contacts, self.z_offset)
+
+        # Compute the endeffector position and velocity trajectories.
+        endeff_pos_ref = np.zeros((num_time_steps, num_eff, 3))
+        endeff_vel_ref = np.zeros((num_time_steps, num_eff, 3))
+        endeff_contact = np.zeros((num_time_steps, num_eff))
+
+        for it in range(num_time_steps):
+            for eff, name in enumerate(mom_kin_optimizer.eff_names):
+                endeff_pos_ref[it][eff] = [eff_traj_poly[name][i].eval(it * dt) for i in range(3)]
+                endeff_vel_ref[it][eff] = [eff_traj_poly[name][i].deval(it * dt) for i in range(3)]
+
+                # HACK: If the velocity is zero, assume the endeffector is in
+                # contact with the ground.
+                if np.all(endeff_vel_ref[it][eff] == 0.):
+                    endeff_contact[it][eff] = 1.
+                else:
+                    endeff_contact[it][eff] = 0.
+
+        return endeff_pos_ref, endeff_vel_ref, endeff_contact
 
 
 class MomentumKinematicsOptimizer(object):
@@ -99,8 +141,11 @@ class MomentumKinematicsOptimizer(object):
         self.kinematics_sequence.resize(self.planner_setting.get(PlannerIntParam_NumTimesteps),
                                         self.planner_setting.get(PlannerIntParam_NumDofs))
 
-    def initialize(self, planner_setting, max_iterations=50, eps=0.001, endeff_traj_generator=endeff_traj_generator):
+    def initialize(self, planner_setting, max_iterations=50, eps=0.001, endeff_traj_generator=None):
         self.planner_setting = planner_setting
+
+        if endeff_traj_generator is None:
+            endeff_traj_generator = EndeffectorTrajectoryGenerator()
         self.endeff_traj_generator = endeff_traj_generator
 
         self.dt = planner_setting.get(PlannerDoubleParam_TimeStep)
