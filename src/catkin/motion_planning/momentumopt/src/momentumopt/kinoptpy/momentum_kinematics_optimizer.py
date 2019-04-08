@@ -174,12 +174,12 @@ class MomentumKinematicsOptimizer(object):
             self.planner_setting.get(PlannerVectorParam_KinematicDefaultJointPositions)).T
         dq = np.matrix(np.zeros(self.robot.robot.nv)).T
 
-        com_ref = self.init_state.com
+        com_ref = init_state.com
         lmom_ref = np.zeros(3)
         amom_ref = np.zeros(3)
-        endeff_pos_ref = np.array([self.init_state.effPosition(i) for i in range(self.init_state.effNum())])
-        endeff_vel_ref = np.matrix(np.zeros((self.init_state.effNum(), 3)))
-        endeff_contact = np.ones(self.init_state.effNum())
+        endeff_pos_ref = np.array([init_state.effPosition(i) for i in range(init_state.effNum())])
+        endeff_vel_ref = np.matrix(np.zeros((init_state.effNum(), 3)))
+        endeff_contact = np.ones(init_state.effNum())
         quad_goal = se3.Quaternion(se3.rpy.rpyToMatrix(np.matrix([0.0, 0, 0.]).T))
         q[3:7] = quad_goal.coeffs()
 
