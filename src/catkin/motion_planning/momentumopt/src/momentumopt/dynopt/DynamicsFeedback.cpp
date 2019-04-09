@@ -14,8 +14,10 @@ namespace momentumopt {
     this->stateSeq().state(0).stateVector().segment<3>(3) = ini_state.linearMomentum();
     this->stateSeq().state(0).stateVector().segment<3>(6) = ini_state.angularMomentum();
 
-    assert(this->tdim() == this->dynamicsSequence().size() &&
-          "LQR and trajectory optimization size do not match.");
+    if (this->tdim() != this->dynamicsSequence().size()) {
+        throw std::runtime_error("LQR and trajectory optimization size do not match. "
+                "Check if the LQR time_step and time_horizon match the dynamics parameters.");
+    }
 
     for (int time_id=0; time_id<this->dynamicsSequence().size(); time_id++) {
       this->controlSeq().control(time_id).feedforward().setZero();
