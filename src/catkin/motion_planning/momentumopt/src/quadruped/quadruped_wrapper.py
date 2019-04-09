@@ -96,7 +96,6 @@ class QuadrupedWrapper():
         world_R_joint = se3.SE3(self.data.oMf[index].rotation, zero(3))
         return world_R_joint.action.dot(jac)
 
-
     def get_jacobian(self, name, dofs=None, internal=True):
         if not self.model.existFrame(name) and not name == "COM":
             raise ValueError("Joint %s is not available." %name)

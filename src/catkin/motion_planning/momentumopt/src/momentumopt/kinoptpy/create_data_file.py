@@ -15,6 +15,8 @@ def create_file(time_vector, optimized_sequence, optimized_dyn_plan, dynamics_fe
     desired_com = desired_state("COM", time_vector, optimized_sequence=optimized_sequence)
     desired_lmom = desired_state("LMOM", time_vector, optimized_sequence=optimized_sequence)
     desired_amom = desired_state("AMOM", time_vector, optimized_sequence=optimized_sequence)
+
+
     # desired_dyn_feedback = desired_state("DYN_FEEDBACK", time_vector, optimized_sequence=optimized_sequence,
     #                                 dynamics_feedback=dynamics_feedback)
     desired_forces = desired_state("FORCES", time_vector, optimized_sequence=optimized_sequence,

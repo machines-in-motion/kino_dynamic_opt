@@ -220,11 +220,6 @@ class MotionPlanner():
 
         time_vector = create_time_vector(dyn_optimizer.dynamicsSequence())
 
-
-        # print dyn_optimizer.solveTime()
-        # print dyn_optimizer.dynamicsSequence().dynamics_states[planner_setting.get(PlannerIntParam_NumTimesteps)-1]
-        # print contact_plan.contactSequence().contact_states(0)[0].position
-
         return optimized_kin_plan, optimized_motion_eff, optimized_dyn_plan, self.dynamics_feedback, self.planner_setting, time_vector
 
 
