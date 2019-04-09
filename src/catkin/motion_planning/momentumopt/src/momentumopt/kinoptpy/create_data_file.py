@@ -20,15 +20,7 @@ def create_file(time_vector, optimized_sequence, optimized_dyn_plan, dynamics_fe
     desired_forces = desired_state("FORCES", time_vector, optimized_sequence=optimized_sequence,
                                     optimized_dyn_plan=optimized_dyn_plan)
 
-    max_time = 0 # time horizon in seconds
-
-    if time_vector[-1] - int(time_vector[-1]) > 0.0:
-        max_time = int(time_vector[-1]) + 1
-    else:
-        max_time = int(time_vector[-1])
-
-    num_points = max_time * sample_frequency
-
+    num_points = int(round(time_vector[-1] * sample_frequency))
     using_quadruped = True
 
     def dump_data(output_file, desired_fn, scale=1.):
