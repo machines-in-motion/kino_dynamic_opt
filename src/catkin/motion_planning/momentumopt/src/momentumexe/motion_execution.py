@@ -163,26 +163,21 @@ def query_gain_from_user(K, gain_str, entered_joint_id):
     return K
 
 
-class MotionExecutor():
-
-    def __init__(self, optimized_kin_plan, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector):
-        self.optimized_kin_plan = optimized_kin_plan
-        self.optimized_dyn_plan = optimized_dyn_plan
-        self.dynamics_feedback = dynamics_feedback
-        self.time_vector = time_vector
-        self.planner_setting = planner_setting
-
+class MotionSimulator(object):
+    def __init__(self, floor_height=0.3, bullet_direct=False):
         self.controlled_joints = 6
 
         self.tau_min = - 2.0
         self.tau_max = 2.0
 
-        physicsClient = p.connect(p.GUI)
-        # physicsClient = p.connect(p.DIRECT)
+        if bullet_direct:
+            physicsClient = p.connect(p.DIRECT)
+        else:
+            physicsClient = p.connect(p.GUI)
 
         urdf_base_string = str(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         planeId = p.loadURDF(urdf_base_string + "/urdf/plane_with_restitution.urdf")
-        cubeStartPos = [0,0,0.30]
+        cubeStartPos = [0, 0, floor_height]
         cubeStartOrientation = p.getQuaternionFromEuler([0,0,0])
         self.robotId = p.loadURDF(urdf_base_string + "/urdf/quadruped.urdf",cubeStartPos, cubeStartOrientation, flags=p.URDF_USE_INERTIA_FROM_FILE)
         cubePos, cubeOrn = p.getBasePositionAndOrientation(self.robotId)
@@ -211,6 +206,18 @@ class MotionExecutor():
             self.controlled_joints,
             ['BL_END', 'BR_END', 'FL_END', 'FR_END', ]
         )
+
+class MotionExecutor(MotionSimulator):
+
+    def __init__(self, optimized_kin_plan, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector):
+        super(MotionExecutor, self).__init__()
+
+        self.optimized_kin_plan = optimized_kin_plan
+        self.optimized_dyn_plan = optimized_dyn_plan
+        self.dynamics_feedback = dynamics_feedback
+        self.time_vector = time_vector
+        self.planner_setting = planner_setting
+
 
         q, dq = self.sim.get_state()
         q[7:] = self.optimized_kin_plan.kinematics_states[0].robot_posture.joint_positions.reshape((-1, 1))
