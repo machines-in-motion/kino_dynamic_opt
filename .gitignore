@@ -5,6 +5,9 @@ src/CMakeLists.txt
 *.dat
 *.pyc
 
+.vscode
+.ipynb_checkpoints
+
 *.project
 *.DS_Store
 *_results.yaml

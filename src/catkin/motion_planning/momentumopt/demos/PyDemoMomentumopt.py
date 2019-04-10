@@ -24,6 +24,7 @@ from pinocchio.utils import *
 from pinocchio.robot_wrapper import RobotWrapper
 import os, sys, getopt, numpy as np, pinocchio as pin
 
+from momentumopt.kinoptpy.momentum_kinematics_optimizer import MomentumKinematicsOptimizer
 from momentumopt.kinoptpy.kinematics_optimizer import KinematicsOptimizer, create_time_vector
 from momentumexe.motion_execution import MotionExecutor
 from momentumopt.kinoptpy.create_data_file import create_file, create_trajectory_file_impedance
@@ -185,6 +186,7 @@ class MotionPlanner():
 
         fig.suptitle('Centroidal info for dyn (-) and kin (--)')
         fig.tight_layout(rect=[0, 0, 1., 0.95])
+        plt.show()
 
         return fig, axes
 
@@ -227,8 +229,10 @@ class MotionPlanner():
 def main(argv):
 
     cfg_file = ''
+    kinopt = KinematicsOptimizer
+    use_momentum_kin_opt = False
     try:
-        opts, args = getopt.getopt(argv,"hi:",["ifile="])
+        opts, args = getopt.getopt(argv,"hi:m",["ifile="])
     except getopt.GetoptError:
         print ('PyDemoMomentumopt.py -i <path_to_datafile>')
         sys.exit(2)
@@ -237,26 +241,49 @@ def main(argv):
         if opt == '-h':
             print ('PyDemoMomentumopt.py -i <path_to_datafile>')
             sys.exit()
+        elif opt in ("-m"):
+            use_momentum_kin_opt = True
+            kinopt = MomentumKinematicsOptimizer
         elif opt in ("-i", "--ifile"):
             cfg_file = arg
 
+    print(opts)
     print(cfg_file)
 
-    motion_planner = MotionPlanner(cfg_file)
+    motion_planner = MotionPlanner(cfg_file, KinOpt=kinopt)
+
+    # TODO: Read the weights from the config file.
+    if use_momentum_kin_opt:
+        kin_optimizer = motion_planner.kin_optimizer
+        inv_kin = kin_optimizer.inv_kin
+        etg = kin_optimizer.endeff_traj_generator
+        etg.z_offset = 0.05
+
+        inv_kin.w_com_tracking[:3] = 1.
+        inv_kin.w_com_tracking[3:] = 10.
+        inv_kin.w_endeff_contact = 1.
+        inv_kin.p_endeff_tracking = 1.
+        inv_kin.p_com_tracking = 1.
+        kin_optimizer.reg_orientation = 0.05
+
     optimized_kin_plan, optimized_motion_eff, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector = motion_planner.optimize_motion()
 
-    # Create configuration and velocity file from motion plan for dynamic graph
-    create_file(time_vector, optimized_kin_plan, optimized_dyn_plan,
-            dynamics_feedback,
-            motion_planner.planner_setting.get(PlannerDoubleParam_RobotWeight))
-    create_trajectory_file_impedance(time_vector, optimized_motion_eff, optimized_kin_plan)
-    simulation = False
+    if use_momentum_kin_opt:
+        motion_planner.plot_centroidal()
+        motion_planner.save_files()
+    else:
+        # Create configuration and velocity file from motion plan for dynamic graph
+        create_file(time_vector, optimized_kin_plan, optimized_dyn_plan,
+                dynamics_feedback,
+                motion_planner.planner_setting.get(PlannerDoubleParam_RobotWeight))
+        create_trajectory_file_impedance(time_vector, optimized_motion_eff, optimized_kin_plan)
+        simulation = False
 
-    # plot_com_motion(optimized_dyn_plan.dynamics_states, optimized_kin_plan.kinematics_states)
+        # plot_com_motion(optimized_dyn_plan.dynamics_states, optimized_kin_plan.kinematics_states)
 
-    if simulation:
-        motion_executor = MotionExecutor(optimized_kin_plan, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector)
-        motion_executor.execute_motion(plotting=False, tune_online=False)
+        if simulation:
+            motion_executor = MotionExecutor(optimized_kin_plan, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector)
+            motion_executor.execute_motion(plotting=False, tune_online=False)
 
     print('Done...')
 

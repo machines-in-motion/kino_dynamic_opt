@@ -175,6 +175,7 @@ class MomentumKinematicsOptimizer(object):
         self.eff_names = ['{}_END'.format(eff) for eff in self.robot.effs]
         self.inv_kin = PointContactInverseKinematics(self.robot.model, self.eff_names)
 
+        self.motion_eff = {}
 
     def fill_data_from_dynamics(self):
         # The centroidal information
