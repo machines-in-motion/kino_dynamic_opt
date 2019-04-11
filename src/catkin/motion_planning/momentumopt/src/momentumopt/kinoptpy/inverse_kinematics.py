@@ -32,6 +32,9 @@ class PointContactInverseKinematics(object):
         self.p_endeff_tracking = 1.
         self.p_com_tracking = 1.
 
+        self.last_q = None
+        self.last_dq = None
+
         # Allocate space for the jacobian and desired velocities.
         # Using two entires for the linear and angular velocity of the base.
         self.J = np.zeros(((self.ne + 2) * 3, self.nv))
@@ -72,6 +75,15 @@ class PointContactInverseKinematics(object):
                 w.append(self.w_endeff_tracking * np.ones(3))
         self.w = np.diag(np.hstack(w))
 
+    def forward_robot(self, q, dq):
+        # Update the pinocchio model.
+        self.robot.forwardKinematics(q, dq)
+        self.robot.framesForwardKinematics(q)
+        self.robot.centroidalMomentum(q, dq)
+
+        self.last_q = q.copy()
+        self.last_dq = dq.copy()
+
     def compute(self, q, dq, com_ref, lmom_ref, amom_ref, endeff_pos_ref, endeff_vel_ref, endeff_contact):
         """
         Arguments:
@@ -83,15 +95,14 @@ class PointContactInverseKinematics(object):
             endeff_pos_ref: [N_endeff x 3] Reference endeffectors position in global coordinates
             endeff_vel_ref: [N_endeff x 3] Reference endeffectors velocity in global coordinates
         """
-
-        # Update the pinocchio model.
-        self.robot.forwardKinematics(q, dq)
-        self.robot.framesForwardKinematics(q)
-        self.robot.centroidalMomentum(q, dq)
+        if not np.all(np.equal(self.last_q, q)) or np.all(np.equal(self.last_dq, dq)):
+            self.forward_robot(q, dq)
 
         self.fill_jacobians(q)
         self.fill_vel_des(q, dq, com_ref, lmom_ref, amom_ref, endeff_pos_ref, endeff_vel_ref)
         self.fill_weights(endeff_contact)
+
+        self.forwarded_robot = False
 
         return np.matrix(self.qp_solver.quadprog_solve_qp(
             self.J.T.dot(self.w).dot(self.J),

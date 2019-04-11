@@ -172,10 +172,17 @@ class MomentumKinematicsOptimizer(object):
         self.q_kin = np.zeros((self.num_time_steps, self.robot.model.nq))
         self.dq_kin = np.zeros((self.num_time_steps, self.robot.model.nv))
 
+        self.hip_names = ['{}_HFE'.format(eff) for eff in self.robot.effs]
+        self.hip_ids = [self.robot.model.getFrameId(name) for name in self.hip_names]
         self.eff_names = ['{}_END'.format(eff) for eff in self.robot.effs]
         self.inv_kin = PointContactInverseKinematics(self.robot.model, self.eff_names)
 
-        self.motion_eff = {}
+        self.motion_eff = {
+            'trajectory': np.zeros((self.num_time_steps, 3 * self.inv_kin.ne)),
+            'velocity': np.zeros((self.num_time_steps, 3 * self.inv_kin.ne)),
+            'trajectory_wrt_base': np.zeros((self.num_time_steps, 3 * self.inv_kin.ne)),
+            'velocity_wrt_base': np.zeros((self.num_time_steps, 3 * self.inv_kin.ne))
+        }
 
     def fill_data_from_dynamics(self):
         # The centroidal information
@@ -189,6 +196,15 @@ class MomentumKinematicsOptimizer(object):
                 self.endeff_traj_generator(self)
 
     def fill_kinematic_result(self, it, q, dq):
+        def framesPos(frames):
+            return np.vstack([data.oMf[idx].translation for idx in frames]).reshape(-1)
+
+        def framesVel(frames):
+            return np.vstack([
+                    self.inv_kin.get_world_oriented_frame_jacobian(q, idx).dot(dq)[:3] for idx in frames
+                ]).reshape(-1)
+
+        data = self.inv_kin.robot.data
         hg = self.inv_kin.robot.centroidalMomentum(q, dq)
 
         # Storing on the internal array.
@@ -197,6 +213,15 @@ class MomentumKinematicsOptimizer(object):
         self.amom_kin[it] = hg.angular.T
         self.q_kin[it] = q.T
         self.dq_kin[it] = dq.T
+
+        # The endeffector informations as well.
+        self.motion_eff['trajectory'][it] = framesPos(self.inv_kin.endeff_ids)
+        self.motion_eff['velocity'][it] = self.inv_kin.J[6:].dot(dq).T
+
+        self.motion_eff['trajectory_wrt_base'][it] = \
+            self.motion_eff['trajectory'][it] - framesPos(self.hip_ids)
+        self.motion_eff['velocity_wrt_base'][it] = \
+            self.motion_eff['velocity'][it] - framesVel(self.hip_ids)
 
         # Storing on the kinematic sequence.
         kinematic_state = self.kinematics_sequence.kinematics_states[it]
@@ -270,13 +295,14 @@ class MomentumKinematicsOptimizer(object):
             quad_q = se3.Quaternion(float(q[6]), float(q[3]), float(q[4]), float(q[5]))
             amom_ref = (self.reg_orientation * se3.log((quad_goal * quad_q.inverse()).matrix()).T + self.amom_dyn[it]).reshape(-1)
 
+            # Fill the kinematics results for it.
+            self.inv_kin.forward_robot(q, dq)
+            self.fill_kinematic_result(it, q, dq)
+
             dq = self.inv_kin.compute(
                     q, dq, self.com_dyn[it], self.lmom_dyn[it], amom_ref,
                     self.endeff_pos_ref[it], self.endeff_vel_ref[it],
                     self.endeff_contact[it])
-
-            # Fill the kinematics results for it.
-            self.fill_kinematic_result(it, q, dq)
 
             # Integrate to the next state.
             q = se3.integrate(self.robot.model, q, dq * self.dt)

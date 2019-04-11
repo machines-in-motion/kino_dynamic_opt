@@ -197,11 +197,16 @@ class MotionPlanner():
             time.sleep(self.kin_optimizer.dt)
 
     def save_files(self):
-        create_file(create_time_vector(self.dyn_optimizer.dynamicsSequence()),
+        time_vector = create_time_vector(self.dyn_optimizer.dynamicsSequence())
+        create_file(time_vector,
                 self.kin_optimizer.kinematics_sequence,
                 self.dyn_optimizer.dynamicsSequence(),
                 self.dynamics_feedback,
                 self.planner_setting.get(PlannerDoubleParam_RobotWeight))
+
+        create_trajectory_file_impedance(time_vector,
+                self.kin_optimizer.motion_eff,
+                self.kin_optimizer.kinematics_sequence)
 
     def time_vector(self):
         return create_time_vector(self.dyn_optimizer.dynamicsSequence())
@@ -218,11 +223,11 @@ class MotionPlanner():
         optimized_kin_plan = kin_optimizer.kinematics_sequence
         optimized_dyn_plan = dyn_optimizer.dynamicsSequence()
 
-        optimized_motion_eff = kin_optimizer.motion_eff
-
         time_vector = create_time_vector(dyn_optimizer.dynamicsSequence())
 
-        return optimized_kin_plan, optimized_motion_eff, optimized_dyn_plan, self.dynamics_feedback, self.planner_setting, time_vector
+        return optimized_kin_plan, kin_optimizer.motion_eff, \
+                optimized_dyn_plan, self.dynamics_feedback, \
+                self.planner_setting, time_vector
 
 
 'Main function for optimization demo'
@@ -268,22 +273,16 @@ def main(argv):
 
     optimized_kin_plan, optimized_motion_eff, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector = motion_planner.optimize_motion()
 
-    if use_momentum_kin_opt:
-        motion_planner.plot_centroidal()
-        motion_planner.save_files()
-    else:
-        # Create configuration and velocity file from motion plan for dynamic graph
-        create_file(time_vector, optimized_kin_plan, optimized_dyn_plan,
-                dynamics_feedback,
-                motion_planner.planner_setting.get(PlannerDoubleParam_RobotWeight))
-        create_trajectory_file_impedance(time_vector, optimized_motion_eff, optimized_kin_plan)
-        simulation = False
+        # motion_planner.plot_centroidal()
+    # Create configuration and velocity file from motion plan for dynamic graph
+    motion_planner.save_files()
+    simulation = False
 
-        # plot_com_motion(optimized_dyn_plan.dynamics_states, optimized_kin_plan.kinematics_states)
+    # plot_com_motion(optimized_dyn_plan.dynamics_states, optimized_kin_plan.kinematics_states)
 
-        if simulation:
-            motion_executor = MotionExecutor(optimized_kin_plan, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector)
-            motion_executor.execute_motion(plotting=False, tune_online=False)
+    if simulation:
+        motion_executor = MotionExecutor(optimized_kin_plan, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector)
+        motion_executor.execute_motion(plotting=False, tune_online=False)
 
     print('Done...')
 

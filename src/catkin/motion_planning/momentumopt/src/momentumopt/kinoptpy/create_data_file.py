@@ -28,7 +28,7 @@ def create_file(time_vector, optimized_sequence, optimized_dyn_plan, dynamics_fe
     def dump_data(output_file, desired_fn, scale=1.):
         np.savetxt(output_file, np.vstack([
             np.hstack((i, scale * desired_fn(i / 1e3))) for i in range(num_points)
-        ]))
+        ]), fmt='%.8e')
 
     if using_quadruped:
         dump_data("quadruped_positions.dat", desired_pos)
@@ -111,6 +111,6 @@ def create_trajectory_file_impedance(time_vector, optimized_motion_eff, optimize
 
         #print(desired_pos)
         print("saving trajectories....")
-        np.savetxt("quadruped_positions_eff.dat", des_positions_final)
-        np.savetxt("quadruped_velocities_eff.dat", des_velocities_final)
-        np.savetxt("quadruped_com.dat", des_com)
+        np.savetxt("quadruped_positions_eff.dat", des_positions_final, fmt='%.8e')
+        np.savetxt("quadruped_velocities_eff.dat", des_velocities_final, fmt='%.8e')
+        np.savetxt("quadruped_com.dat", des_com, fmt='%.8e')
