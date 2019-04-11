@@ -147,7 +147,7 @@ def create_lqr_impedance(time_vector, optimized_motion_eff, optimized_sequence, 
         des_com = np.zeros((num_points, 4))
         des_lmom = np.zeros((num_points, 4))
         des_amom = np.zeros((num_points, 4))
-        des_lqr_gains = np.zeros((num_points, 109))
+        des_lqr_gains = np.zeros((num_points, 108))
         des_forces = np.zeros((num_points, 13))
 
 
@@ -159,8 +159,8 @@ def create_lqr_impedance(time_vector, optimized_motion_eff, optimized_sequence, 
             des_lmom[i, :] = np.hstack((i, desired_lmom(i / 1e3)))
             des_amom[i, :] = np.hstack((i, desired_amom(i / 1e3)))
             des_lqr_gains_tmp = desired_lqr_gains(i / 1e3)
-            des_lqr_gains_tmp = np.reshape(des_lqr_gains_tmp, (1,108))
-            des_lqr_gains[i,: ] = np.hstack((i, des_lqr_gains_tmp[0]))
+            des_lqr_gains_tmp = np.reshape(des_lqr_gains_tmp, (108,))
+            des_lqr_gains[i,: ] = des_lqr_gains_tmp
             des_forces[i:, ] = np.hstack((i, desired_forces(i /1e3)))
 
         swp_com = des_com[: ,1]
@@ -195,10 +195,25 @@ def create_lqr_impedance(time_vector, optimized_motion_eff, optimized_sequence, 
                 des_forces[i][3*eff + 1] = des_forces[i][3*eff + 2]
                 des_forces[i][3*eff + 2] = swp_forces
 
+            for j in range(0,108,3):
+                # print("before swap", des_lqr_gains[i][j], des_lqr_gains[i][j+1])
+                swp_lqr = des_lqr_gains[i][j]
+                des_lqr_gains[i][j] = des_lqr_gains[i][j+1]
+                des_lqr_gains[i][j+1] = swp_lqr
+                # print("after swap", des_lqr_gains[i][j], des_lqr_gains[i][j+1])
+
 
         ## Converting lqr matrix (12 * 9) to a 108d vector
-        print("WARNING : switch x and y axis to match current configuration")
+        # print("WARNING : switch x and y axis to match current configuration")
         print(np.shape(des_lqr_gains))
+
+
+
+        ## spliting into three parts because sot reader can load upto 40 columns only
+        des_lqr1 = des_lqr_gains[: ,0:36]
+        des_lqr2 = des_lqr_gains[: ,36:72]
+        des_lqr3 = des_lqr_gains[: ,72:108]
+        print(np.shape(des_lqr1))
 
         #print(desired_pos)
         print("saving trajectories....")
@@ -207,5 +222,8 @@ def create_lqr_impedance(time_vector, optimized_motion_eff, optimized_sequence, 
         np.savetxt("quadruped_com.dat", des_com)
         np.savetxt("quadruped_lmom.dat", des_lmom)
         np.savetxt("quadruped_amom.dat", des_amom)
+        np.savetxt("quadruped_lqr1.dat", des_lqr1)
+        np.savetxt("quadruped_lqr2.dat", des_lqr2)
+        np.savetxt("quadruped_lqr3.dat", des_lqr3)
         np.savetxt("quadruped_lqr.dat", des_lqr_gains)
         np.savetxt("quadruped_forces.dat", des_forces)
