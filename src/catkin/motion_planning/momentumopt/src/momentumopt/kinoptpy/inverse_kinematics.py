@@ -48,7 +48,7 @@ class PointContactInverseKinematics(object):
 
     def get_world_oriented_frame_jacobian(self, q, index):
         return self.rotate_J(
-            se3.frameJacobian(self.model, self.data, q, index, se3.ReferenceFrame.LOCAL),
+            se3.frameJacobian(self.model, self.data, q, index),
             index)
 
     def fill_jacobians(self, q):
