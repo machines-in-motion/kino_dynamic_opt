@@ -102,12 +102,18 @@ def desired_state(specification, time_vector, optimized_sequence=None, dynamics_
 
     return desired_state_eval
 
-def interpolate(specification, time_vector, optimized_motion_eff=None, optimized_sequence=None, dynamics_feedback=None):
+def interpolate(specification, time_vector, optimized_motion_eff=None, optimized_sequence=None, dynamics_feedback=None, optimized_dyn_plan=None):
     ## for impedance controller
     ## interpolates end_eff velocity and positions to bring it to sample rate of 1khz
 
     if optimized_motion_eff is None and dynamics_feedback is None and optimized_sequence is None:
         raise ValueError("Specify desired positions, velocities or dynamic feedback gains.")
+
+    def eff_force_vector(dynamic_state):
+        """ Combines the forces at each endeffector into a single vector. """
+        return np.hstack([
+            dynamic_state.effForce(eff_id) for eff_id in range(dynamic_state.effNum())
+        ])
 
     def desired_state_eval(t):
         closest_idx = np.argmin(abs(time_vector - t))
@@ -134,6 +140,15 @@ def interpolate(specification, time_vector, optimized_motion_eff=None, optimized
         elif specification == "LMOM":
             state_1 = optimized_sequence.kinematics_states[t1_idx].lmom
             state_2 = optimized_sequence.kinematics_states[t2_idx].lmom
+        elif specification == "AMOM":
+            state_1 = optimized_sequence.kinematics_states[t1_idx].amom
+            state_2 = optimized_sequence.kinematics_states[t2_idx].amom
+        elif specification == "DYN_FEEDBACK":
+            state_1 = dynamics_feedback.forceGain(t1_idx)
+            state_2 = dynamics_feedback.forceGain(t2_idx)
+        elif specification == 'FORCES':
+            state_1 = eff_force_vector(optimized_dyn_plan.dynamics_states[t1_idx])
+            state_2 = eff_force_vector(optimized_dyn_plan.dynamics_states[t2_idx])
 
         delta_t = t - time_vector[t1_idx]
         if t2_idx <= 0:
