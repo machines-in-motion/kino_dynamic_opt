@@ -2,7 +2,6 @@ build/
 devel/
 src/CMakeLists.txt
 
-*.dat
 *.pyc
 
 .vscode
