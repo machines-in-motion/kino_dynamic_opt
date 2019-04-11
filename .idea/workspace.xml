@@ -4,7 +4,21 @@
     <list default="true" id="321ef201-01f8-450a-97e8-a5481701d0dd" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/config/cfg_demo02_trot.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/config/cfg_demo02_trot.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/src/momentumopt/kinoptpy/momentum_kinematics_optimizer.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/src/momentumopt/kinoptpy/momentum_kinematics_optimizer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/quadruped_amom.dat" beforeDir="false" afterPath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/quadruped_amom.dat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/quadruped_com.dat" beforeDir="false" afterPath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/quadruped_com.dat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/quadruped_forces.dat" beforeDir="false" afterPath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/quadruped_forces.dat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/quadruped_generalized_acceleration.dat" beforeDir="false" afterPath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/quadruped_generalized_acceleration.dat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/quadruped_generalized_positions.dat" beforeDir="false" afterPath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/quadruped_generalized_positions.dat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/quadruped_generalized_velocities.dat" beforeDir="false" afterPath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/quadruped_generalized_velocities.dat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/quadruped_lmom.dat" beforeDir="false" afterPath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/quadruped_lmom.dat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/quadruped_lqr.dat" beforeDir="false" afterPath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/quadruped_lqr.dat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/quadruped_lqr1.dat" beforeDir="false" afterPath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/quadruped_lqr1.dat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/quadruped_lqr2.dat" beforeDir="false" afterPath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/quadruped_lqr2.dat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/quadruped_lqr3.dat" beforeDir="false" afterPath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/quadruped_lqr3.dat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/quadruped_positions.dat" beforeDir="false" afterPath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/quadruped_positions.dat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/quadruped_positions_eff.dat" beforeDir="false" afterPath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/quadruped_positions_eff.dat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/quadruped_velocities.dat" beforeDir="false" afterPath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/quadruped_velocities.dat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/quadruped_velocities_eff.dat" beforeDir="false" afterPath="$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/quadruped_velocities_eff.dat" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -38,13 +52,13 @@
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="py" value="382" />
-          <entry key="yaml" value="126" />
+          <entry key="yaml" value="248" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="Python" value="382" />
-          <entry key="YAML" value="126" />
+          <entry key="YAML" value="248" />
         </counts>
       </usages-collector>
     </session>
@@ -54,7 +68,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/plot_traj.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1349">
+            <state relative-caret-position="2160">
               <caret line="90" column="10" selection-start-line="90" selection-start-column="10" selection-end-line="90" selection-end-column="10" />
               <folding>
                 <element signature="e#12#30#0" expanded="true" />
@@ -66,8 +80,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/src/momentumopt/kinoptpy/create_data_file.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1608">
-              <caret line="11" column="57" selection-start-line="11" selection-start-column="37" selection-end-line="11" selection-end-column="57" />
+            <state relative-caret-position="-1296">
+              <caret line="36" column="73" selection-start-line="36" selection-start-column="73" selection-end-line="36" selection-end-column="73" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
@@ -78,7 +92,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/src/momentumexe/motion_execution.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1000">
+            <state relative-caret-position="1216">
               <caret line="134" column="32" selection-start-line="134" selection-start-column="32" selection-end-line="134" selection-end-column="32" />
             </state>
           </provider>
@@ -100,8 +114,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/config/cfg_demo02_trot.yaml">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="912">
-              <caret line="51" column="27" selection-start-line="51" selection-start-column="27" selection-end-line="51" selection-end-column="27" />
+            <state relative-caret-position="816">
+              <caret line="208" column="18" selection-start-line="208" selection-start-column="18" selection-end-line="208" selection-end-column="18" />
             </state>
           </provider>
         </entry>
@@ -121,8 +135,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/src/momentumopt/kinoptpy/momentum_kinematics_optimizer.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="837">
-              <caret line="71" column="16" selection-start-line="71" selection-start-column="16" selection-end-line="71" selection-end-column="23" />
+            <state relative-caret-position="693">
+              <caret line="120" column="99" selection-start-line="120" selection-start-column="99" selection-end-line="120" selection-end-column="99" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -160,10 +174,11 @@
       <find>KinematicsOptimizer</find>
       <find>dynamics_feedback</find>
       <find>endeff_pos_ref</find>
-      <find>eff_force_vector</find>
       <find>des_positions_final</find>
       <find>optimize_dynamics_feedback</find>
       <find>trajectory_wrt_base</find>
+      <find>generate_eff_traj</find>
+      <find>eff_force_vector</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -265,6 +280,17 @@
               <item name="momentumopt" type="462c0819:PsiDirectoryNode" />
               <item name="include" type="462c0819:PsiDirectoryNode" />
               <item name="momentumopt" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="kino-dynamic-opt" type="b2602c69:ProjectViewProjectNode" />
+              <item name="kino-dynamic-opt" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="catkin" type="462c0819:PsiDirectoryNode" />
+              <item name="motion_planning" type="462c0819:PsiDirectoryNode" />
+              <item name="momentumopt" type="462c0819:PsiDirectoryNode" />
+              <item name="include" type="462c0819:PsiDirectoryNode" />
+              <item name="momentumopt" type="462c0819:PsiDirectoryNode" />
+              <item name="dynopt" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="kino-dynamic-opt" type="b2602c69:ProjectViewProjectNode" />
@@ -491,7 +517,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/demos/plot_traj.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1349">
+        <state relative-caret-position="2160">
           <caret line="90" column="10" selection-start-line="90" selection-start-column="10" selection-end-line="90" selection-end-column="10" />
           <folding>
             <element signature="e#12#30#0" expanded="true" />
@@ -499,17 +525,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/src/momentumexe/motion_execution.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1000">
-          <caret line="134" column="32" selection-start-line="134" selection-start-column="32" selection-end-line="134" selection-end-column="32" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/src/momentumopt/kinoptpy/create_data_file.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1608">
-          <caret line="11" column="57" selection-start-line="11" selection-start-column="37" selection-end-line="11" selection-end-column="57" />
+        <state relative-caret-position="-1296">
+          <caret line="36" column="73" selection-start-line="36" selection-start-column="73" selection-end-line="36" selection-end-column="73" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
           </folding>
@@ -537,20 +556,34 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/config/cfg_quadruped_standing.yaml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="984">
+          <caret line="119" column="41" selection-start-line="119" selection-start-column="41" selection-end-line="119" selection-end-column="41" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/src/momentumopt/kinoptpy/momentum_kinematics_optimizer.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="837">
-          <caret line="71" column="16" selection-start-line="71" selection-start-column="16" selection-end-line="71" selection-end-column="23" />
+        <state relative-caret-position="693">
+          <caret line="120" column="99" selection-start-line="120" selection-start-column="99" selection-end-line="120" selection-end-column="99" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/src/momentumexe/motion_execution.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1216">
+          <caret line="134" column="32" selection-start-line="134" selection-start-column="32" selection-end-line="134" selection-end-column="32" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/catkin/motion_planning/momentumopt/config/cfg_demo02_trot.yaml">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="912">
-          <caret line="51" column="27" selection-start-line="51" selection-start-column="27" selection-end-line="51" selection-end-column="27" />
+        <state relative-caret-position="816">
+          <caret line="208" column="18" selection-start-line="208" selection-start-column="18" selection-end-line="208" selection-end-column="18" />
         </state>
       </provider>
     </entry>
