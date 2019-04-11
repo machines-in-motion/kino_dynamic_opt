@@ -6,6 +6,7 @@ src/CMakeLists.txt
 
 .vscode
 .ipynb_checkpoints
+*.idea/workspace.xml
 
 *.project
 *.DS_Store
