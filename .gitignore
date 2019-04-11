@@ -2,11 +2,11 @@ build/
 devel/
 src/CMakeLists.txt
 
-*.dat
 *.pyc
 
 .vscode
 .ipynb_checkpoints
+*.idea/workspace.xml
 
 *.project
 *.DS_Store
