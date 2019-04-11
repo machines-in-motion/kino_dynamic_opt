@@ -208,7 +208,7 @@ class MomentumKinematicsOptimizer(object):
         hg = self.inv_kin.robot.centroidalMomentum(q, dq)
 
         # Storing on the internal array.
-        self.com_kin[it] = self.inv_kin.robot.com().T
+        self.com_kin[it] = self.inv_kin.robot.com(q).T
         self.lmom_kin[it] = hg.linear.T
         self.amom_kin[it] = hg.angular.T
         self.q_kin[it] = q.T

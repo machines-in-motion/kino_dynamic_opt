@@ -92,7 +92,10 @@ class QuadrupedWrapper():
         return se3.difference(self.model, q_1, q_2)
 
     def get_world_oriented_frame_jacobian(self, index):
-        jac = se3.frameJacobian(self.model, self.data, self.q, index, se3.ReferenceFrame.LOCAL)
+        self.robot.forwardKinematics(self.q, self.dq)
+        self.robot.computeJointJacobians(self.q)
+        self.robot.framesForwardKinematics(self.q)
+        jac = se3.getFrameJacobian(self.model, self.data, index, se3.ReferenceFrame.LOCAL)
         world_R_joint = se3.SE3(self.data.oMf[index].rotation, zero(3))
         return world_R_joint.action.dot(jac)
 

@@ -48,7 +48,7 @@ class PointContactInverseKinematics(object):
 
     def get_world_oriented_frame_jacobian(self, q, index):
         return self.rotate_J(
-            se3.frameJacobian(self.model, self.data, q, index),
+            se3.getFrameJacobian(self.model, self.data, index, se3.ReferenceFrame.LOCAL),
             index)
 
     def fill_jacobians(self, q):
@@ -78,6 +78,7 @@ class PointContactInverseKinematics(object):
     def forward_robot(self, q, dq):
         # Update the pinocchio model.
         self.robot.forwardKinematics(q, dq)
+        self.robot.computeJointJacobians(q)
         self.robot.framesForwardKinematics(q)
         self.robot.centroidalMomentum(q, dq)
 
