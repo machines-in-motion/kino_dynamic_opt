@@ -69,7 +69,6 @@ def generate_eff_traj(contacts, z_offset):
             # the two contact points.
             if i < num_contacts - 1:
                 t = [cnt[i].end_time(), cnt[i+1].start_time()]
-                print t
 
                 for idx in range(3):
                     via = None

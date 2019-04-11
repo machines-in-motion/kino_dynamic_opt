@@ -59,8 +59,6 @@ def create_trajectory_file_impedance(time_vector, optimized_motion_eff, optimize
     desired_pos = interpolate("POSITION", time_vector, optimized_motion_eff=optimized_motion_eff, optimized_sequence = optimized_sequence)
     desired_vel = interpolate("VELOCITY", time_vector, optimized_motion_eff=optimized_motion_eff, optimized_sequence = optimized_sequence)
     desired_com = interpolate("COM", time_vector, optimized_motion_eff=optimized_motion_eff, optimized_sequence = optimized_sequence)
-    # TODO: Desired forces
-    # desired_forces = desired_state("FORCES", time_vector, optimized_sequence=optimized_sequence)
 
     max_time = 0 # time horizon in seconds
 
