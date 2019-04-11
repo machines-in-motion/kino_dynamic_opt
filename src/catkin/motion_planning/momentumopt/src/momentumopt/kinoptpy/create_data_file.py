@@ -111,6 +111,10 @@ def create_trajectory_file_impedance(time_vector, optimized_motion_eff, optimize
         print("saving trajectories....")
         np.savetxt("quadruped_positions_eff.dat", des_positions_final, fmt='%.8e')
         np.savetxt("quadruped_velocities_eff.dat", des_velocities_final, fmt='%.8e')
+
+        np.savetxt("quadruped_positions_eff_old.dat", des_positions, fmt='%.8e')
+        np.savetxt("quadruped_velocities_eff_old.dat", des_velocities, fmt='%.8e')
+
         np.savetxt("quadruped_com.dat", des_com, fmt='%.8e')
 
 def create_lqr_impedance(time_vector, optimized_motion_eff, optimized_sequence, optimized_dyn_plan, dynamics_feedback, planner_setting):
