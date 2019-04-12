@@ -6,7 +6,17 @@ from pinocchio.utils import *
 
 class QuadrupedWrapper():
 
+    use_v2 = False
+
     def __init__(self, urdf, dt=0.01, q=None):
+        if not self.use_v2:
+            self.effs = ["BR", "BL", "FR", "FL"]  # order is important
+            self.colors = {"BL": "r", "BR": "y", "FL": "b", "FR": "g"}
+        else:
+            self.effs = ["HR", "HL", "FR", "FL"]  # order is important
+            self.colors = {"HL": "r", "HR": "y", "FL": "b", "FR": "g"}
+            urdf = urdf.replace('quadruped.urdf', 'quadruped_v2.urdf')
+
         package_dirs = [os.path.dirname(os.path.dirname(os.path.abspath(__file__)))]
         ## For pinocchio_v2
         # RobotWrapper.BuildFromURDF(urdf, package_dirs=package_dirs, root_joint=se3.JointModelFreeFlyer())
@@ -23,11 +33,9 @@ class QuadrupedWrapper():
             self.q = None
         self.M_com = None
         self.dt = 0.01
+        self.mass = sum([i.mass for i in self.model.inertias[1:]])
 
-        self.effs = ["BR", "BL", "FR", "FL"]  # order is important
         self.joints_list = ["HFE", "KFE", "END"]
-
-        self.colors = {"BL": "r", "BR": "y", "FL": "b", "FR": "g"}
 
         self.initDisplay(loadModel=True)
         self.robot.viewer.gui.addFloor('world/floor')
