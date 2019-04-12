@@ -62,8 +62,8 @@ planner_variables:
 
   heuristic: TrustRegion  # Types: TrustRegion, SoftConstraint, TimeOptimization #
   n_act_eefs: 4
-  time_step: 0.05
-  time_horizon: 3.0
+  time_step: 0.01
+  time_horizon: 3.
   external_force: [0.00, 0.00, 0.00]
   com_displacement: [0.00, 0.00, 0.00]
   num_com_viapoints: 0
@@ -113,20 +113,20 @@ planner_variables:
   w_time_penalty:  0.000
   w_time:          1.0
   w_com:           [ 10.,  10.,  10.]
-  w_amom:          &w_amom [ 10000.0,  100000.0,  1000.0]
-  w_lmom:          &w_lmom [ 0.100,  0.10,  1000.0]
+  w_amom:          [ 0.0,  0.0,  0.0]
+  w_lmom:          [ 0.0,  0.0,  0.0]
   w_amomd:         [ 0.0,  0.0,  0.0]
-  w_lmomd:         [ 0.100,  0.100,  0.100]
-  w_amom_final:    [ 10.0,   10.00,  10.00]
-  w_lmom_final:    [ 10.00,  10.00,  10.00]
+  w_lmomd:         [ 0.0,  0.0,  0.0]
+  w_amom_final:    [ 0.0,   0.00,  0.00]
+  w_lmom_final:    [ 0.00,  0.00,  0.00]
   w_com_via:       [ 0.000,  0.000,  0.000]
-  w_frc_arm:       [ 0.001,  0.001,  0.001]
-  w_frc_leg:       [ 0.001,  0.001,  0.001]
+  w_frc_arm:       [ 0.00,  0.00,  0.00]
+  w_frc_leg:       [ 0.00,  0.00,  0.00]
   w_dfrc_arm:      [ 0.000,  0.000,  0.000]
   w_dfrc_leg:      [ 0.000,  0.000,  0.000]
   w_com_track:     [ 0.000,  0.000,  0.000]
-  w_lmom_track:    *w_lmom
-  w_amom_track:    *w_amom
+  w_lmom_track:    [ 0.0,  0.0,  0.0]
+  w_amom_track:    [ 0.0,  0.0,  0.0]
 
   ######################
   # Kinematics weights #
@@ -192,8 +192,8 @@ solverlqr_dynamics:
   ##########################
 
   problem_name: DynamicMomentumOptimization
-  time_step: 0.05
-  time_horizon: 3.0
+  time_step: 0.01
+  time_horizon: 3.
   state_dimension: 9
   control_dimension: 12
   initial_state: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]

@@ -276,7 +276,7 @@ def main(argv):
         inv_kin.w_endeff_contact = 1.
         inv_kin.p_endeff_tracking = 1.
         inv_kin.p_com_tracking = 1.
-        kin_optimizer.reg_orientation = 0.05
+        kin_optimizer.reg_orientation = .05
 
     optimized_kin_plan, optimized_motion_eff, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector = motion_planner.optimize_motion()
 
@@ -285,7 +285,7 @@ def main(argv):
     motion_planner.save_files()
     simulation = False
 
-    # plot_com_motion(optimized_dyn_plan.dynamics_states, optimized_kin_plan.kinematics_states)
+    plot_com_motion(optimized_dyn_plan.dynamics_states, optimized_kin_plan.kinematics_states)
 
     if simulation:
         motion_executor = MotionExecutor(optimized_kin_plan, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector)
