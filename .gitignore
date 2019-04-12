@@ -3,6 +3,7 @@ devel/
 src/CMakeLists.txt
 
 *.pyc
+*.dat
 
 .vscode
 .ipynb_checkpoints
