@@ -8,14 +8,9 @@
   
   <buildtool_depend>catkin</buildtool_depend>
   
-  <build_depend>Eigen</build_depend>
-  <build_depend>yaml_cpp</build_depend>
-  <build_depend>pybind11</build_depend>
-
-  <run_depend>Eigen</run_depend>  
-  <run_depend>yaml_cpp</run_depend>
-  <run_depend>pybind11</run_depend>
-  
+  <build_depend> mpi_cmake_modules </build_depend>
+  <run_depend>   mpi_cmake_modules </run_depend>
+    
   <export>
   </export>
 </package>

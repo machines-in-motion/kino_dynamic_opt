@@ -14,13 +14,18 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -Wall -Wwrite-strings -ped
 #####################
 
 set(CATKIN_PKGS ${CATKIN_PKGS}
-  Eigen
-  yaml_cpp
-  pybind11
+  mpi_cmake_modules
+  # Eigen
+  # yaml_cpp
+  # pybind11
 )
-
 find_package(catkin REQUIRED COMPONENTS ${CATKIN_PKGS})
-find_package(Boost REQUIRED COMPONENTS system program_options filesystem)
+
+search_for_boost()
+search_for_eigen()
+add_required_dependency("yaml-cpp >= 0.5")
+
+# find_package(Boost REQUIRED COMPONENTS system program_options filesystem)
 
 #####################
 # optional packages #
