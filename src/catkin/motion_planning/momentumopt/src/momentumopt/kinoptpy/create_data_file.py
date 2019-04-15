@@ -197,11 +197,11 @@ def create_lqr_impedance(time_vector, optimized_motion_eff, optimized_sequence, 
                 des_forces[i][3*eff + 1] = des_forces[i][3*eff + 2]
                 des_forces[i][3*eff + 2] = swp_forces
 
-            for j in range(0,108,3):
-                # print("before swap", des_lqr_gains[i][j], des_lqr_gains[i][j+1])
-                swp_lqr = des_lqr_gains[i][j]
-                des_lqr_gains[i][j] = des_lqr_gains[i][j+1]
-                des_lqr_gains[i][j+1] = swp_lqr
+            # for j in range(0,108,3):
+            #     # print("before swap", des_lqr_gains[i][j], des_lqr_gains[i][j+1])
+            #     swp_lqr = des_lqr_gains[i][j]
+            #     des_lqr_gains[i][j] = des_lqr_gains[i][j+1]
+            #     des_lqr_gains[i][j+1] = swp_lqr
                 # print("after swap", des_lqr_gains[i][j], des_lqr_gains[i][j+1])
 
 
@@ -219,13 +219,13 @@ def create_lqr_impedance(time_vector, optimized_motion_eff, optimized_sequence, 
 
         #print(desired_pos)
         print("saving trajectories....")
-        np.savetxt("quadruped_positions_eff.dat", des_positions_final)
-        np.savetxt("quadruped_velocities_eff.dat", des_velocities_final)
-        np.savetxt("quadruped_com.dat", des_com)
-        np.savetxt("quadruped_lmom.dat", des_lmom)
-        np.savetxt("quadruped_amom.dat", des_amom)
-        np.savetxt("quadruped_lqr1.dat", des_lqr1)
-        np.savetxt("quadruped_lqr2.dat", des_lqr2)
-        np.savetxt("quadruped_lqr3.dat", des_lqr3)
-        np.savetxt("quadruped_lqr.dat", des_lqr_gains)
-        np.savetxt("quadruped_forces.dat", des_forces)
+        np.savetxt("quadruped_positions_eff.dat", des_positions_final[0:2500])
+        np.savetxt("quadruped_velocities_eff.dat", des_velocities_final[0:2500])
+        np.savetxt("quadruped_com.dat", des_com[0:2500])
+        np.savetxt("quadruped_lmom.dat", des_lmom[0:2500])
+        np.savetxt("quadruped_amom.dat", des_amom[0:2500])
+        np.savetxt("quadruped_lqr1.dat", des_lqr1[0:2500])
+        np.savetxt("quadruped_lqr2.dat", des_lqr2[0:2500])
+        np.savetxt("quadruped_lqr3.dat", des_lqr3[0:2500])
+        np.savetxt("quadruped_lqr.dat", des_lqr_gains[0:2500])
+        np.savetxt("quadruped_forces.dat", des_forces[0:2500])

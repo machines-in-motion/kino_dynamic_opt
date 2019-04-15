@@ -10,6 +10,8 @@ com = np.loadtxt('quadruped_com.dat', dtype=float)
 lmom = np.loadtxt('quadruped_lmom.dat', dtype=float)
 amom = np.loadtxt('quadruped_amom.dat', dtype=float)
 forces = np.loadtxt('quadruped_forces.dat', dtype=float)
+lqr = np.loadtxt('quadruped_lqr.dat', dtype=float)
+
 
 print(np.shape(positions))
 
@@ -87,5 +89,22 @@ ax[8].legend()
 ax[8].grid()
 
 
+fig1, ax1 = plt.subplots(2,1)
+ax1[0].plot(lqr[:, 0], label = "lqr_x_traj")
+ax1[0].plot(lqr[:, 1], label = "lqr_y_traj")
+ax1[0].plot(lqr[:, 2], label = "lqr_z_traj")
+ax1[0].set_xlabel("millisec")
+ax1[0].set_ylabel("m")
+ax1[0].legend()
+ax1[0].grid()
+
+
+ax1[1].plot(lqr[:, 3], label = "lqr_xd_traj")
+ax1[1].plot(lqr[:, 4], label = "lqr_yd_traj")
+ax1[1].plot(lqr[:, 5], label = "lqr_zd_traj")
+ax1[1].set_xlabel("millisec")
+ax1[1].set_ylabel("m")
+ax1[1].legend()
+ax1[1].grid()
 
 plt.show()
