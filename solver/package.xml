@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package>
+  <name>solver</name>
+  <version>1.0.0</version>
+  <description>Optimization Routine</description>
+  <maintainer email="bponton@tue.mpg.de"></maintainer>
+  <license>TODO</license>
+  
+  <buildtool_depend>catkin</buildtool_depend>
+  
+  <build_depend> mpi_cmake_modules </build_depend>
+  <run_depend>   mpi_cmake_modules </run_depend>
+
+  <build_depend> pybind11_catkin </build_depend>
+  <run_depend>   pybind11_catkin </run_depend>
+    
+  <build_depend> yaml_cpp_catkin </build_depend>
+  <run_depend>   yaml_cpp_catkin </run_depend>
+
+  <export>
+  </export>
+</package>

@@ -3,7 +3,7 @@ devel/
 src/CMakeLists.txt
 .vscode
 .ipynb_checkpoints
-.idea/workspace.xml
+.idea/
 .gitignore~
 
 *.dat
@@ -14,3 +14,4 @@ src/CMakeLists.txt
 *.pydevproject
 *.catkin_workspace
 
+*~
