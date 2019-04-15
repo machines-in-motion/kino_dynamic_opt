@@ -134,6 +134,13 @@ def interpolate(specification, time_vector, optimized_motion_eff=None, optimized
         elif specification == "VELOCITY":
             state_1 = optimized_motion_eff["velocity_wrt_base"][t1_idx]
             state_2 = optimized_motion_eff["velocity_wrt_base"][t2_idx]
+        elif specification == "POSITION_ABSOLUTE":
+            state_1 = optimized_motion_eff["trajectory"][t1_idx]
+            state_2 = optimized_motion_eff["trajectory"][t2_idx]
+        elif specification == "VELOCITY_ABSOLUTE":
+            state_1 = optimized_motion_eff["velocity"][t1_idx]
+            state_2 = optimized_motion_eff["velocity"][t2_idx]
+
         elif specification == "COM":
             state_1 = optimized_sequence.kinematics_states[t1_idx].com
             state_2 = optimized_sequence.kinematics_states[t2_idx].com

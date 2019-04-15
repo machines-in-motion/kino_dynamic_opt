@@ -82,6 +82,7 @@ class KinematicsOptimizer:
         # Load the robot from URDF-model
         urdf = str(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + '/urdf/quadruped.urdf')
         # print("urdf_path:", urdf)
+
         self.robot = QuadrupedWrapper(urdf)
         #TODO: naming convention must be improved
         self.max_iterations = max_iterations
@@ -128,13 +129,13 @@ class KinematicsOptimizer:
                 new_goal = set_new_goal(new_goal)
 
 
-            desired_positions.append(np.reshape((self.robot.transformations_dict[eff + "_END"]()),(1,3)))
+            desired_positions.append(np.reshape((self.robot.transformations_dict[eff + "_ANKLE"]()),(1,3)))
 
             self.robot.transformations_dict[eff + "_END_GOAL"] = new_goal
             desired_velocity = self.robot.get_desired_velocity(self.robot.transformations_dict[eff + "_END_GOAL"],
-                                                               self.robot.transformations_dict[eff + "_END"], "TRANSLATION")
+                                                               self.robot.transformations_dict[eff + "_ANKLE"], "TRANSLATION")
             desired_velocities.append(desired_velocity)
-            jacobians.append(self.robot.jacobians_dict[eff + "_END"])
+            jacobians.append(self.robot.jacobians_dict[eff + "_ANKLE"])
 
         desired_positions = np.squeeze(desired_positions, axis=0)
         desired_positions = np.reshape(desired_positions, (1,12))
@@ -202,7 +203,7 @@ class KinematicsOptimizer:
         planned_forces = np.zeros((self.num_time_steps, 3 * len(self.robot.effs)))
         for time_id in range(self.num_time_steps):
             for eff_id, eff in enumerate(self.robot.effs):
-                eff = eff + "_END"
+                eff = eff + "_ANKLE"
                 force = dynamics_sequence.dynamics_states[time_id].effForce(eff_id) * self.robot_weight
                 planned_forces[time_id, eff_id * 3 : eff_id * 3 + 3] = force
 
@@ -742,7 +743,7 @@ class KinematicsOptimizer:
             ax = axes[idx_1[0], idx_2[0]]
             ax.plot(self.time, eff_forces[:, i, -1])
 
-            joint_name = self.robot.effs [i] + "_END"
+            joint_name = self.robot.effs [i] + "_ANKLE"
             ax.set_title(joint_name)
 
             for eff in self.robot.effs :
