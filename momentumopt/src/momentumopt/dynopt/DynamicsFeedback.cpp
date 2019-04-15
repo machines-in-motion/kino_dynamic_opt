@@ -1,4 +1,4 @@
-#include <yaml-cpp/yaml_eigen.h>
+#include <yaml_cpp_catkin/yaml_eigen.h>
 #include <momentumopt/dynopt/DynamicsFeedback.hpp>
 
 using namespace solverlqr;

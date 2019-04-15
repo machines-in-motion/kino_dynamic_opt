@@ -14,14 +14,17 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -Wall -pedantic -O3 -funro
 #####################
 
 set(CATKIN_PKGS ${CATKIN_PKGS}
+  mpi_cmake_modules
+  yaml_cpp_catkin
+  pybind11_catkin
+  # local include
   solver
-  yaml_cpp
-  pybind11
   solverlqr
 )
-
 find_package(catkin REQUIRED COMPONENTS ${CATKIN_PKGS})
-find_package(Boost  REQUIRED COMPONENTS system program_options filesystem)
+
+search_for_boost()
+search_for_eigen()
 
 ##################
 # catkin package #
@@ -133,7 +136,7 @@ set_target_properties(momentumopt_tests PROPERTIES COMPILE_DEFINITIONS TEST_PATH
 #########
 
 add_executable(demo_momentumopt demos/DemoMomentumopt.cpp)
-target_link_libraries(demo_momentumopt momentumopt)
+target_link_libraries(demo_momentumopt momentumopt ${catkin_LIBRARIES})
 set_target_properties(demo_momentumopt PROPERTIES COMPILE_DEFINITIONS CFG_SRC_PATH="${CONFIG_PATH}/")
 
 ###################
@@ -141,7 +144,7 @@ set_target_properties(demo_momentumopt PROPERTIES COMPILE_DEFINITIONS CFG_SRC_PA
 ###################
 
 pybind11_add_module(pymomentum ${pymomentumopt_SRC_FILES})
-target_link_libraries(pymomentum momentumopt)
+target_link_libraries(pymomentum PRIVATE momentumopt)
 
 ################
 # python setup #

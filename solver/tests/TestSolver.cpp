@@ -21,7 +21,7 @@
  */
 
 #include <gtest/gtest.h>
-#include <yaml-cpp/yaml.h>
+#include <yaml_cpp_catkin/yaml_eigen.h>
 #include <solver/interface/Solver.hpp>
 
 #define PRECISION 0.01
@@ -89,22 +89,22 @@ using namespace solver;
 	    try
 	    {
 	  	  YAML::Node yaml_file = YAML::LoadFile(cfg_file.c_str());
-	  	  nvars_ = yaml_file["problem_size"]["nvars"].as<int>();
-	  	  nleq_  = yaml_file["problem_size"]["nleq" ].as<int>();
-	  	  ncone_ = yaml_file["problem_size"]["ncone"].as<int>();
-	  	  nlpc_  = yaml_file["problem_size"]["nlpc" ].as<int>();
-	  	  nsoc_  = yaml_file["problem_size"]["nsoc" ].as<int>();
+	  	  nvars_   = yaml_file["problem_size"]["nvars"  ].as<int>();
+	  	  nleq_    = yaml_file["problem_size"]["nleq"   ].as<int>();
+	  	  ncone_   = yaml_file["problem_size"]["ncone"  ].as<int>();
+	  	  nlpc_    = yaml_file["problem_size"]["nlpc"   ].as<int>();
+	  	  nsoc_    = yaml_file["problem_size"]["nsoc"   ].as<int>();
 	  	  binprob_ = yaml_file["problem_size"]["binprob"].as<bool>();
-	  	  qvec_  = yaml_file["problem_size"]["qvec" ].as<Eigen::VectorXi>();
-	  	  Acol_  = yaml_file["problem_data"]["Acol"].as<Eigen::VectorXi>();
-	  	  Arow_  = yaml_file["problem_data"]["Arow"].as<Eigen::VectorXi>();
-	  	  Aval_  = yaml_file["problem_data"]["Aval"].as<Eigen::VectorXd>();
-	  	  Gcol_  = yaml_file["problem_data"]["Gcol"].as<Eigen::VectorXi>();
-	  	  Grow_  = yaml_file["problem_data"]["Grow"].as<Eigen::VectorXi>();
-	  	  Gval_  = yaml_file["problem_data"]["Gval"].as<Eigen::VectorXd>();
-	  	  bvec_  = yaml_file["problem_data"]["bvec"].as<Eigen::VectorXd>();
-	  	  cvec_  = yaml_file["problem_data"]["cvec"].as<Eigen::VectorXd>();
-	  	  hvec_  = yaml_file["problem_data"]["hvec"].as<Eigen::VectorXd>();
+	  	  qvec_    = yaml_file["problem_size"]["qvec"   ].as<Eigen::VectorXi>();
+	  	  Acol_    = yaml_file["problem_data"]["Acol"   ].as<Eigen::VectorXi>();
+	  	  Arow_    = yaml_file["problem_data"]["Arow"   ].as<Eigen::VectorXi>();
+	  	  Aval_    = yaml_file["problem_data"]["Aval"   ].as<Eigen::VectorXd>();
+	  	  Gcol_    = yaml_file["problem_data"]["Gcol"   ].as<Eigen::VectorXi>();
+	  	  Grow_    = yaml_file["problem_data"]["Grow"   ].as<Eigen::VectorXi>();
+	  	  Gval_    = yaml_file["problem_data"]["Gval"   ].as<Eigen::VectorXd>();
+	  	  bvec_    = yaml_file["problem_data"]["bvec"   ].as<Eigen::VectorXd>();
+	  	  cvec_    = yaml_file["problem_data"]["cvec"   ].as<Eigen::VectorXd>();
+	  	  hvec_    = yaml_file["problem_data"]["hvec"   ].as<Eigen::VectorXd>();
 	  	  if (binprob_) {
 	  	    xopt_  = yaml_file["problem_data"]["xopt"].as<Eigen::VectorXd>();
 	  	    vartype_  = yaml_file["problem_data"]["vartype"].as<Eigen::VectorXi>();

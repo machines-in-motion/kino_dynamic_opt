@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include <yaml-cpp/yaml.h>
+#include <yaml_cpp_catkin/yaml_eigen.h>
 
 namespace momentumopt {
 

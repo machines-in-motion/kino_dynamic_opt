@@ -8,14 +8,16 @@
   
   <buildtool_depend>catkin</buildtool_depend>
   
+  <build_depend>mpi_cmake_modules</build_depend>
+  <build_depend>yaml_cpp_catkin</build_depend>
+  <build_depend>pybind11_catkin</build_depend>
   <build_depend>solver</build_depend>
-  <build_depend>yaml_cpp</build_depend>
-  <build_depend>pybind11</build_depend>
   <build_depend>solverlqr</build_depend>
   
+  <run_depend>mpi_cmake_modules</run_depend>
+  <run_depend>yaml_cpp_catkin</run_depend>
+  <run_depend>pybind11_catkin</run_depend>
   <run_depend>solver</run_depend>
-  <run_depend>yaml_cpp</run_depend>
-  <run_depend>pybind11</run_depend>
   <run_depend>solverlqr</run_depend>
   
   <export>

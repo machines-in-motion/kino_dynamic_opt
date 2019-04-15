@@ -16,10 +16,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -Wall -Wwrite-strings -ped
 set(CATKIN_PKGS ${CATKIN_PKGS}
   mpi_cmake_modules
   pybind11_catkin
+  yaml_cpp_catkin
 )
 find_package(catkin REQUIRED COMPONENTS ${CATKIN_PKGS})
 
-search_for_python(2.7 REQUIRED)
 search_for_boost()
 search_for_eigen()
 
@@ -179,5 +179,5 @@ if(GUROBI_FOUND)
 endif()
 
 catkin_add_gtest(solver_tests ${GTEST_FILES})
-target_link_libraries(solver_tests solver)
+target_link_libraries(solver_tests solver ${catkin_LIBRARIES})
 set_target_properties(solver_tests PROPERTIES COMPILE_DEFINITIONS TEST_PATH="${TEST_PATH}/yaml_config_files/")
