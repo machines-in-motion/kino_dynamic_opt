@@ -4,7 +4,7 @@ initial_robot_configuration:
   # Initial robot configuration #
   ###############################
 
-  com: [0.0, 0.0, -0.10]
+  com: [0.0, 0.0, 0.22]
   amom: [0.0, 0.0, 0.0]
   lmom: [0.0, 0.0, 0.0]
   eef_ctrl:
@@ -13,10 +13,10 @@ initial_robot_configuration:
     eef_frc_rh: [0.0, 0.0, 0.25]
     eef_frc_lh: [0.0, 0.0, 0.25]
   eef_pose:
-    eef_rf: [1.0,    0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0]
-    eef_lf: [1.0,   -0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0]
-    eef_rh: [1.0,    0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0]
-    eef_lh: [1.0,   -0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0]
+    eef_rf: [1.0, -0.20, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0]
+    eef_lf: [1.0, -0.20, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0]
+    eef_rh: [1.0, 0.20, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0]
+    eef_lh: [1.0, 0.20, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0]
 
 
 terrain_description:
@@ -25,7 +25,8 @@ terrain_description:
   # Terrain description #
   #######################
 
-  regions: [ [[ 1.00,  1.00, -0.32], [-1.00,  1.00, -0.32], [-1.00, -1.00, -0.32], [ 1.00, -1.00, -0.32]] ]
+  regions: [[[1.00, 1.00, 0.0], [-1.00, 1.00, 0.0], [-1.00, -1.00, 0.0], [1.00, -1.00,
+        0.0]]]
 
 
 contact_plan:
@@ -34,35 +35,43 @@ contact_plan:
   # Contact plan #
   ################
 
-  effcnt_rf: [[ 0.000,  0.050,    0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
-              [ 0.350,  0.500,    0.10, -0.00, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
-              [ 0.900,  1.050,    0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
-              [ 1.450, 20.000,    0.10,  0.40, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
-  effcnt_lf: [[ 0.000,  0.050,   -0.10, -0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
-              [ 0.450,  0.600,   -0.10, -0.00, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
-              [ 1.000,  1.150,   -0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
-              [ 1.550, 20.000,   -0.10,  0.40, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
-  effcnt_rh: [[ 0.000,  0.150,    0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
-              [ 0.550,  0.700,    0.10,  0.40, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
-              [ 1.100,  1.250,    0.10,  0.60, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
-              [ 1.650, 20.000,    0.10,  0.80, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
-  effcnt_lh: [[ 0.000,  0.250,   -0.10,  0.20, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
-              [ 0.650,  0.800,   -0.10,  0.40, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
-              [ 1.200,  1.350,   -0.10,  0.60, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0],
-              [ 1.750, 20.000,   -0.10,  0.80, -0.32,    1.0, 0.0, 0.0, 0.0,    1.0,   -1.0]]
+  effcnt_rf:
+  - [0.000, 0.050, -0.20, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [0.350, 0.500, -0.00, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [0.900, 1.050, 0.20, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [1.450, 20.000, 0.40, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  effcnt_lf:
+  - [0.000, 0.050, -0.20, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [0.450, 0.600, -0.00, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [1.000, 1.150, 0.20, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [1.550, 20.000, 0.40, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  effcnt_rh:
+  - [0.000, 0.150, 0.20, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [0.550, 0.700, 0.40, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [1.100, 1.250, 0.60, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [1.650, 20.000, 0.80, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  effcnt_lh:
+  - [0.000, 0.250, 0.20, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [0.650, 0.800, 0.40, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [1.200, 1.350, 0.60, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [1.750, 20.000, 0.80, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
 
-  effvia_rf: [[0.0,    0.10, -0.10, -0.25,    1.0, 0.0, 0.0, 0.0],
-              [1.0,    0.10,  0.10, -0.25,    1.0, 0.0, 0.0, 0.0],
-              [2.0,    0.10,  0.30, -0.25,    1.0, 0.0, 0.0, 0.0]]
-  effvia_lf: [[0.0,   -0.10, -0.10, -0.23,    1.0, 0.0, 0.0, 0.0],
-              [1.0,   -0.10,  0.10, -0.23,    1.0, 0.0, 0.0, 0.0],
-              [2.0,   -0.10,  0.30, -0.23,    1.0, 0.0, 0.0, 0.0]]
-  effvia_rh: [[0.0,    0.10,  0.30, -0.25,    1.0, 0.0, 0.0, 0.0],
-              [1.0,    0.10,  0.50, -0.25,    1.0, 0.0, 0.0, 0.0],
-              [2.0,    0.10,  0.70, -0.25,    1.0, 0.0, 0.0, 0.0]]
-  effvia_lh: [[0.0,   -0.10,  0.30, -0.25,    1.0, 0.0, 0.0, 0.0],
-              [1.0,   -0.10,  0.50, -0.25,    1.0, 0.0, 0.0, 0.0],
-              [2.0,   -0.10,  0.70, -0.25,    1.0, 0.0, 0.0, 0.0]]
+  effvia_rf:
+  - [0.0, -0.10, 0.142, 0.07, 1.0, 0.0, 0.0, 0.0]
+  - [1.0, 0.10, 0.142, 0.07, 1.0, 0.0, 0.0, 0.0]
+  - [2.0, 0.30, 0.142, 0.07, 1.0, 0.0, 0.0, 0.0]
+  effvia_lf:
+  - [0.0, -0.10, -0.142, 0.09, 1.0, 0.0, 0.0, 0.0]
+  - [1.0, 0.10, -0.142, 0.09, 1.0, 0.0, 0.0, 0.0]
+  - [2.0, 0.30, -0.142, 0.09, 1.0, 0.0, 0.0, 0.0]
+  effvia_rh:
+  - [0.0, 0.30, 0.142, 0.07, 1.0, 0.0, 0.0, 0.0]
+  - [1.0, 0.50, 0.142, 0.07, 1.0, 0.0, 0.0, 0.0]
+  - [2.0, 0.70, 0.142, 0.07, 1.0, 0.0, 0.0, 0.0]
+  effvia_lh:
+  - [0.0, 0.30, -0.142, 0.07, 1.0, 0.0, 0.0, 0.0]
+  - [1.0, 0.50, -0.142, 0.07, 1.0, 0.0, 0.0, 0.0]
+  - [2.0, 0.70, -0.142, 0.07, 1.0, 0.0, 0.0, 0.0]
 
 
 planner_variables:
@@ -70,16 +79,15 @@ planner_variables:
   #########################
   # Kinematics parameters #
   #########################
-  
-  load_kinematics: True
-  display_motion: True
+  load_kinematics: true
+  display_motion: true
   num_dofs: 8
   kd_iterations: 3
   num_subsamples: 3
   active_dofs: [0, 1, 2, 3, 4, 5, 6, 7]
   min_joint_limits: [-2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5]
-  max_joint_limits: [ 2.5,  2.5,  2.5,  2.5,  2.5,  2.5,  2.5,  2.5]
-  default_joint_positions: [-0.52,  1.04, -0.52,  1.04, -0.52,  1.04, -0.52,  1.04]
+  max_joint_limits: [2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5]
+  default_joint_positions: [0.52, -1.04, 0.52, -1.04, 0.52, -1.04, 0.52, -1.04]
 
   #######################
   # Dynamics parameters #
@@ -90,10 +98,10 @@ planner_variables:
   time_step: 0.01
   time_horizon: 1.8
   external_force: [0.00, 0.00, 0.00]
-  com_displacement: [0.00, 0.60, 0.00]
+  com_displacement: [0.60, 0.0, 0.00]
   num_com_viapoints: 0
   com_viapoints:
-    via0: [2.00,    0.00, -0.05, -0.05]
+    via0: [2.00, -0.05, 0.0, 0.27]
 
   #####################
   # Timing parameters #
@@ -114,80 +122,81 @@ planner_variables:
   min_rel_height: 0.08
   friction_cone: LinearCone  # Types: LinearCone, SocCone #
   time_range: [0.002, 0.25]
-  is_time_horizon_fixed: True
+  is_time_horizon_fixed: true
   torque_range: [0.0, 0.0]
-  eff_offset_rf: [ 0.100, -0.200,  0.000]
-  eff_offset_lf: [-0.100, -0.200,  0.000]
-  eff_offset_rh: [ 0.100,  0.200,  0.000]
-  eff_offset_lh: [-0.100,  0.200,  0.000]
-  cop_range_rf: [ 0.00,  0.00,  0.00,  0.00]
-  cop_range_lf: [ 0.00,  0.00,  0.00,  0.00]
-  cop_range_rh: [ 0.00,  0.00,  0.00,  0.00]
-  cop_range_lh: [ 0.00,  0.00,  0.00,  0.00]
-  max_eef_lengths: [0.28,  0.28,  0.28,  0.28]
-  has_torque_limits: False
+  eff_offset_rf: [-0.200, 0.142, 0.000]
+  eff_offset_lf: [-0.200, -0.142, 0.000]
+  eff_offset_rh: [0.200, 0.142, 0.000]
+  eff_offset_lh: [0.200, -0.142, 0.000]
+  cop_range_rf: [0.00, 0.00, 0.00, 0.00]
+  cop_range_lf: [0.00, 0.00, 0.00, 0.00]
+  cop_range_rh: [0.00, 0.00, 0.00, 0.00]
+  cop_range_lh: [0.00, 0.00, 0.00, 0.00]
+  max_eef_lengths: [0.28, 0.28, 0.28, 0.28]
+  has_torque_limits: false
   min_torque_limits: [-0.675, -0.675, -0.675, -0.675, -0.675, -0.675, -0.675, -0.675]
-  max_torque_limits: [ 0.675,  0.675,  0.675,  0.675,  0.675,  0.675,  0.675,  0.675]
+  max_torque_limits: [0.675, 0.675, 0.675, 0.675, 0.675, 0.675, 0.675, 0.675]
 
   ####################
   # Dynamics weights #
   ####################
 
-  w_trq_arm:       0.000
-  w_trq_leg:       0.000
-  w_time_penalty:  0.000
-  w_time:          1000.0
-  w_com:           [ 1000.,  1000.,  10000]
-  w_amom:          [ 1000.,  0.010,  0.010]
-  w_lmom:          [ 100.0,  0.010,  0.010]
-  w_amomd:         [ 0.100,  0.001,  0.001]
-  w_lmomd:         [ 100.0,  0.001,  0.001]
-  w_amom_final:    [ 10.00,  10.00,  10.00]
-  w_lmom_final:    [ 10.00,  10.00,  10.00]
-  w_com_via:       [ 0.000,  0.000,  0.000]
-  w_frc_arm:       [ 0.000,  0.000,  0.000]
-  w_frc_leg:       [ 0.000,  0.000,  0.000]
-  w_dfrc_arm:      [ 0.000,  0.000,  0.000]
-  w_dfrc_leg:      [ 0.000,  0.000,  0.000]
-  w_com_track:     [ 0.000,  0.000,  0.000]
-  w_lmom_track:    [ 0.000,  25.00,  25.00]
-  w_amom_track:    [ 10000,  0.000,  0.000]
+  w_trq_arm: 0.000
+  w_trq_leg: 0.000
+  w_time_penalty: 0.000
+  w_time: 1000.0
+  w_com: [1000., 1420.0, 10000]
+  w_amom: [0.010, 1420.0, 0.010]
+  w_lmom: [0.010, 142.0, 0.010]
+  w_amomd: [0.001, 0.142, 0.001]
+  w_lmomd: [0.001, 142.0, 0.001]
+  w_amom_final: [10.00, 14.2, 10.00]
+  w_lmom_final: [10.00, 14.2, 10.00]
+  w_com_via: [0.000, 0.0, 0.000]
+  w_frc_arm: [0.000, 0.0, 0.000]
+  w_frc_leg: [0.000, 0.0, 0.000]
+  w_dfrc_arm: [0.000, 0.0, 0.000]
+  w_dfrc_leg: [0.000, 0.0, 0.000]
+  w_com_track: [0.000, 0.0, 0.000]
+  w_lmom_track: [25.00, 0.0, 25.00]
+  w_amom_track: [0.000, 14200.0, 0.000]
 
   ######################
   # Kinematics weights #
   ######################
 
-  max_trajectory_iters:  5
+  max_trajectory_iters: 5
   max_convergence_iters: 50
   convergence_tolerance: 1e-4
-  integration_step:      1e-2
-  slacks_penalty:        1e-2
+  integration_step: 1e-2
+  slacks_penalty: 1e-2
   lambda_regularization: 1e-4
 
-  w_kin_com:             [ 1.000,   1.000,   1.000]
-  w_kin_lmom:            [ 0.000,   1.e-4,   1.e-4]  #[ 0.000,   1.e-3,   1.e-4]
-  w_kin_amom:            [ 1.e-2,   0.000,   0.000]  #[ 4.e-3,   4.e-3,   0.000]
-  w_kin_lmomd:           [ 0.000,   1.e-4,   1.e-4]  #[ 1.e-4,   1.e-4,   1.e-4]
-  w_kin_amomd:           [ 1.e-2,   0.000,   0.000]  #[ 1.e-3,   1.e-3,   0.000]
-  w_kin_eff_pos:         [ 1.000,   5.000,   5.000]
-  w_kin_eff_pos_nonact:  [ 1.000,   1.000,   1.000]
-  w_kin_base_ori:        [ 0.000,   0.000,   0.000]
-  w_kin_default_joints:  [                                       1e-4, 1e-4, 1e-4, 1e-4,  1e-4, 1e-4, 1e-4, 1e-4]
-  w_kin_joint_vel:       [1e+4, 1e-4, 1e-4, 1e-4, 1e+4, 1e+4,    1e-5, 1e-5, 1e-5, 1e-5,  1e-5, 1e-5, 1e-5, 1e-5]
-  w_kin_joint_acc:       [1e+4, 1e-6, 1e-6, 1e-8, 1e+4, 1e+4,    1e-6, 1e-6, 1e-6, 1e-6,  1e-6, 1e-6, 1e-6, 1e-6]
+  w_kin_com: [1.000, 1.42, 1.000]
+  w_kin_lmom: [1.e-4, 0.0, 1.e-4]                    #[ 0.000,   1.e-3,   1.e-4]
+  w_kin_amom: [0.000, 0.014199999999999999, 0.000]   #[ 4.e-3,   4.e-3,   0.000]
+  w_kin_lmomd: [1.e-4, 0.0, 1.e-4]                   #[ 1.e-4,   1.e-4,   1.e-4]
+  w_kin_amomd: [0.000, 0.014199999999999999, 0.000]  #[ 1.e-3,   1.e-3,   0.000]
+  w_kin_eff_pos: [5.000, 1.42, 5.000]
+  w_kin_eff_pos_nonact: [1.000, 1.42, 1.000]
+  w_kin_base_ori: [0.000, 0.0, 0.000]
+  w_kin_default_joints: [1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4]
+  w_kin_joint_vel: [1e+4, 1e-4, 1e-4, 1e-4, 1e+4, 1e+4, 1e-5, 1e-5, 1e-5, 1e-5, 1e-5,
+    1e-5, 1e-5, 1e-5]
+  w_kin_joint_acc: [1e+4, 1e-6, 1e-6, 1e-8, 1e+4, 1e+4, 1e-6, 1e-6, 1e-6, 1e-6, 1e-6,
+    1e-6, 1e-6, 1e-6]
                           # base                                 # joints
 
   #######################
   # Storage information #
   #######################
 
-  store_data: True
+  store_data: true
 
   ##################
   # Solver setting #
   ##################
-  
-  use_default_solver_setting: False
+  use_default_solver_setting: false
 
 
 solverlqr_dynamics:
@@ -215,34 +224,32 @@ solverlqr_dynamics:
   ##########################
   # Lqr problem parameters #
   ##########################
-  
   problem_name: DynamicMomentumOptimization
   time_step: 0.05
   time_horizon: 4.0
   state_dimension: 9
   control_dimension: 12
   initial_state: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-  
-  has_control_limits: False
-  
+  has_control_limits: false
+
   #######################
   # Storage information #
   #######################
 
-  store_data: False
+  store_data: false
 
   ###################
   # User parameters #
   ###################
 
   user_parameters:
-    control_cost: [0.001, 0.001, 0.001]
-    com_tracking: [1.0, 1.0, 1.0]
-    lmom_tracking: [0.1, 0.1, 0.1] 
-    amom_tracking: [0.1, 0.1, 0.1]
-    com_final_tracking: [1.0, 1.0, 1.0]
-    lmom_final_tracking: [0.1, 0.1, 0.1]
-    amom_final_tracking: [0.1, 0.1, 0.1]
+    control_cost: [0.001, 0.00142, 0.001]
+    com_tracking: [1.0, 1.42, 1.0]
+    lmom_tracking: [0.1, 0.142, 0.1]
+    amom_tracking: [0.1, 0.142, 0.1]
+    com_final_tracking: [1.0, 1.42, 1.0]
+    lmom_final_tracking: [0.1, 0.142, 0.1]
+    amom_final_tracking: [0.1, 0.142, 0.1]
 
 
 solver_variables:
@@ -250,8 +257,7 @@ solver_variables:
   ###########################
   # Branch and Bound solver #
   ###########################
-  
-  BnB_verbose: False
+  BnB_verbose: false
   BnB_max_iterations: 1000
   BnB_integer_tolerance: 1e-4
   BnB_absolute_suboptimality_gap: 1e-3
@@ -260,7 +266,6 @@ solver_variables:
   ##########################
   # Convergence tolerances #
   ##########################
-  
   feasibility_tolerance: 1e-7
   max_residual_tolerance: 1e-3
   absolute_suboptimality_gap: 1e-7
@@ -273,8 +278,7 @@ solver_variables:
   ############################
   # Equilibration parameters #
   ############################
-  
-  equil_iterations: 3  
+  equil_iterations: 3
   scaling_factor: 1.0
   equil_upper_bound: 1.0e3
   equil_lower_bound: 1.0e-3
@@ -282,14 +286,13 @@ solver_variables:
   ############################
   # Linear System parameters #
   ############################
-  
   dyn_reg_thresh: 1e-13
   lin_sys_accuracy: 1e-14
   err_reduction_factor: 6.0
   num_iter_ref_lin_solve: 9
   static_regularization: 7e-8
   dynamic_regularization: 2e-7
-  
+
   cg_step_rate: 2.0
   cg_full_precision: 1e-9
   cg_residual_bound: 1e-18
@@ -305,7 +308,7 @@ solver_variables:
   min_centering_step: 1e-4
   max_centering_step: 1.00
   step_length_scaling: 0.99
-  
+
   over_relaxation: 1.5
   optinfo_interval: 100
   converged_interval: 20
@@ -315,15 +318,15 @@ solver_variables:
   # Model parameters #
   ####################
 
-  verbose: False
-  warm_start: False
-  
+  verbose: false
+  warm_start: false
+
   max_iters: 100
   ipsolver_max_iters: 100
   ipsolver_warm_iters: 100
   conicsolver_max_iters: 300
   conicsolver_warm_iters: 300
-  
+
   num_itrefs_trustregion: 2
   trust_region_threshold: 0.15
   soft_constraint_weight_full: 1.0e4

@@ -37,9 +37,9 @@ def create_file(time_vector, optimized_sequence, optimized_dyn_plan, dynamics_fe
         dump_data("quadruped_generalized_positions.dat", desired_gen_pos)
         dump_data("quadruped_generalized_velocities.dat", desired_gen_vel)
         dump_data("quadruped_generalized_acceleration.dat", desired_gen_acc)
-        dump_data("quadruped_com.dat", desired_com)
-        dump_data("quadruped_lmom.dat", desired_lmom)
-        dump_data("quadruped_amom.dat", desired_amom)
+        dump_data("quadruped_com_old.dat", desired_com)
+        dump_data("quadruped_lmom_old.dat", desired_lmom)
+        dump_data("quadruped_amom_old.dat", desired_amom)
         # dump_data("quadruped_dyn_feedback.dat", desired_dyn_feedback)
     else:  # using teststand
         des_positions = np.zeros((num_points, 3))
@@ -57,6 +57,7 @@ def create_file(time_vector, optimized_sequence, optimized_dyn_plan, dynamics_fe
 
 def create_trajectory_file_impedance(time_vector, optimized_motion_eff, optimized_sequence):
     desired_pos = interpolate("POSITION", time_vector, optimized_motion_eff=optimized_motion_eff, optimized_sequence = optimized_sequence)
+    desired_pos_abs = interpolate("POSITION_ABSOLUTE", time_vector, optimized_motion_eff=optimized_motion_eff, optimized_sequence = optimized_sequence)
     desired_vel = interpolate("VELOCITY", time_vector, optimized_motion_eff=optimized_motion_eff, optimized_sequence = optimized_sequence)
     desired_com = interpolate("COM", time_vector, optimized_motion_eff=optimized_motion_eff, optimized_sequence = optimized_sequence)
 
@@ -74,12 +75,14 @@ def create_trajectory_file_impedance(time_vector, optimized_motion_eff, optimize
 
     if using_quadruped:
         des_positions = np.zeros((num_points, 13))
+        des_positions_abs = np.zeros((num_points, 13))
         des_velocities = np.zeros((num_points, 13))
         des_com = np.zeros((num_points, 4))
 
         for i in range(num_points):
             ## making des_pos and des_vel a 6d vector
             des_positions[i, :] = np.hstack((i, desired_pos(i / 1e3)))
+            des_positions_abs[i, :] = np.hstack((i, desired_pos_abs(i / 1e3)))
             des_velocities[i, :] = np.hstack((i, desired_vel(i / 1e3)))
             des_com[i, :] = np.hstack((i, desired_com(i / 1e3)))
 
@@ -114,6 +117,7 @@ def create_trajectory_file_impedance(time_vector, optimized_motion_eff, optimize
 
         np.savetxt("quadruped_positions_eff_old.dat", des_positions, fmt='%.8e')
         np.savetxt("quadruped_velocities_eff_old.dat", des_velocities, fmt='%.8e')
+        np.savetxt("quadruped_velocities_eff_abs_old.dat", des_positions_abs, fmt='%.8e')
 
         np.savetxt("quadruped_com.dat", des_com, fmt='%.8e')
 
@@ -179,6 +183,8 @@ def create_lqr_impedance(time_vector, optimized_motion_eff, optimized_sequence, 
 
         des_positions_final = np.zeros((num_points, 24))
         des_velocities_final = np.zeros((num_points, 24))
+
+        np.savetxt("quadruped_lqr_old.dat", des_lqr_gains)
 
         print("swapping x and y to match with current Configuration")
         for i in range(num_points):

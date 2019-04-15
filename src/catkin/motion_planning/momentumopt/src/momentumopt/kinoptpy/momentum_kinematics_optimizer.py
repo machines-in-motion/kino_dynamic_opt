@@ -174,7 +174,7 @@ class MomentumKinematicsOptimizer(object):
 
         self.hip_names = ['{}_HFE'.format(eff) for eff in self.robot.effs]
         self.hip_ids = [self.robot.model.getFrameId(name) for name in self.hip_names]
-        self.eff_names = ['{}_END'.format(eff) for eff in self.robot.effs]
+        self.eff_names = ['{}_{}'.format(eff, self.robot.joints_list[-1]) for eff in self.robot.effs]
         self.inv_kin = PointContactInverseKinematics(self.robot.model, self.eff_names)
 
         self.motion_eff = {
@@ -243,6 +243,7 @@ class MomentumKinematicsOptimizer(object):
         q = self.robot.model.neutralConfiguration.copy()
         q[7:] = np.matrix(
             self.planner_setting.get(PlannerVectorParam_KinematicDefaultJointPositions)).T
+        q[2] = self.robot.floor_height + 0.32
         dq = np.matrix(np.zeros(self.robot.robot.nv)).T
 
         com_ref = init_state.com
@@ -265,7 +266,7 @@ class MomentumKinematicsOptimizer(object):
             q = se3.integrate(self.robot.model, q, res)
             self.robot.display(q)
 
-            if np.linalg.norm(res) < 1e-5:
+            if np.linalg.norm(res) < 1e-3:
                 print('Found initial configuration after {} iterations'.format(iters + 1))
                 break
 

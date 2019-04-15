@@ -5,17 +5,27 @@ from pinocchio.robot_wrapper import RobotWrapper
 from pinocchio.utils import *
 
 class QuadrupedWrapper():
-
     use_v2 = False
+    use_v3 = False
 
     def __init__(self, urdf, dt=0.01, q=None):
-        if not self.use_v2:
-            self.effs = ["BR", "BL", "FR", "FL"]  # order is important
-            self.colors = {"BL": "r", "BR": "y", "FL": "b", "FR": "g"}
-        else:
+        if self.use_v3:
+            self.effs = ["HR", "HL", "FR", "FL"]  # order is important
+            self.colors = {"HL": "r", "HR": "y", "FL": "b", "FR": "g"}
+            urdf = urdf.replace('quadruped.urdf', 'quadruped_v3.urdf')
+            self.joints_list = ["HFE", "KFE", "ANKLE"]
+            self.floor_height = 0.
+        elif self.use_v2:
             self.effs = ["HR", "HL", "FR", "FL"]  # order is important
             self.colors = {"HL": "r", "HR": "y", "FL": "b", "FR": "g"}
             urdf = urdf.replace('quadruped.urdf', 'quadruped_v2.urdf')
+            self.joints_list = ["HFE", "KFE", "END"]
+            self.floor_height = 0.
+        else:
+            self.effs = ["BR", "BL", "FR", "FL"]  # order is important
+            self.colors = {"BL": "r", "BR": "y", "FL": "b", "FR": "g"}
+            self.joints_list = ["HFE", "KFE", "END"]
+            self.floor_height = -0.32
 
         package_dirs = [os.path.dirname(os.path.dirname(os.path.abspath(__file__)))]
         ## For pinocchio_v2
@@ -35,12 +45,11 @@ class QuadrupedWrapper():
         self.dt = 0.01
         self.mass = sum([i.mass for i in self.model.inertias[1:]])
 
-        self.joints_list = ["HFE", "KFE", "END"]
-
         self.initDisplay(loadModel=True)
         self.robot.viewer.gui.addFloor('world/floor')
 
-        self.robot.viewer.gui.applyConfiguration('world/floor',[0.0, 0.0, -0.32,  0.0, 0.0, 0.0, 1.0])
+        self.robot.viewer.gui.applyConfiguration('world/floor', [
+            0.0, 0.0, self.floor_height,  0.0, 0.0, 0.0, 1.0])
         self.robot.viewer.gui.refresh()
 
         self.set_init_config()
@@ -55,6 +64,7 @@ class QuadrupedWrapper():
         self.q, self.dq, self.ddq, tau = zero(NQ), zero(NV), zero(NV), zero(NV)
 
         self.q = self.robot.model.neutralConfiguration.copy()
+        self.q[2] = self.floor_height
 
         self.num_ctrl_joints = 8
 
@@ -219,7 +229,7 @@ class QuadrupedWrapper():
                 self.transformations_dict[joint_identifier] = self.get_transformation(joint_identifier, "TRANSLATION")
 
             # Create transformations for goal states
-            self.transformations_dict[eff + "_END_GOAL"] = self.transformations_dict[eff + "_END"]().copy()
+            self.transformations_dict[eff + "_END_GOAL"] = self.transformations_dict[eff + "_" + self.joints_list[-1]]().copy()
 
         self.centroidal_momentum = self.get_centroidal_momentum()
         self.d_centroidal_momentum = self.get_d_centroidal_momentum()
@@ -227,51 +237,10 @@ class QuadrupedWrapper():
     def initDisplay(self,loadModel):
         self.robot.initDisplay(loadModel=loadModel)
 
-        self.id_frame_base = self.model.getFrameId("base_link")
-        self.id_frame_bl_end = self.model.getFrameId("BL_END")
-        self.id_frame_bl_hfe = self.model.getFrameId("BL_HFE")
-        self.id_frame_bl_kfe = self.model.getFrameId("BL_KFE")
-        self.id_frame_fl_end = self.model.getFrameId("FL_END")
-        self.id_frame_fl_hfe = self.model.getFrameId("FL_HFE")
-        self.id_frame_fl_kfe = self.model.getFrameId("FL_KFE")
-        self.id_frame_br_end = self.model.getFrameId("BR_END")
-        self.id_frame_br_hfe = self.model.getFrameId("BR_HFE")
-        self.id_frame_br_kfe = self.model.getFrameId("BR_KFE")
-        self.id_frame_fr_end = self.model.getFrameId("FR_END")
-        self.id_frame_fr_hfe = self.model.getFrameId("FR_HFE")
-        self.id_frame_fr_kfe = self.model.getFrameId("FR_KFE")
-
-        # self.robot.viewer.gui.addSphere('world/blhip',.03,[1.0,0.0,0.0, 1.])
-        # self.robot.viewer.gui.addSphere('world/blknee',.03,[1.0,0.0,0.0, 1.])
-        # self.robot.viewer.gui.addSphere('world/bleff',.03,[1.0,0.0,0.0, 1.])
-        # self.robot.viewer.gui.addSphere('world/brhip',.03,[1.0,0.0,0.0, 1.])
-        # self.robot.viewer.gui.addSphere('world/brknee',.03,[1.0,0.0,0.0, 1.])
-        # self.robot.viewer.gui.addSphere('world/breff',.03,[1.0,0.0,0.0, 1.])
-        # self.robot.viewer.gui.addSphere('world/flhip',.03,[1.0,0.0,0.0, 1.])
-        # self.robot.viewer.gui.addSphere('world/flknee',.03,[1.0,0.0,0.0, 1.])
-        # self.robot.viewer.gui.addSphere('world/fleff',.03,[1.0,0.0,0.0, 1.])
-        # self.robot.viewer.gui.addSphere('world/frhip',.03,[1.0,0.0,0.0, 1.])
-        # self.robot.viewer.gui.addSphere('world/frknee',.03,[1.0,0.0,0.0, 1.])
-        # self.robot.viewer.gui.addSphere('world/freff',.03,[1.0,0.0,0.0, 1.])
-
     def display(self,q):
         #RobotWrapper.display(self,q)
         self.robot.display(q)
         se3.updateFramePlacements(self.model,self.data)
-
-        # self.robot.viewer.gui.applyConfiguration('world/blhip', se3ToXYZQUAT(self.data.oMf[self.id_frame_bl_hfe]))
-        # self.robot.viewer.gui.applyConfiguration('world/blknee', se3ToXYZQUAT(self.data.oMf[self.id_frame_bl_kfe]))
-        # self.robot.viewer.gui.applyConfiguration('world/bleff', se3ToXYZQUAT(self.data.oMf[self.id_frame_bl_end]))
-        # self.robot.viewer.gui.applyConfiguration('world/brhip', se3ToXYZQUAT(self.data.oMf[self.id_frame_br_hfe]))
-        # self.robot.viewer.gui.applyConfiguration('world/brknee', se3ToXYZQUAT(self.data.oMf[self.id_frame_br_kfe]))
-        # self.robot.viewer.gui.applyConfiguration('world/breff', se3ToXYZQUAT(self.data.oMf[self.id_frame_br_end]))
-        # self.robot.viewer.gui.applyConfiguration('world/flhip', se3ToXYZQUAT(self.data.oMf[self.id_frame_fl_hfe]))
-        # self.robot.viewer.gui.applyConfiguration('world/flknee', se3ToXYZQUAT(self.data.oMf[self.id_frame_fl_kfe]))
-        # self.robot.viewer.gui.applyConfiguration('world/fleff', se3ToXYZQUAT(self.data.oMf[self.id_frame_fl_end]))
-        # self.robot.viewer.gui.applyConfiguration('world/frhip', se3ToXYZQUAT(self.data.oMf[self.id_frame_fr_hfe]))
-        # self.robot.viewer.gui.applyConfiguration('world/frknee', se3ToXYZQUAT(self.data.oMf[self.id_frame_fr_kfe]))
-        # self.robot.viewer.gui.applyConfiguration('world/freff', se3ToXYZQUAT(self.data.oMf[self.id_frame_fr_end]))
-
         self.robot.viewer.gui.refresh()
 
 ############################ For debugging ##########################################

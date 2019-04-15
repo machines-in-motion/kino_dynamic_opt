@@ -5,7 +5,7 @@ from pinocchio.utils import *
 from numpy.linalg import pinv
 from momentumopt.kinoptpy.qp import QpSolver
 
-class InverseKinematics:
+class InverseKinematics(object):
     def __init__(self, dt, nq):
         self.dt = dt
         self.desired_vels = []
