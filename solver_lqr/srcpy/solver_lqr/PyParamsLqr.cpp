@@ -19,7 +19,7 @@
 #include <pybind11/stl_bind.h>
 #include <pybind11/pybind11.h>
 
-#include <yaml-cpp/yaml_eigen.h>
+#include <yaml_cpp_catkin/yaml_eigen.h>
 #include <solver_lqr/SolverLqrParams.hpp>
 
 namespace py = pybind11;

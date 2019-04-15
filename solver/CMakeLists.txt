@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5.1)
 project(solver)
 
 #########
@@ -15,24 +15,21 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -Wall -Wwrite-strings -ped
 
 set(CATKIN_PKGS ${CATKIN_PKGS}
   mpi_cmake_modules
-  # Eigen
-  # yaml_cpp
-  # pybind11
+  pybind11_catkin
 )
 find_package(catkin REQUIRED COMPONENTS ${CATKIN_PKGS})
 
+search_for_python(2.7 REQUIRED)
 search_for_boost()
 search_for_eigen()
-add_required_dependency("yaml-cpp >= 0.5")
-
-# find_package(Boost REQUIRED COMPONENTS system program_options filesystem)
 
 #####################
 # optional packages #
 #####################
 
-find_package(IPOPT QUIET)
-find_package(GUROBI QUIET)
+# To be fixed, the cmake crashes when using IPOPT
+# find_package(IPOPT QUIET)
+# find_package(GUROBI QUIET)
 
 ##################
 # catkin package #
@@ -78,6 +75,7 @@ include_directories(
   ${EIGEN3_INCLUDE_DIR}
   ${GTEST_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
+  ${PYBIND11_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -160,7 +158,7 @@ target_link_libraries(solver ${solver_LIBS})
 ###################
 
 pybind11_add_module(pysolver ${pysolver_SRC_FILES})
-target_link_libraries(pysolver solver)
+target_link_libraries(pysolver PRIVATE solver)
 
 #########
 # tests #

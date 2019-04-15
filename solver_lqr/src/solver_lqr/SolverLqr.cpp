@@ -1,6 +1,6 @@
 #include <fstream>
 #include <iostream>
-#include <yaml-cpp/yaml_eigen.h>
+#include <yaml_cpp_catkin/yaml_eigen.h>
 #include <solver_lqr/SolverLqr.hpp>
 
 namespace solverlqr {

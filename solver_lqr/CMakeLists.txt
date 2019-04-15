@@ -14,13 +14,17 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -g -Wall -pedantic -O3 -funro
 #####################
 
 set(CATKIN_PKGS ${CATKIN_PKGS}
+  # third party dependencies
+  mpi_cmake_modules
+  yaml_cpp_catkin
+  pybind11_catkin
+  # local dependencies
   solver
-  yaml_cpp
-  pybind11
 )
-
 find_package(catkin REQUIRED COMPONENTS ${CATKIN_PKGS})
-find_package(Boost REQUIRED COMPONENTS system program_options filesystem)
+
+search_for_boost()
+search_for_eigen()
 
 #######################
 # include directories #
@@ -28,9 +32,7 @@ find_package(Boost REQUIRED COMPONENTS system program_options filesystem)
 
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS
-    solver
-    yaml_cpp
+  CATKIN_DEPENDS ${CATKIN_PKGS}
   LIBRARIES solverlqr
 )
 
@@ -90,7 +92,7 @@ set_target_properties(solverlqr PROPERTIES COMPILE_DEFINITIONS CFG_PATH="${CONFI
 ###################
 
 pybind11_add_module(pysolverlqr ${pysolverlqr_SRC_FILES})
-target_link_libraries(pysolverlqr solverlqr)
+target_link_libraries(pysolverlqr PRIVATE solverlqr)
 
 #########
 # tests #
