@@ -5,6 +5,7 @@ src/CMakeLists.txt
 .ipynb_checkpoints
 .idea/workspace.xml
 .gitignore~
+
 *.dat
 *.pyc
 *.project
