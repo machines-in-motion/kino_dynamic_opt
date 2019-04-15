@@ -191,6 +191,7 @@ class MotionPlanner():
         return fig, axes
 
     def replay_kinematics(self, start=0, end=None):
+        self.kin_optimizer.robot.ensureDisplay()
         for ks in self.kin_optimizer.kinematics_sequence.kinematics_states[start:end]:
             q = ks.robot_posture.generalized_joint_positions
             self.kin_optimizer.robot.display(np.matrix(q).T)

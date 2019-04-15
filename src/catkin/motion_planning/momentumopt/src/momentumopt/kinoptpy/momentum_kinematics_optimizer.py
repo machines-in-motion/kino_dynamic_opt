@@ -264,7 +264,6 @@ class MomentumKinematicsOptimizer(object):
             res = self.inv_kin.compute(q, dq, com_ref, lmom_ref, amom_ref,
                                       endeff_pos_ref, endeff_vel_ref, endeff_contact)
             q = se3.integrate(self.robot.model, q, res)
-            self.robot.display(q)
 
             if np.linalg.norm(res) < 1e-3:
                 print('Found initial configuration after {} iterations'.format(iters + 1))

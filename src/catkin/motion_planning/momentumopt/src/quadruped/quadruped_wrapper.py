@@ -30,15 +30,7 @@ class QuadrupedWrapper():
         self.dt = 0.01
         self.mass = sum([i.mass for i in self.model.inertias[1:]])
 
-        self.initDisplay(loadModel=True)
-        self.robot.viewer.gui.addFloor('world/floor')
-
-        self.robot.viewer.gui.applyConfiguration('world/floor', [
-            0.0, 0.0, self.floor_height,  0.0, 0.0, 0.0, 1.0])
-        self.robot.viewer.gui.refresh()
-
         self.set_init_config()
-
         self.init_jacobians_and_trafos()
 
     def set_init_config(self):
@@ -72,7 +64,6 @@ class QuadrupedWrapper():
 
         # print(self.q)
         self.set_configuration(self.q)
-        self.display(self.q)
 
     def set_configuration(self, q):
         self.q = q
@@ -219,8 +210,16 @@ class QuadrupedWrapper():
         self.centroidal_momentum = self.get_centroidal_momentum()
         self.d_centroidal_momentum = self.get_d_centroidal_momentum()
 
-    def initDisplay(self,loadModel):
+    def initDisplay(self, loadModel=True):
         self.robot.initDisplay(loadModel=loadModel)
+        self.robot.viewer.gui.addFloor('world/floor')
+        self.robot.viewer.gui.applyConfiguration('world/floor', [
+            0.0, 0.0, self.floor_height,  0.0, 0.0, 0.0, 1.0])
+        self.robot.viewer.gui.refresh()
+
+    def ensureDisplay(self):
+        if not hasattr(self.robot, 'viewer'):
+            self.initDisplay()
 
     def display(self,q):
         #RobotWrapper.display(self,q)
