@@ -5,27 +5,12 @@ from pinocchio.robot_wrapper import RobotWrapper
 from pinocchio.utils import *
 
 class QuadrupedWrapper():
-    use_v2 = False
-    use_v3 = False
 
     def __init__(self, urdf, dt=0.01, q=None):
-        if self.use_v3:
-            self.effs = ["HR", "HL", "FR", "FL"]  # order is important
-            self.colors = {"HL": "r", "HR": "y", "FL": "b", "FR": "g"}
-            urdf = urdf.replace('quadruped.urdf', 'quadruped_v3.urdf')
-            self.joints_list = ["HFE", "KFE", "ANKLE"]
-            self.floor_height = 0.
-        elif self.use_v2:
-            self.effs = ["HR", "HL", "FR", "FL"]  # order is important
-            self.colors = {"HL": "r", "HR": "y", "FL": "b", "FR": "g"}
-            urdf = urdf.replace('quadruped.urdf', 'quadruped_v2.urdf')
-            self.joints_list = ["HFE", "KFE", "END"]
-            self.floor_height = 0.
-        else:
-            self.effs = ["BR", "BL", "FR", "FL"]  # order is important
-            self.colors = {"BL": "r", "BR": "y", "FL": "b", "FR": "g"}
-            self.joints_list = ["HFE", "KFE", "END"]
-            self.floor_height = -0.32
+        self.effs = ["HR", "HL", "FR", "FL"]  # order is important
+        self.colors = {"HL": "r", "HR": "y", "FL": "b", "FR": "g"}
+        self.joints_list = ["HFE", "KFE", "ANKLE"]
+        self.floor_height = 0.
 
         package_dirs = [os.path.dirname(os.path.dirname(os.path.abspath(__file__)))]
         ## For pinocchio_v2

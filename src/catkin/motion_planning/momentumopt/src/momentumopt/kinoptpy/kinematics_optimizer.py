@@ -83,7 +83,6 @@ class KinematicsOptimizer:
         urdf = str(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + '/urdf/quadruped.urdf')
         # print("urdf_path:", urdf)
 
-        QuadrupedWrapper.use_v3 = True
         self.robot = QuadrupedWrapper(urdf)
         #TODO: naming convention must be improved
         self.max_iterations = max_iterations
