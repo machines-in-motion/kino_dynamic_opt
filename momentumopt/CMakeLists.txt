@@ -134,7 +134,6 @@ set_target_properties(momentumopt_tests PROPERTIES COMPILE_DEFINITIONS TEST_PATH
 #########
 # demos #
 #########
-
 add_executable(demo_momentumopt demos/DemoMomentumopt.cpp)
 target_link_libraries(demo_momentumopt momentumopt ${catkin_LIBRARIES})
 set_target_properties(demo_momentumopt PROPERTIES COMPILE_DEFINITIONS CFG_SRC_PATH="${CONFIG_PATH}/")
