@@ -233,12 +233,12 @@ solverlqr_dynamics:
 
   user_parameters:
     control_cost: [0.001, 0.00142, 0.001]
-    com_tracking: [1.0, 1.42, 1.0]
-    lmom_tracking: [0.1, 0.142, 0.1]
-    amom_tracking: [0.1, 0.142, 0.1]
-    com_final_tracking: [1.0, 1.42, 1.0]
-    lmom_final_tracking: [0.1, 0.142, 0.1]
-    amom_final_tracking: [0.1, 0.142, 0.1]
+    com_tracking: [1.0, 0. , 1.0]
+    lmom_tracking: [1., 0.0, 1.]
+    amom_tracking: [1., 1.0, 0.]
+    com_final_tracking: [1.0, 0., 1.0]
+    lmom_final_tracking: [0.1, 0., 0.1]
+    amom_final_tracking: [0.1, 0.1, 0.]
 
 
 solver_variables:
