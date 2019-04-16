@@ -132,7 +132,6 @@ def create_lqr_impedance(time_vector, optimized_motion_eff, optimized_sequence, 
 
                 des_velocities_final[i][6*eff:6*(eff+1)] = np.hstack((des_velocities[i][3*(eff)+1:3*(eff+1) + 1], [0.0, 0.0, 0.0]))
 
-
         ## spliting into three parts because sot reader can load upto 40 columns only
         des_lqr1 = des_lqr_gains[: ,0:36]
         des_lqr2 = des_lqr_gains[: ,36:72]
