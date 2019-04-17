@@ -270,7 +270,7 @@ def main(argv):
         kin_optimizer = motion_planner.kin_optimizer
         inv_kin = kin_optimizer.inv_kin
         etg = kin_optimizer.endeff_traj_generator
-        etg.z_offset = 0.1
+        etg.z_offset = 0.05
 
         inv_kin.w_com_tracking[:3] = 1.
         inv_kin.w_com_tracking[3:] = 1.
