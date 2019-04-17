@@ -137,7 +137,7 @@ def create_lqr_impedance(time_vector, optimized_motion_eff, optimized_sequence, 
         des_lqr1 = des_lqr_gains[: ,0:36]
         des_lqr2 = des_lqr_gains[: ,36:72]
         des_lqr3 = des_lqr_gains[: ,72:108]
-        print(des_lqr3[0])
+        #print(des_lqr3[0])
         # print(np.shape(des_lqr1))
 
         #print(desired_pos)
