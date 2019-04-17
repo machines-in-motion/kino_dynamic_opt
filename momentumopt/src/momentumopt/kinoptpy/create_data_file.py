@@ -133,10 +133,12 @@ def create_lqr_impedance(time_vector, optimized_motion_eff, optimized_sequence, 
                 des_velocities_final[i][6*eff:6*(eff+1)] = np.hstack((des_velocities[i][3*(eff)+1:3*(eff+1) + 1], [0.0, 0.0, 0.0]))
 
         ## spliting into three parts because sot reader can load upto 40 columns only
+        des_lqr_gains = np.multiply(-1, des_lqr_gains)
         des_lqr1 = des_lqr_gains[: ,0:36]
         des_lqr2 = des_lqr_gains[: ,36:72]
         des_lqr3 = des_lqr_gains[: ,72:108]
-        print(np.shape(des_lqr1))
+        print(des_lqr3[0])
+        # print(np.shape(des_lqr1))
 
         #print(desired_pos)
         print("saving trajectories....")
@@ -148,5 +150,5 @@ def create_lqr_impedance(time_vector, optimized_motion_eff, optimized_sequence, 
         np.savetxt("quadruped_lqr1.dat", des_lqr1)
         np.savetxt("quadruped_lqr2.dat", des_lqr2)
         np.savetxt("quadruped_lqr3.dat", des_lqr3)
-        np.savetxt("quadruped_lqr.dat", des_lqr_gains)
+        # np.savetxt("quadruped_lqr.dat", des_lqr_gains)
         np.savetxt("quadruped_forces.dat", des_forces)
