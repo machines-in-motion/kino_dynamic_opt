@@ -226,7 +226,7 @@ class MotionPlanner():
         self.optimize_dynamics(0)
         for kd_iter in range(0, self.planner_setting.get(PlannerIntParam_KinDynIterations)):
             self.optimize_kinematics(kd_iter + 1, plotting=False)
-            self.optimize_dynamics(kd_iter + 1)
+            #self.optimize_dynamics(kd_iter + 1)
 
         optimized_kin_plan = kin_optimizer.kinematics_sequence
         optimized_dyn_plan = dyn_optimizer.dynamicsSequence()
@@ -276,14 +276,14 @@ def main(argv):
         inv_kin.w_com_tracking[3:] = 1.
         inv_kin.w_endeff_contact = 1.
         inv_kin.p_endeff_tracking = 1.
-        inv_kin.p_com_tracking = 1.
+        inv_kin.p_com_tracking =1.
         kin_optimizer.reg_orientation = .05
+
 
     optimized_kin_plan, optimized_motion_eff, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector = motion_planner.optimize_motion()
     for i in range(len(time_vector)):
         print "\n t:",time_vector[i],"\n"
         print dynamics_feedback.forceGain(i)
-
         # motion_planner.plot_centroidal()
     # Create configuration and velocity file from motion plan for dynamic graph
     motion_planner.save_files()
@@ -294,6 +294,7 @@ def main(argv):
     if simulation:
         motion_executor = MotionExecutor(optimized_kin_plan, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector)
         motion_executor.execute_motion(plotting=False, tune_online=False)
+
 
     print('Done...')
 

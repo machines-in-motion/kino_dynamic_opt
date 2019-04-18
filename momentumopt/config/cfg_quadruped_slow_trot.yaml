@@ -74,10 +74,11 @@ planner_variables:
   time_step: 0.01
   time_horizon: 2.99
   external_force: [0.00, 0.00, 0.00]
-  com_displacement: [0.08, 0.0, 0.00]
-  num_com_viapoints: 0
+  com_displacement: [0.1, 0.0, 0.00]
+  num_com_viapoints: 2
   com_viapoints:
-    via0: [0.50, 0.1, 0.0, 0.2]
+    via0: [1.00, 0.02, 0.0, 0.]
+    via1: [2.00, 0.08, 0.0, 0.]
 
   #####################
   # Timing parameters #
@@ -124,11 +125,11 @@ planner_variables:
   w_com:           [ 100000.,  100000.,  100000.]
   w_amom:          [ 10000.0,  100000.0,  1000.0]
   w_lmom:          [ 0.100,  0.10,  10.0]
-  w_amomd:         [ 0.010,  0.010,  0.010]
+  w_amomd:         [ 10000.0,  100000.0,  100000.0]
   w_lmomd:         [ 0.100,  0.100,  0.100]
-  w_amom_final:    [ 0.010,  0.010,  0.010]
+  w_amom_final:    [ 10000.0,  100000.0,  100000.0]
   w_lmom_final:    [ 10.00,  10.00,  10.00]
-  w_com_via:       [ 0.000,  0.000,  0.000]
+  w_com_via:       [ 1000000.0,  0.000,  0.000]
   w_frc_arm:       [ 0.001,  0.001,  0.001]
   w_frc_leg:       [ 0.001,  0.001,  0.001]
   w_dfrc_arm:      [ 0.000,  0.000,  0.000]
