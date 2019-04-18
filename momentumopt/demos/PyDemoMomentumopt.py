@@ -280,9 +280,9 @@ def main(argv):
         kin_optimizer.reg_orientation = .05
 
     optimized_kin_plan, optimized_motion_eff, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector = motion_planner.optimize_motion()
-    # for i in range(len(time_vector)):
-    #     print "\n t:",time_vector[i],"\n"
-    #     print dynamics_feedback.forceGain(0)
+    for i in range(len(time_vector)):
+        print "\n t:",time_vector[i],"\n"
+        print dynamics_feedback.forceGain(i)
 
         # motion_planner.plot_centroidal()
     # Create configuration and velocity file from motion plan for dynamic graph

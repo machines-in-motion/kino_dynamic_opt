@@ -37,16 +37,16 @@ contact_plan:
 
   effcnt_rf:
   - [0.00, 1.00, -0.20, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
-  - [1.25, 3.00, -0.10, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [1.35, 3.00, -0.10, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
   effcnt_lf:
   - [0.00, 2.00, -0.20, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
-  - [2.25, 3.00, -0.10, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [2.35, 3.00, -0.10, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
   effcnt_rh:
   - [0.00, 2.00, 0.20, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
-  - [2.25, 3.00, 0.30, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [2.35, 3.00, 0.30, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
   effcnt_lh:
   - [0.00, 1.00, 0.20, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
-  - [1.25, 3.00, 0.30, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [1.35, 3.00, 0.30, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
 
 
 planner_variables:
@@ -72,7 +72,7 @@ planner_variables:
   heuristic: SoftConstraint  # Types: TrustRegion, SoftConstraint, TimeOptimization #
   n_act_eefs: 4
   time_step: 0.01
-  time_horizon: 2.9
+  time_horizon: 2.99
   external_force: [0.00, 0.00, 0.00]
   com_displacement: [0.08, 0.0, 0.00]
   num_com_viapoints: 0
@@ -204,7 +204,7 @@ solverlqr_dynamics:
 
   problem_name: DynamicMomentumOptimization
   time_step: 0.01
-  time_horizon: 2.9
+  time_horizon: 2.99
   state_dimension: 9
   control_dimension: 12
   initial_state: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
@@ -225,10 +225,10 @@ solverlqr_dynamics:
     control_cost: [0.001, 0.00142, 0.001]
     com_tracking: [1.0, 0. , 1.0]
     lmom_tracking: [1., 0.0, 1.]
-    amom_tracking: [1., 1.0, 0.]
-    com_final_tracking: [1.0, 0., 1.0]
-    lmom_final_tracking: [0.1, 0., 0.1]
-    amom_final_tracking: [0.1, 0.1, 0.]
+    amom_tracking: [10., 10.0, 0.]
+    com_final_tracking: [1.0, 0. , 1.0]
+    lmom_final_tracking: [1., 0.0, 1.]
+    amom_final_tracking: [10., 10.0, 0.]
 
 
 solver_variables:
