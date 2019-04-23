@@ -197,6 +197,22 @@ class MotionPlanner():
             self.kin_optimizer.robot.display(np.matrix(q).T)
             time.sleep(self.kin_optimizer.dt)
 
+    def plot_base_trajecory(self, start=0, end=None):
+        q_app = np.zeros([1,self.kin_optimizer.robot.model.nq])
+        for ks in self.kin_optimizer.kinematics_sequence.kinematics_states[start:end]:
+            q = ks.robot_posture.generalized_joint_positions
+            q_app = np.append(q_app,q.reshape(1,len(q)),axis=0)
+        fig, ax = plt.subplots(3,1)
+        label = ["base_x","base_y","base_z"]
+        for i in range(3):
+            ax[i].plot(q_app[1:end,i], label = label[i])
+            ax[i].set_ylabel("m")
+            ax[i].set_xlabel("millisec")
+            ax[i].legend()
+            ax[i].grid(True)
+        plt.show()
+
+
     def save_files(self):
         time_vector = create_time_vector(self.dyn_optimizer.dynamicsSequence())
         create_file(time_vector,
@@ -227,12 +243,12 @@ class MotionPlanner():
         for kd_iter in range(0, self.planner_setting.get(PlannerIntParam_KinDynIterations)):
             self.optimize_kinematics(kd_iter + 1, plotting=False)
             self.optimize_dynamics(kd_iter + 1)
-            optimized_kin_plan = kin_optimizer.kinematics_sequence
-            optimized_dyn_plan = dyn_optimizer.dynamicsSequence()
-            plot_com_motion(optimized_dyn_plan.dynamics_states, optimized_kin_plan.kinematics_states)
+            #optimized_kin_plan = kin_optimizer.kinematics_sequence
+            #optimized_dyn_plan = dyn_optimizer.dynamicsSequence()
+            #plot_com_motion(optimized_dyn_plan.dynamics_states, optimized_kin_plan.kinematics_states)
 
-        #optimized_kin_plan = kin_optimizer.kinematics_sequence
-        #optimized_dyn_plan = dyn_optimizer.dynamicsSequence()
+        optimized_kin_plan = kin_optimizer.kinematics_sequence
+        optimized_dyn_plan = dyn_optimizer.dynamicsSequence()
 
         time_vector = create_time_vector(dyn_optimizer.dynamicsSequence())
         self.optimize_dynamics_feedback()
@@ -280,19 +296,20 @@ def main(argv):
         inv_kin.w_endeff_contact = 1.
         inv_kin.p_endeff_tracking = 1.
         inv_kin.p_com_tracking =1.
-        kin_optimizer.reg_orientation = 5.
+        kin_optimizer.reg_orientation = .05
 
 
     optimized_kin_plan, optimized_motion_eff, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector = motion_planner.optimize_motion()
-    for i in range(len(time_vector)):
-        print "\n t:",time_vector[i],"\n"
-        print dynamics_feedback.forceGain(i)
+    #for i in range(len(time_vector)):
+    #    print "\n t:",time_vector[i],"\n"
+    #    print dynamics_feedback.forceGain(i)
         # motion_planner.plot_centroidal()
     # Create configuration and velocity file from motion plan for dynamic graph
     motion_planner.save_files()
     simulation = False
-
+    #motion_planner.plot_centroidal()
     plot_com_motion(optimized_dyn_plan.dynamics_states, optimized_kin_plan.kinematics_states)
+    #motion_planner.plot_base_trajecory()
 
     if simulation:
         motion_executor = MotionExecutor(optimized_kin_plan, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector)
