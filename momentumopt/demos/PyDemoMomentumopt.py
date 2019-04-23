@@ -226,10 +226,13 @@ class MotionPlanner():
         self.optimize_dynamics(0)
         for kd_iter in range(0, self.planner_setting.get(PlannerIntParam_KinDynIterations)):
             self.optimize_kinematics(kd_iter + 1, plotting=False)
-            #self.optimize_dynamics(kd_iter + 1)
+            self.optimize_dynamics(kd_iter + 1)
+            optimized_kin_plan = kin_optimizer.kinematics_sequence
+            optimized_dyn_plan = dyn_optimizer.dynamicsSequence()
+            plot_com_motion(optimized_dyn_plan.dynamics_states, optimized_kin_plan.kinematics_states)
 
-        optimized_kin_plan = kin_optimizer.kinematics_sequence
-        optimized_dyn_plan = dyn_optimizer.dynamicsSequence()
+        #optimized_kin_plan = kin_optimizer.kinematics_sequence
+        #optimized_dyn_plan = dyn_optimizer.dynamicsSequence()
 
         time_vector = create_time_vector(dyn_optimizer.dynamicsSequence())
         self.optimize_dynamics_feedback()
@@ -277,7 +280,7 @@ def main(argv):
         inv_kin.w_endeff_contact = 1.
         inv_kin.p_endeff_tracking = 1.
         inv_kin.p_com_tracking =1.
-        kin_optimizer.reg_orientation = .05
+        kin_optimizer.reg_orientation = 5.
 
 
     optimized_kin_plan, optimized_motion_eff, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector = motion_planner.optimize_motion()
