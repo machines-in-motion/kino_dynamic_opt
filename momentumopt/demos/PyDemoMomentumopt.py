@@ -99,7 +99,7 @@ def plot_com_motion(dynamics_states, kinematics_states):
 
 class MotionPlanner():
 
-    def __init__(self, cfg_file, KinOpt=KinematicsOptimizer):
+    def __init__(self, cfg_file, KinOpt=MomentumKinematicsOptimizer):
         'define problem configuration'
         self.planner_setting = PlannerSetting()
         self.planner_setting.initialize(cfg_file)
