@@ -198,7 +198,7 @@ def generate_eff_traj(contacts, z_max, z_min):
                 for idx in range(3):
                     via = None
                     if idx == 2:
-                        via = max(0.68*(z_max - z_min), 0.1) + cnt[i].position()[idx]
+                        via = 0.1*max((z_max - z_min), 0.1) + cnt[i].position()[idx]
                     poly = poly_points(t, cnt[i].position()[idx], cnt[i+1].position()[idx], via)
                     poly_traj[idx].append(t, poly)
 
