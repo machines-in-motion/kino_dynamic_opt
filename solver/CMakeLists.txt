@@ -9,6 +9,8 @@ set(BUILD_DOCUMENTATION OFF)
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake )
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -Wall -Wwrite-strings -pedantic -O3 -funroll-loops -fPIC")
 
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 #####################
 # required packages #
 #####################
@@ -105,7 +107,7 @@ set(solver_SRC_FILES ${solver_SRC_FILES}
   src/solver/interface/OptVar.cpp
   src/solver/interface/ConicProblem.cpp
   src/solver/interface/SolverSetting.cpp
-  
+
   src/solver/optimizer/IPSolver.cpp
   src/solver/optimizer/LinSolver.cpp
   src/solver/optimizer/EqRoutine.cpp
