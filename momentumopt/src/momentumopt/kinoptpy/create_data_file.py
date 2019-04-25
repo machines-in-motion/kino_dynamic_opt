@@ -61,6 +61,7 @@ def create_lqr_impedance(time_vector, optimized_motion_eff, optimized_sequence, 
     desired_amom = interpolate("AMOM", time_vector, optimized_motion_eff=optimized_motion_eff, optimized_sequence = optimized_sequence)
     desired_forces = interpolate("FORCES", time_vector, optimized_dyn_plan = optimized_dyn_plan, dynamics_feedback = dynamics_feedback)
     desired_lqr_gains = interpolate("DYN_FEEDBACK", time_vector, dynamics_feedback = dynamics_feedback)
+    desired_quaternion = interpolate("QUATERNION", time_vector, optimized_sequence=optimized_sequence)
 
     max_time = 0 # time horizon in seconds
 
@@ -87,6 +88,7 @@ def create_lqr_impedance(time_vector, optimized_motion_eff, optimized_sequence, 
         des_amom = np.zeros((num_points, 4))
         des_lqr_gains = np.zeros((num_points, 108))
         des_forces = np.zeros((num_points, 13))
+        des_quaternion = np.zeros((num_points, 5))
 
 
         for i in range(num_points):
@@ -103,6 +105,7 @@ def create_lqr_impedance(time_vector, optimized_motion_eff, optimized_sequence, 
             ## Converting lqr matrix (12 * 9) to a 108d vector
             des_lqr_gains_tmp = np.reshape(des_lqr_gains_tmp, (108,))
             des_lqr_gains[i,: ] = des_lqr_gains_tmp
+            des_quaternion[i, :] = np.hstack((i, desired_quaternion(i / 1e3)))
 
         ## resequencing the eff sequence
 
@@ -152,3 +155,4 @@ def create_lqr_impedance(time_vector, optimized_motion_eff, optimized_sequence, 
         np.savetxt("quadruped_lqr3.dat", des_lqr3)
         # np.savetxt("quadruped_lqr.dat", des_lqr_gains)
         np.savetxt("quadruped_forces.dat", des_forces)
+        np.savetxt("quadruped_quaternion.dat", des_quaternion)

@@ -140,7 +140,6 @@ def interpolate(specification, time_vector, optimized_motion_eff=None, optimized
         elif specification == "VELOCITY_ABSOLUTE":
             state_1 = optimized_motion_eff["velocity"][t1_idx]
             state_2 = optimized_motion_eff["velocity"][t2_idx]
-
         elif specification == "COM":
             state_1 = optimized_sequence.kinematics_states[t1_idx].com
             state_2 = optimized_sequence.kinematics_states[t2_idx].com
@@ -156,6 +155,9 @@ def interpolate(specification, time_vector, optimized_motion_eff=None, optimized
         elif specification == 'FORCES':
             state_1 = eff_force_vector(optimized_dyn_plan.dynamics_states[t1_idx])
             state_2 = eff_force_vector(optimized_dyn_plan.dynamics_states[t2_idx])
+        elif specification == "QUATERNION":
+            state_1 = optimized_sequence.kinematics_states[t1_idx].robot_posture.generalized_joint_positions[3:7]
+            state_2 = optimized_sequence.kinematics_states[t2_idx].robot_posture.generalized_joint_positions[3:7]
 
         delta_t = t - time_vector[t1_idx]
         if t2_idx <= 0:
