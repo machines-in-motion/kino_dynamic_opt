@@ -62,6 +62,8 @@ def create_lqr_impedance(time_vector, optimized_motion_eff, optimized_sequence, 
     desired_forces = interpolate("FORCES", time_vector, optimized_dyn_plan = optimized_dyn_plan, dynamics_feedback = dynamics_feedback)
     desired_lqr_gains = interpolate("DYN_FEEDBACK", time_vector, dynamics_feedback = dynamics_feedback)
     desired_quaternion = interpolate("QUATERNION", time_vector, optimized_sequence=optimized_sequence)
+    desired_centroidal_forces = interpolate("CENTROIDAL_FORCES", time_vector, optimized_dyn_plan = optimized_dyn_plan, dynamics_feedback = dynamics_feedback)
+    desired_centroidal_moments = interpolate("CENTROIDAL_MOMENTS", time_vector, optimized_dyn_plan = optimized_dyn_plan, dynamics_feedback = dynamics_feedback)
 
     max_time = 0 # time horizon in seconds
 
@@ -88,6 +90,8 @@ def create_lqr_impedance(time_vector, optimized_motion_eff, optimized_sequence, 
         des_amom = np.zeros((num_points, 4))
         des_lqr_gains = np.zeros((num_points, 108))
         des_forces = np.zeros((num_points, 13))
+        des_centroidal_forces = np.zeros((num_points, 4))
+        des_centroidal_moments = np.zeros((num_points, 4))
         des_quaternion = np.zeros((num_points, 5))
 
 
@@ -96,6 +100,8 @@ def create_lqr_impedance(time_vector, optimized_motion_eff, optimized_sequence, 
             ### re arranging the sequence of legs to the latest from (HR, HL, FR, FL)
             ### to (FL, FR, HL, HR) for des_pos, des_vel and forces
             des_forces[i:, ] = np.hstack((i, desired_forces(i /1e3)))
+            des_centroidal_forces[i:, ] = np.hstack((i, desired_centroidal_forces(i /1e3)))
+            des_centroidal_moments[i:, ] = np.hstack((i, desired_centroidal_moments(i /1e3)))
             des_positions[i, :] = np.hstack((i, desired_pos(i / 1e3)))
             des_velocities[i, :] = np.hstack((i, desired_vel(i / 1e3)))
             des_com[i, :] = np.hstack((i, desired_com(i / 1e3)))
@@ -155,4 +161,6 @@ def create_lqr_impedance(time_vector, optimized_motion_eff, optimized_sequence, 
         np.savetxt("quadruped_lqr3.dat", des_lqr3)
         # np.savetxt("quadruped_lqr.dat", des_lqr_gains)
         np.savetxt("quadruped_forces.dat", des_forces)
+        np.savetxt("quadruped_centroidal_forces.dat", des_centroidal_forces)
+        np.savetxt("quadruped_centroidal_moments.dat", des_centroidal_moments)
         np.savetxt("quadruped_quaternion.dat", des_quaternion)

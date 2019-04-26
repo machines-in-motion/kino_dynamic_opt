@@ -300,6 +300,7 @@ def main(argv):
 
 
     optimized_kin_plan, optimized_motion_eff, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector = motion_planner.optimize_motion()
+    #print planner_setting.get(PlannerDoubleParam_RobotWeight)
     #for i in range(len(time_vector)):
     #    print "\n t:",time_vector[i],"\n"
     #    print dynamics_feedback.forceGain(i)

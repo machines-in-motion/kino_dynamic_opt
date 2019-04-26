@@ -105,7 +105,6 @@ def desired_state(specification, time_vector, optimized_sequence=None, dynamics_
 def interpolate(specification, time_vector, optimized_motion_eff=None, optimized_sequence=None, dynamics_feedback=None, optimized_dyn_plan=None):
     ## for impedance controller
     ## interpolates end_eff velocity and positions to bring it to sample rate of 1khz
-
     if optimized_motion_eff is None and dynamics_feedback is None and optimized_sequence is None:
         raise ValueError("Specify desired positions, velocities or dynamic feedback gains.")
 
@@ -114,6 +113,19 @@ def interpolate(specification, time_vector, optimized_motion_eff=None, optimized
         return np.hstack([
             dynamic_state.effForce(eff_id) for eff_id in range(dynamic_state.effNum())
         ])
+
+    def centroidal_force_vector(dynamic_state):
+        centroidal_force = np.zeros(len(dynamic_state.effForce(0)))
+        for eff_id in range(dynamic_state.effNum()):
+            centroidal_force += np.multiply(dynamic_state.effForce(eff_id),27.19332)
+        return centroidal_force
+
+    def centroidal_moment_vector(dynamic_state):
+        centroidal_moment = np.zeros(len(dynamic_state.effForce(0)))
+        for eff_id in range(dynamic_state.effNum()):
+            centroidal_moment += np.cross((dynamic_state.effPosition(eff_id) - dynamic_state.com)\
+            ,np.multiply(dynamic_state.effForce(eff_id),27.19332))
+        return centroidal_moment
 
     def desired_state_eval(t):
         closest_idx = np.argmin(abs(time_vector - t))
@@ -155,6 +167,12 @@ def interpolate(specification, time_vector, optimized_motion_eff=None, optimized
         elif specification == 'FORCES':
             state_1 = eff_force_vector(optimized_dyn_plan.dynamics_states[t1_idx])
             state_2 = eff_force_vector(optimized_dyn_plan.dynamics_states[t2_idx])
+        elif specification == 'CENTROIDAL_FORCES':
+            state_1 = centroidal_force_vector(optimized_dyn_plan.dynamics_states[t1_idx])
+            state_2 = centroidal_force_vector(optimized_dyn_plan.dynamics_states[t2_idx])
+        elif specification == 'CENTROIDAL_MOMENTS':
+            state_1 = centroidal_moment_vector(optimized_dyn_plan.dynamics_states[t1_idx])
+            state_2 = centroidal_moment_vector(optimized_dyn_plan.dynamics_states[t2_idx])
         elif specification == "QUATERNION":
             state_1 = optimized_sequence.kinematics_states[t1_idx].robot_posture.generalized_joint_positions[3:7]
             state_2 = optimized_sequence.kinematics_states[t2_idx].robot_posture.generalized_joint_positions[3:7]
