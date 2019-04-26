@@ -53,7 +53,7 @@ def create_file(time_vector, optimized_sequence, optimized_dyn_plan, dynamics_fe
         np.savetxt("teststand_positions.dat", des_positions)
         np.savetxt("teststand_velocities.dat", des_velocities)
 
-def create_lqr_impedance(time_vector, optimized_motion_eff, optimized_sequence, optimized_dyn_plan, dynamics_feedback, planner_setting):
+def create_lqr_impedance(time_vector, optimized_motion_eff, optimized_sequence, optimized_dyn_plan, dynamics_feedback, robot_weight):
     desired_pos = interpolate("POSITION", time_vector, optimized_motion_eff=optimized_motion_eff, optimized_sequence = optimized_sequence)
     desired_vel = interpolate("VELOCITY", time_vector, optimized_motion_eff=optimized_motion_eff, optimized_sequence = optimized_sequence)
     desired_com = interpolate("COM", time_vector, optimized_motion_eff=optimized_motion_eff, optimized_sequence = optimized_sequence)
@@ -62,8 +62,8 @@ def create_lqr_impedance(time_vector, optimized_motion_eff, optimized_sequence, 
     desired_forces = interpolate("FORCES", time_vector, optimized_dyn_plan = optimized_dyn_plan, dynamics_feedback = dynamics_feedback)
     desired_lqr_gains = interpolate("DYN_FEEDBACK", time_vector, dynamics_feedback = dynamics_feedback)
     desired_quaternion = interpolate("QUATERNION", time_vector, optimized_sequence=optimized_sequence)
-    desired_centroidal_forces = interpolate("CENTROIDAL_FORCES", time_vector, optimized_dyn_plan = optimized_dyn_plan, dynamics_feedback = dynamics_feedback)
-    desired_centroidal_moments = interpolate("CENTROIDAL_MOMENTS", time_vector, optimized_dyn_plan = optimized_dyn_plan, dynamics_feedback = dynamics_feedback)
+    desired_centroidal_forces = interpolate("CENTROIDAL_FORCES", time_vector, optimized_dyn_plan = optimized_dyn_plan, robot_weight = robot_weight)
+    desired_centroidal_moments = interpolate("CENTROIDAL_MOMENTS", time_vector, optimized_dyn_plan = optimized_dyn_plan, robot_weight = robot_weight)
 
     max_time = 0 # time horizon in seconds
 
