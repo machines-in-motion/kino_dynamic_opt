@@ -93,6 +93,9 @@ set_target_properties(solverlqr PROPERTIES COMPILE_DEFINITIONS CFG_PATH="${CONFI
 
 pybind11_add_module(pysolverlqr ${pysolverlqr_SRC_FILES})
 target_link_libraries(pysolverlqr PRIVATE solverlqr)
+set_target_properties(pysolverlqr PROPERTIES
+         LIBRARY_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_PYTHON_DESTINATION})
+install(TARGETS pysolverlqr DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
 
 #########
 # tests #
