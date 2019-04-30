@@ -27,7 +27,7 @@ import os, sys, getopt, numpy as np, pinocchio as pin
 from momentumopt.kinoptpy.momentum_kinematics_optimizer import MomentumKinematicsOptimizer
 from momentumopt.kinoptpy.kinematics_optimizer import KinematicsOptimizer, create_time_vector
 from momentumexe.motion_execution import MotionExecutor
-from momentumopt.kinoptpy.create_data_file import create_file, create_lqr_impedance
+from momentumopt.kinoptpy.create_data_file import create_file, create_lqr_impedance, create_reactive_lqr
 
 import matplotlib.pyplot as plt
 
@@ -225,7 +225,14 @@ class MotionPlanner():
         #         self.kin_optimizer.motion_eff,
         #         self.kin_optimizer.kinematics_sequence)
 
-        create_lqr_impedance(time_vector,
+        # create_lqr_impedance(time_vector,
+        #                      self.kin_optimizer.motion_eff,
+        #                      self.kin_optimizer.kinematics_sequence,
+        #                      self.dyn_optimizer.dynamicsSequence(),
+        #                      self.dynamics_feedback,
+        #                      self.planner_setting.get(PlannerDoubleParam_RobotWeight))
+
+        create_reactive_lqr(time_vector,
                              self.kin_optimizer.motion_eff,
                              self.kin_optimizer.kinematics_sequence,
                              self.dyn_optimizer.dynamicsSequence(),

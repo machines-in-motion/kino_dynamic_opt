@@ -178,6 +178,9 @@ def interpolate(specification, time_vector, optimized_motion_eff=None,\
         elif specification == "QUATERNION":
             state_1 = optimized_sequence.kinematics_states[t1_idx].robot_posture.generalized_joint_positions[3:7]
             state_2 = optimized_sequence.kinematics_states[t2_idx].robot_posture.generalized_joint_positions[3:7]
+        elif specification == "BASE_ANGULAR_VELOCITY":
+            state_1 = optimized_sequence.kinematics_states[t1_idx].robot_velocity.generalized_joint_velocities[3:6]
+            state_2 = optimized_sequence.kinematics_states[t2_idx].robot_velocity.generalized_joint_velocities[3:6]
 
         delta_t = t - time_vector[t1_idx]
         if t2_idx <= 0:
