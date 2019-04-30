@@ -27,7 +27,7 @@ import os, sys, getopt, numpy as np, pinocchio as pin
 from momentumopt.kinoptpy.momentum_kinematics_optimizer import MomentumKinematicsOptimizer
 from momentumopt.kinoptpy.kinematics_optimizer import KinematicsOptimizer, create_time_vector
 from momentumexe.motion_execution import MotionExecutor
-from momentumopt.kinoptpy.create_data_file import create_file, create_lqr_impedance
+from momentumopt.kinoptpy.create_data_file import create_file, create_lqr_impedance, create_reactive_lqr
 
 import matplotlib.pyplot as plt
 
@@ -225,7 +225,14 @@ class MotionPlanner():
         #         self.kin_optimizer.motion_eff,
         #         self.kin_optimizer.kinematics_sequence)
 
-        create_lqr_impedance(time_vector,
+        # create_lqr_impedance(time_vector,
+        #                      self.kin_optimizer.motion_eff,
+        #                      self.kin_optimizer.kinematics_sequence,
+        #                      self.dyn_optimizer.dynamicsSequence(),
+        #                      self.dynamics_feedback,
+        #                      self.planner_setting.get(PlannerDoubleParam_RobotWeight))
+
+        create_reactive_lqr(time_vector,
                              self.kin_optimizer.motion_eff,
                              self.kin_optimizer.kinematics_sequence,
                              self.dyn_optimizer.dynamicsSequence(),
@@ -300,8 +307,6 @@ def main(argv):
 
 
     optimized_kin_plan, optimized_motion_eff, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector = motion_planner.optimize_motion()
-    motion_planner.replay_kinematics()
-    #print planner_setting.get(PlannerDoubleParam_RobotWeight)
     #for i in range(len(time_vector)):
     #    print "\n t:",time_vector[i],"\n"
     #    print dynamics_feedback.forceGain(i)

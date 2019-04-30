@@ -118,7 +118,8 @@ ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 add_library(momentumopt ${momentumopt_SRC_FILES} )
 target_link_libraries(momentumopt ${momentumopt_LIBS})
-set_target_properties(momentumopt PROPERTIES COMPILE_DEFINITIONS CFG_SRC_PATH="${CONFIG_PATH}/")
+set_target_properties(momentumopt PROPERTIES
+    COMPILE_DEFINITIONS CFG_SRC_PATH="${CONFIG_PATH}/")
 
 #########
 # tests #
@@ -129,14 +130,16 @@ catkin_add_gtest(momentumopt_tests
   tests/TestMomentumopt.cpp
 )
 target_link_libraries(momentumopt_tests momentumopt)
-set_target_properties(momentumopt_tests PROPERTIES COMPILE_DEFINITIONS TEST_PATH="${TEST_PATH}/yaml_config_files/")
+set_target_properties(momentumopt_tests PROPERTIES
+    COMPILE_DEFINITIONS TEST_PATH="${TEST_PATH}/yaml_config_files/")
 
 #########
 # demos #
 #########
 add_executable(demo_momentumopt demos/DemoMomentumopt.cpp)
 target_link_libraries(demo_momentumopt momentumopt ${catkin_LIBRARIES})
-set_target_properties(demo_momentumopt PROPERTIES COMPILE_DEFINITIONS CFG_SRC_PATH="${CONFIG_PATH}/")
+set_target_properties(demo_momentumopt PROPERTIES
+    COMPILE_DEFINITIONS CFG_SRC_PATH="${CONFIG_PATH}/")
 
 ###################
 # python bindings #
@@ -144,6 +147,9 @@ set_target_properties(demo_momentumopt PROPERTIES COMPILE_DEFINITIONS CFG_SRC_PA
 
 pybind11_add_module(pymomentum ${pymomentumopt_SRC_FILES})
 target_link_libraries(pymomentum PRIVATE momentumopt)
+set_target_properties(pymomentum PROPERTIES
+         LIBRARY_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_PYTHON_DESTINATION})
+install(TARGETS pymomentum DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
 
 ################
 # python setup #

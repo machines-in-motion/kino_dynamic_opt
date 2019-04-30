@@ -161,6 +161,9 @@ target_link_libraries(solver ${solver_LIBS})
 
 pybind11_add_module(pysolver ${pysolver_SRC_FILES})
 target_link_libraries(pysolver PRIVATE solver)
+set_target_properties(pysolver PROPERTIES
+         LIBRARY_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_PYTHON_DESTINATION})
+install(TARGETS pysolver DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
 
 #########
 # tests #
