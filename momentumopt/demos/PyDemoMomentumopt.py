@@ -25,7 +25,6 @@ from pinocchio.robot_wrapper import RobotWrapper
 import os, sys, getopt, numpy as np, pinocchio as pin
 
 from momentumopt.kinoptpy.momentum_kinematics_optimizer import MomentumKinematicsOptimizer
-from momentumopt.kinoptpy.kinematics_optimizer import KinematicsOptimizer, create_time_vector
 from momentumexe.motion_execution import MotionExecutor
 from momentumopt.kinoptpy.create_data_file import create_file, create_lqr_impedance, create_reactive_lqr
 
@@ -96,6 +95,16 @@ def plot_com_motion(dynamics_states, kinematics_states):
     axes[0, 2].legend()
 
     plt.show()
+
+def create_time_vector(dynamics_sequence):
+    num_time_steps = len(dynamics_sequence.dynamics_states)
+    # Create time vector
+    time = np.zeros((num_time_steps))
+    time[0] = dynamics_sequence.dynamics_states[0].dt
+    for i in range(num_time_steps - 1):
+        time[i + 1] = time[i] + dynamics_sequence.dynamics_states[i].dt
+
+    return time
 
 class MotionPlanner():
 
@@ -269,7 +278,6 @@ def main(argv):
 
     cfg_file = ''
     kinopt = KinematicsOptimizer
-    use_momentum_kin_opt = False
     try:
         opts, args = getopt.getopt(argv,"hi:m",["ifile="])
     except getopt.GetoptError:
@@ -280,33 +288,30 @@ def main(argv):
         if opt == '-h':
             print ('PyDemoMomentumopt.py -i <path_to_datafile>')
             sys.exit()
-        elif opt in ("-m"):
-            use_momentum_kin_opt = True
-            kinopt = MomentumKinematicsOptimizer
         elif opt in ("-i", "--ifile"):
             cfg_file = arg
 
     print(opts)
     print(cfg_file)
 
-    motion_planner = MotionPlanner(cfg_file, KinOpt=kinopt)
+    motion_planner = MotionPlanner(cfg_file)
 
-    # TODO: Read the weights from the config file.
-    if use_momentum_kin_opt:
-        kin_optimizer = motion_planner.kin_optimizer
-        inv_kin = kin_optimizer.inv_kin
-        etg = kin_optimizer.endeff_traj_generator
-        etg.z_offset = 0.05
+    # TODO: Read the kinematic weights from the config file.
+    kin_optimizer = motion_planner.kin_optimizer
+    inv_kin = kin_optimizer.inv_kin
+    etg = kin_optimizer.endeff_traj_generator
+    etg.z_offset = 0.05
 
-        inv_kin.w_com_tracking[:3] = 1.
-        inv_kin.w_com_tracking[3:] = 1.
-        inv_kin.w_endeff_contact = 1.
-        inv_kin.p_endeff_tracking = 1.
-        inv_kin.p_com_tracking =1.
-        kin_optimizer.reg_orientation = .05
+    inv_kin.w_com_tracking[:3] = 1.
+    inv_kin.w_com_tracking[3:] = 1.
+    inv_kin.w_endeff_contact = 1.
+    inv_kin.p_endeff_tracking = 1.
+    inv_kin.p_com_tracking =1.
+    kin_optimizer.reg_orientation = .05
 
-
+    # Optimize the dynamic and kinematic motion.
     optimized_kin_plan, optimized_motion_eff, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector = motion_planner.optimize_motion()
+
     #for i in range(len(time_vector)):
     #    print "\n t:",time_vector[i],"\n"
     #    print dynamics_feedback.forceGain(i)

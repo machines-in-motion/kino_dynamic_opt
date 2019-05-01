@@ -10,7 +10,6 @@ com = np.loadtxt('quadruped_com.dat', dtype=float)
 lmom = np.loadtxt('quadruped_lmom.dat', dtype=float)
 amom = np.loadtxt('quadruped_amom.dat', dtype=float)
 forces = np.loadtxt('quadruped_forces.dat', dtype=float)
-lqr = np.loadtxt('quadruped_lqr.dat', dtype=float)
 
 
 print(np.shape(positions))
