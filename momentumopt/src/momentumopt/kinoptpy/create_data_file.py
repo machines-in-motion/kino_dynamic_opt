@@ -181,7 +181,7 @@ def create_reactive_lqr(time_vector, optimized_motion_eff, optimized_sequence, o
     desired_pos_abs = interpolate("POSITION_ABSOLUTE", time_vector, optimized_motion_eff=optimized_motion_eff, optimized_sequence = optimized_sequence)
 
     max_time = 0 # time horizon in seconds
-    save_horizon = 3
+    save_horizon = 4
 
     if time_vector[-1] - int(time_vector[-1]) > 0.0:
         max_time = int(time_vector[-1]) + 1
@@ -280,7 +280,6 @@ def create_reactive_lqr(time_vector, optimized_motion_eff, optimized_sequence, o
                 des_velocities_final[i][6*eff:6*(eff+1)] = np.hstack((des_velocities[i][3*(eff)+1:3*(eff+1) + 1], [0.0, 0.0, 0.0]))
 
         des_forces*=robot_weight
-        print des_forces
         #print(desired_pos)
         print("saving trajectories....")
         np.savetxt("quadruped_positions_eff.dat", des_positions_final)
@@ -288,8 +287,9 @@ def create_reactive_lqr(time_vector, optimized_motion_eff, optimized_sequence, o
         np.savetxt("quadruped_com_with_horizon.dat", des_com)
         np.savetxt("quadruped_lmom_with_horizon.dat", des_lmom)
         np.savetxt("quadruped_forces_with_horizon_part1.dat", des_forces[:,0:37])
-        np.savetxt("quadruped_forces_with_horizon_part2.dat", des_forces[:,37:end])
+        np.savetxt("quadruped_forces_with_horizon_part2.dat", des_forces[:,37:])
         np.savetxt("quadruped_quaternio_with_horizon.dat", des_quaternion)
         np.savetxt("quadruped_base_ang_velocities_with_horizon.dat", des_base_ang_velocities)
-        np.savetxt("quadruped_positions_abs_with_horizon.dat", des_positions_abs)
+        np.savetxt("quadruped_positions_abs_with_horizon_part1.dat", des_positions_abs[:,0:37])
+        np.savetxt("quadruped_positions_abs_with_horizon_part2.dat", des_positions_abs[:,37:])
         np.savetxt("des_contact_activation_with_horizon.dat", des_contact_activation)
