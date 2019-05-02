@@ -3,6 +3,7 @@ import os
 import pinocchio as se3
 from pinocchio.robot_wrapper import RobotWrapper
 from pinocchio.utils import *
+from robot_properties_solo.config import SoloConfig
 
 class QuadrupedWrapper():
 
@@ -12,13 +13,8 @@ class QuadrupedWrapper():
         self.joints_list = ["HFE", "KFE", "ANKLE"]
         self.floor_height = 0.
 
-        package_dirs = [os.path.dirname(os.path.dirname(os.path.abspath(__file__)))]
-        ## For pinocchio_v2
-        # RobotWrapper.BuildFromURDF(urdf, package_dirs=package_dirs, root_joint=se3.JointModelFreeFlyer())
-        # RobotWrapper.__init__(self)
-        print('urdf', urdf)
-        print('package_dirs', package_dirs)
-        self.robot = RobotWrapper.BuildFromURDF(urdf, package_dirs=package_dirs, root_joint=se3.JointModelFreeFlyer())
+        self.robot = SoloConfig.buildRobotWrapper()
+
         # Create data again after setting frames
         self.model = self.robot.model
         self.data = self.robot.data
