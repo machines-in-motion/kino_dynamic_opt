@@ -178,9 +178,10 @@ def create_reactive_lqr(time_vector, optimized_motion_eff, optimized_sequence, o
     desired_centroidal_forces = interpolate("CENTROIDAL_FORCES", time_vector, optimized_dyn_plan = optimized_dyn_plan, robot_weight = robot_weight)
     desired_centroidal_moments = interpolate("CENTROIDAL_MOMENTS", time_vector, optimized_dyn_plan = optimized_dyn_plan, robot_weight = robot_weight)
     desired_base_ang_velocity = interpolate("BASE_ANGULAR_VELOCITY", time_vector, optimized_sequence=optimized_sequence)
+    desired_pos_abs = interpolate("POSITION_ABSOLUTE", time_vector, optimized_motion_eff=optimized_motion_eff, optimized_sequence = optimized_sequence)
 
     max_time = 0 # time horizon in seconds
-    save_horizon = 2
+    save_horizon = 3
 
     if time_vector[-1] - int(time_vector[-1]) > 0.0:
         max_time = int(time_vector[-1]) + 1
@@ -200,40 +201,63 @@ def create_reactive_lqr(time_vector, optimized_motion_eff, optimized_sequence, o
     if using_quadruped:
         des_positions = np.zeros((num_points, 13))
         des_velocities = np.zeros((num_points, 13))
-        des_forces = np.zeros((num_points, 13))
+        des_forces = np.zeros((num_points, 12*(save_horizon+1)+1))
         des_com = np.zeros((num_points, 3*(save_horizon+1)+1))
         des_lmom = np.zeros((num_points, 3*(save_horizon+1)+1))
         des_quaternion = np.zeros((num_points, 4*(save_horizon+1)+1))
         des_base_ang_velocities = np.zeros((num_points, 3*(save_horizon+1)+1))
-
+        des_positions_abs = np.zeros((num_points, 12*(save_horizon+1)+1))
+        des_contact_activation = np.zeros((num_points, 4*(save_horizon+1)+1))
 
         for i in range(num_points):
-            ## making des_pos and des_vel a 6d vector
-            ### re arranging the sequence of legs to the latest from (HR, HL, FR, FL)
-            ### to (FL, FR, HL, HR) for des_pos, des_vel and forces
-            des_forces[i:, ] = np.hstack((i, desired_forces(i /1e3)))
             des_positions[i, :] = np.hstack((i, desired_pos(i / 1e3)))
             des_velocities[i, :] = np.hstack((i, desired_vel(i / 1e3)))
+            des_forces[i, 0:13] = np.hstack((i, desired_forces(i /1e3)))
             des_com[i, 0:4] = np.hstack((i, desired_com(i / 1e3)))
             des_lmom[i, 0:4] = np.hstack((i, desired_lmom(i / 1e3)))
             des_quaternion[i, 0:5] = np.hstack((i, desired_quaternion(i / 1e3)))
             des_base_ang_velocities[i, 0:4] = np.hstack((i, desired_base_ang_velocity(i / 1e3)))
+            des_positions_abs[i, 0:13] = np.hstack((i, desired_pos_abs(i /1e3)))
             for j in range(save_horizon):
                 if i<num_points-save_horizon:
                     des_com[i, 3*(j+1)+1:3*(j+2)+1] = desired_com((i+j+1) / 1e3)
                     des_lmom[i, 3*(j+1)+1:3*(j+2)+1] = desired_lmom((i+j+1) / 1e3)
                     des_base_ang_velocities[i, 3*(j+1)+1:3*(j+2)+1] = desired_base_ang_velocity((i+j+1) / 1e3)
                     des_quaternion[i, 4*(j+1)+1:4*(j+2)+1] = desired_quaternion((i+j+1) / 1e3)
+                    des_forces[i, 12*(j+1)+1:12*(j+2)+1] = desired_forces((i+j+1) / 1e3)
+                    des_positions_abs[i, 12*(j+1)+1:12*(j+2)+1] = desired_pos_abs((i+j+1) / 1e3)
                 else:
                     des_com[i, 3*(j+1)+1:3*(j+2)+1] = desired_com((num_points) / 1e3)
                     des_lmom[i, 3*(j+1)+1:3*(j+2)+1] = desired_lmom((num_points) / 1e3)
                     des_base_ang_velocities[i, 3*(j+1)+1:3*(j+2)+1] = desired_base_ang_velocity((num_points) / 1e3)
                     des_quaternion[i, 4*(j+1)+1:4*(j+2)+1] = desired_quaternion((num_points) / 1e3)
+                    des_forces[i, 12*(j+1)+1:12*(j+2)+1] = desired_forces((num_points) / 1e3)
+                    des_positions_abs[i, 12*(j+1)+1:12*(j+2)+1] = desired_pos_abs((num_points) / 1e3)
 
         ## resequencing the eff sequence
+        # des_forces[: ,[1,2,3]], des_forces[: ,[10,11,12]] =\
+        # des_forces[: ,[10,11,12]], des_forces[:, [1,2,3]].copy()
+        # des_forces[: ,[4,5,6]], des_forces[: ,[7,8,9]] = \
+        # des_forces[: ,[7,8,9]], des_forces[:, [4,5,6]].copy()
+        for j in range(save_horizon+1):
+            des_forces[: ,[12*j+1,12*j+2,12*j+3]], des_forces[: ,[12*j+10,12*j+11,12*j+12]] =\
+            des_forces[: ,[12*j+10,12*j+11,12*j+12]], des_forces[:, [12*j+1,12*j+2,12*j+3]].copy()
+            des_forces[: ,[12*j+4,12*j+5,12*j+6]], des_forces[: ,[12*j+7,12*j+8,12*j+9]] = \
+            des_forces[: ,[12*j+7,12*j+8,12*j+9]], des_forces[:, [12*j+4,12*j+5,12*j+6]].copy()
 
-        des_forces[: ,[1,2,3]], des_forces[: ,[10,11,12]] = des_forces[: ,[10,11,12]], des_forces[:, [1,2,3]].copy()
-        des_forces[: ,[4,5,6]], des_forces[: ,[7,8,9]] = des_forces[: ,[7,8,9]], des_forces[:, [4,5,6]].copy()
+            des_positions_abs[: ,[12*j+1,12*j+2,12*j+3]], des_positions_abs[: ,[12*j+10,12*j+11,12*j+12]] =\
+            des_positions_abs[: ,[12*j+10,12*j+11,12*j+12]], des_positions_abs[:, [12*j+1,12*j+2,12*j+3]].copy()
+            des_positions_abs[: ,[12*j+4,12*j+5,12*j+6]], des_positions_abs[: ,[12*j+7,12*j+8,12*j+9]] = \
+            des_positions_abs[: ,[12*j+7,12*j+8,12*j+9]], des_positions_abs[:, [12*j+4,12*j+5,12*j+6]].copy()
+
+        # filling contact switch vector in the horizon
+        for i in range (num_points):
+            des_contact_activation[i, 0]=i
+            for j in range(4*(save_horizon+1)):
+                if des_forces[i, 3*j+3]>0:
+                    des_contact_activation[i, j+1]=1
+                else:
+                    des_contact_activation[i, j+1]=0
 
         des_positions[: ,[1,2,3]], des_positions[: ,[10,11,12]] = des_positions[: ,[10,11,12]], des_positions[:, [1,2,3]].copy()
         des_positions[: ,[4,5,6]], des_positions[: ,[7,8,9]] = des_positions[: ,[7,8,9]], des_positions[:, [4,5,6]].copy()
@@ -253,16 +277,19 @@ def create_reactive_lqr(time_vector, optimized_motion_eff, optimized_sequence, o
         for i in range(num_points):
             for eff in range(4):
                 des_positions_final[i][6*eff:6*(eff+1)] = np.hstack((des_positions[i][3*(eff)+1:3*(eff+1) + 1], [0.0, 0.0, 0.0]))
-
                 des_velocities_final[i][6*eff:6*(eff+1)] = np.hstack((des_velocities[i][3*(eff)+1:3*(eff+1) + 1], [0.0, 0.0, 0.0]))
 
-
+        des_forces*=robot_weight
+        print des_forces
         #print(desired_pos)
         print("saving trajectories....")
         np.savetxt("quadruped_positions_eff.dat", des_positions_final)
         np.savetxt("quadruped_velocities_eff.dat", des_velocities_final)
         np.savetxt("quadruped_com_with_horizon.dat", des_com)
         np.savetxt("quadruped_lmom_with_horizon.dat", des_lmom)
-        np.savetxt("quadruped_forces.dat", des_forces)
+        np.savetxt("quadruped_forces_with_horizon_part1.dat", des_forces[:,0:37])
+        np.savetxt("quadruped_forces_with_horizon_part2.dat", des_forces[:,37:end])
         np.savetxt("quadruped_quaternio_with_horizon.dat", des_quaternion)
         np.savetxt("quadruped_base_ang_velocities_with_horizon.dat", des_base_ang_velocities)
+        np.savetxt("quadruped_positions_abs_with_horizon.dat", des_positions_abs)
+        np.savetxt("des_contact_activation_with_horizon.dat", des_contact_activation)
