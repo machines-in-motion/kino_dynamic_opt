@@ -269,10 +269,6 @@ class MomentumKinematicsOptimizer(object):
                 print('Found initial configuration after {} iterations'.format(iters + 1))
                 break
 
-            self.robot.ensureDisplay()
-            self.robot.display(q)
-            import pdb; pdb.set_trace()
-
         if iters == self.max_iterations - 1:
             print('Failed to converge for initial setup.')
 

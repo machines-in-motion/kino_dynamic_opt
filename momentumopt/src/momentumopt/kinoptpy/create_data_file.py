@@ -97,7 +97,7 @@ def create_lqr_impedance(time_vector, optimized_motion_eff, optimized_sequence, 
 
         for i in range(num_points):
             ## making des_pos and des_vel a 6d vector
-            ### re arranging the sequence of legs to the latest from (HR, HL, FR, FL)
+            ### re arranging the sequence of legs to the latest from (FR, FL, HR, HL)
             ### to (FL, FR, HL, HR) for des_pos, des_vel and forces
             des_forces[i:, ] = np.hstack((i, desired_forces(i /1e3)))
             des_centroidal_forces[i:, ] = np.hstack((i, desired_centroidal_forces(i /1e3)))
@@ -115,17 +115,20 @@ def create_lqr_impedance(time_vector, optimized_motion_eff, optimized_sequence, 
 
         ## resequencing the eff sequence
 
-        des_forces[: ,[1,2,3]], des_forces[: ,[10,11,12]] = des_forces[: ,[10,11,12]], des_forces[:, [1,2,3]].copy()
-        des_forces[: ,[4,5,6]], des_forces[: ,[7,8,9]] = des_forces[: ,[7,8,9]], des_forces[:, [4,5,6]].copy()
+        des_forces[: ,[1,2,3]], des_forces[: ,[4,5,6]] = des_forces[: ,[4,5,6]], des_forces[:, [1,2,3]].copy()
+        des_forces[: ,[7,8,9]], des_forces[: ,[10,11,12]] = des_forces[: ,[10,11,12]], des_forces[:, [7,8,9]].copy()
 
-        des_positions[: ,[1,2,3]], des_positions[: ,[10,11,12]] = des_positions[: ,[10,11,12]], des_positions[:, [1,2,3]].copy()
-        des_positions[: ,[4,5,6]], des_positions[: ,[7,8,9]] = des_positions[: ,[7,8,9]], des_positions[:, [4,5,6]].copy()
+        des_positions[: ,[1,2,3]], des_positions[: ,[4,5,6]] = des_positions[: ,[4,5,6]], des_positions[:, [1,2,3]].copy()
+        des_positions[: ,[7,8,9]], des_positions[: ,[10,11,12]] = des_positions[: ,[10,11,12]], des_positions[:, [7,8,9]].copy()
 
-        des_velocities[: ,[1,2,3]], des_velocities[: ,[10,11,12]] = des_velocities[: ,[10,11,12]], des_velocities[:, [1,2,3]].copy()
-        des_velocities[: ,[4,5,6]], des_velocities[: ,[7,8,9]] = des_velocities[: ,[7,8,9]], des_velocities[:, [4,5,6]].copy()
+        des_velocities[: ,[1,2,3]], des_velocities[: ,[4,5,6]] = des_velocities[: ,[4,5,6]], des_velocities[:, [1,2,3]].copy()
+        des_velocities[: ,[7,8,9]], des_velocities[: ,[10,11,12]] = des_velocities[: ,[10,11,12]], des_velocities[:, [7,8,9]].copy()
 
-        des_lqr_gains[:, 0:27], des_lqr_gains[:, 81:108 ] = des_lqr_gains[: ,81:108], des_lqr_gains[:, 0:27].copy()
-        des_lqr_gains[:, 27:54], des_lqr_gains[:, 54:81 ] = des_lqr_gains[: ,54:81], des_lqr_gains[:, 27:54].copy()
+        des_lqr_gains[:, 0:27], des_lqr_gains[:, 81:108 ] = des_lqr_gains[: , 81:108], des_lqr_gains[:, 0:27].copy()
+        des_lqr_gains[:, 27:54], des_lqr_gains[:, 54:81 ] = des_lqr_gains[: , 54:81], des_lqr_gains[:, 27:54].copy()
+
+        des_lqr_gains[:, 0:27], des_lqr_gains[:, 27:54 ] = des_lqr_gains[: , 27:54], des_lqr_gains[:, 0:27].copy()
+        des_lqr_gains[:, 54:81], des_lqr_gains[:, 81:108 ] = des_lqr_gains[: , 81:108], des_lqr_gains[:, 54:81].copy()
 
 
         des_positions_final = np.zeros((num_points, 24))
@@ -234,21 +237,22 @@ def create_reactive_lqr(time_vector, optimized_motion_eff, optimized_sequence, o
                     des_forces[i, 12*(j+1)+1:12*(j+2)+1] = desired_forces((num_points) / 1e3)
                     des_positions_abs[i, 12*(j+1)+1:12*(j+2)+1] = desired_pos_abs((num_points) / 1e3)
 
+
         ## resequencing the eff sequence
         # des_forces[: ,[1,2,3]], des_forces[: ,[10,11,12]] =\
         # des_forces[: ,[10,11,12]], des_forces[:, [1,2,3]].copy()
         # des_forces[: ,[4,5,6]], des_forces[: ,[7,8,9]] = \
         # des_forces[: ,[7,8,9]], des_forces[:, [4,5,6]].copy()
         for j in range(save_horizon+1):
-            des_forces[: ,[12*j+1,12*j+2,12*j+3]], des_forces[: ,[12*j+10,12*j+11,12*j+12]] =\
-            des_forces[: ,[12*j+10,12*j+11,12*j+12]], des_forces[:, [12*j+1,12*j+2,12*j+3]].copy()
-            des_forces[: ,[12*j+4,12*j+5,12*j+6]], des_forces[: ,[12*j+7,12*j+8,12*j+9]] = \
-            des_forces[: ,[12*j+7,12*j+8,12*j+9]], des_forces[:, [12*j+4,12*j+5,12*j+6]].copy()
+            des_forces[: ,[12*j+1,12*j+2,12*j+3]], des_forces[: ,[12*j+4,12*j+5,12*j+6]] =\
+                    des_forces[: ,[12*j+4,12*j+5,12*j+6]], des_forces[:, [12*j+1,12*j+2,12*j+3]].copy()
+            des_forces[: ,[12*j+7,12*j+8,12*j+9]], des_forces[: ,[12*j+10,12*j+11,12*j+12]] = \
+                    des_forces[: ,[12*j+10,12*j+11,12*j+12]], des_forces[:, [12*j+7,12*j+8,12*j+9]].copy()
 
-            des_positions_abs[: ,[12*j+1,12*j+2,12*j+3]], des_positions_abs[: ,[12*j+10,12*j+11,12*j+12]] =\
-            des_positions_abs[: ,[12*j+10,12*j+11,12*j+12]], des_positions_abs[:, [12*j+1,12*j+2,12*j+3]].copy()
-            des_positions_abs[: ,[12*j+4,12*j+5,12*j+6]], des_positions_abs[: ,[12*j+7,12*j+8,12*j+9]] = \
-            des_positions_abs[: ,[12*j+7,12*j+8,12*j+9]], des_positions_abs[:, [12*j+4,12*j+5,12*j+6]].copy()
+            des_positions_abs[: ,[12*j+1,12*j+2,12*j+3]], des_positions_abs[: ,[12*j+4,12*j+5,12*j+6]] =\
+                    des_positions_abs[: ,[12*j+4,12*j+5,12*j+6]], des_positions_abs[:, [12*j+1,12*j+2,12*j+3]].copy()
+            des_positions_abs[: ,[12*j+7,12*j+8,12*j+9]], des_positions_abs[: ,[12*j+10,12*j+11,12*j+12]] = \
+                    des_positions_abs[: ,[12*j+10,12*j+11,12*j+12]], des_positions_abs[:, [12*j+7,12*j+8,12*j+9]].copy()
 
         # filling contact switch vector in the horizon
         for i in range (num_points):
@@ -259,13 +263,11 @@ def create_reactive_lqr(time_vector, optimized_motion_eff, optimized_sequence, o
                 else:
                     des_contact_activation[i, j+1]=0
 
-        des_positions[: ,[1,2,3]], des_positions[: ,[10,11,12]] = des_positions[: ,[10,11,12]], des_positions[:, [1,2,3]].copy()
-        des_positions[: ,[4,5,6]], des_positions[: ,[7,8,9]] = des_positions[: ,[7,8,9]], des_positions[:, [4,5,6]].copy()
+        des_positions[: ,[1,2,3]], des_positions[: ,[4,5,6]] = des_positions[: ,[4,5,6]], des_positions[:, [1,2,3]].copy()
+        des_positions[: ,[7,8,9]], des_positions[: ,[10,11,12]] = des_positions[: ,[10,11,12]], des_positions[:, [7,8,9]].copy()
 
-        des_velocities[: ,[1,2,3]], des_velocities[: ,[10,11,12]] = des_velocities[: ,[10,11,12]], des_velocities[:, [1,2,3]].copy()
-        des_velocities[: ,[4,5,6]], des_velocities[: ,[7,8,9]] = des_velocities[: ,[7,8,9]], des_velocities[:, [4,5,6]].copy()
-
-
+        des_velocities[: ,[1,2,3]], des_velocities[: ,[4,5,6]] = des_velocities[: ,[4,5,6]], des_velocities[:, [1,2,3]].copy()
+        des_velocities[: ,[7,8,9]], des_velocities[: ,[10,11,12]] = des_velocities[: ,[10,11,12]], des_velocities[:, [7,8,9]].copy()
 
         des_positions_final = np.zeros((num_points, 24))
         des_velocities_final = np.zeros((num_points, 24))

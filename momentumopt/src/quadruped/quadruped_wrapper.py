@@ -8,7 +8,7 @@ from robot_properties_solo.config import SoloConfig
 class QuadrupedWrapper():
 
     def __init__(self, urdf, dt=0.01, q=None):
-        self.effs = ["HR", "HL", "FR", "FL"]  # order is important
+        self.effs = ["FR", "FL", "HR", "HL"]  # order is important
         self.colors = {"HL": "r", "HR": "y", "FL": "b", "FR": "g"}
         self.joints_list = ["HFE", "KFE", "ANKLE"]
         self.floor_height = 0.
