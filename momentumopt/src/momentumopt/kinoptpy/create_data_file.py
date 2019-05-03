@@ -184,7 +184,7 @@ def create_reactive_lqr(time_vector, optimized_motion_eff, optimized_sequence, o
     desired_pos_abs = interpolate("POSITION_ABSOLUTE", time_vector, optimized_motion_eff=optimized_motion_eff, optimized_sequence = optimized_sequence)
 
     max_time = 0 # time horizon in seconds
-    save_horizon = 1
+    save_horizon = 4
 
     if time_vector[-1] - int(time_vector[-1]) > 0.0:
         max_time = int(time_vector[-1]) + 1
@@ -237,22 +237,21 @@ def create_reactive_lqr(time_vector, optimized_motion_eff, optimized_sequence, o
                     des_forces[i, 12*(j+1)+1:12*(j+2)+1] = desired_forces((num_points) / 1e3)
                     des_positions_abs[i, 12*(j+1)+1:12*(j+2)+1] = desired_pos_abs((num_points) / 1e3)
 
-
         ## resequencing the eff sequence
         # des_forces[: ,[1,2,3]], des_forces[: ,[10,11,12]] =\
         # des_forces[: ,[10,11,12]], des_forces[:, [1,2,3]].copy()
         # des_forces[: ,[4,5,6]], des_forces[: ,[7,8,9]] = \
         # des_forces[: ,[7,8,9]], des_forces[:, [4,5,6]].copy()
         for j in range(save_horizon+1):
-            des_forces[: ,[12*j+1,12*j+2,12*j+3]], des_forces[: ,[12*j+4,12*j+5,12*j+6]] =\
-                    des_forces[: ,[12*j+4,12*j+5,12*j+6]], des_forces[:, [12*j+1,12*j+2,12*j+3]].copy()
-            des_forces[: ,[12*j+7,12*j+8,12*j+9]], des_forces[: ,[12*j+10,12*j+11,12*j+12]] = \
-                    des_forces[: ,[12*j+10,12*j+11,12*j+12]], des_forces[:, [12*j+7,12*j+8,12*j+9]].copy()
+            des_forces[: ,[12*j+1,12*j+2,12*j+3]], des_forces[: ,[12*j+10,12*j+11,12*j+12]] =\
+            des_forces[: ,[12*j+10,12*j+11,12*j+12]], des_forces[:, [12*j+1,12*j+2,12*j+3]].copy()
+            des_forces[: ,[12*j+4,12*j+5,12*j+6]], des_forces[: ,[12*j+7,12*j+8,12*j+9]] = \
+            des_forces[: ,[12*j+7,12*j+8,12*j+9]], des_forces[:, [12*j+4,12*j+5,12*j+6]].copy()
 
-            des_positions_abs[: ,[12*j+1,12*j+2,12*j+3]], des_positions_abs[: ,[12*j+4,12*j+5,12*j+6]] =\
-                    des_positions_abs[: ,[12*j+4,12*j+5,12*j+6]], des_positions_abs[:, [12*j+1,12*j+2,12*j+3]].copy()
-            des_positions_abs[: ,[12*j+7,12*j+8,12*j+9]], des_positions_abs[: ,[12*j+10,12*j+11,12*j+12]] = \
-                    des_positions_abs[: ,[12*j+10,12*j+11,12*j+12]], des_positions_abs[:, [12*j+7,12*j+8,12*j+9]].copy()
+            des_positions_abs[: ,[12*j+1,12*j+2,12*j+3]], des_positions_abs[: ,[12*j+10,12*j+11,12*j+12]] =\
+            des_positions_abs[: ,[12*j+10,12*j+11,12*j+12]], des_positions_abs[:, [12*j+1,12*j+2,12*j+3]].copy()
+            des_positions_abs[: ,[12*j+4,12*j+5,12*j+6]], des_positions_abs[: ,[12*j+7,12*j+8,12*j+9]] = \
+            des_positions_abs[: ,[12*j+7,12*j+8,12*j+9]], des_positions_abs[:, [12*j+4,12*j+5,12*j+6]].copy()
 
         # filling contact switch vector in the horizon
         for i in range (num_points):
@@ -281,15 +280,17 @@ def create_reactive_lqr(time_vector, optimized_motion_eff, optimized_sequence, o
                 des_positions_final[i][6*eff:6*(eff+1)] = np.hstack((des_positions[i][3*(eff)+1:3*(eff+1) + 1], [0.0, 0.0, 0.0]))
                 des_velocities_final[i][6*eff:6*(eff+1)] = np.hstack((des_velocities[i][3*(eff)+1:3*(eff+1) + 1], [0.0, 0.0, 0.0]))
 
-
+        des_forces*=robot_weight
         #print(desired_pos)
         print("saving trajectories....")
         np.savetxt("quadruped_positions_eff.dat", des_positions_final)
         np.savetxt("quadruped_velocities_eff.dat", des_velocities_final)
         np.savetxt("quadruped_com_with_horizon.dat", des_com)
         np.savetxt("quadruped_lmom_with_horizon.dat", des_lmom)
-        np.savetxt("quadruped_forces_with_horizon.dat", des_forces)
+        np.savetxt("quadruped_forces_with_horizon_part1.dat", des_forces[:,0:37])
+        np.savetxt("quadruped_forces_with_horizon_part2.dat", des_forces[:,37:])
         np.savetxt("quadruped_quaternio_with_horizon.dat", des_quaternion)
         np.savetxt("quadruped_base_ang_velocities_with_horizon.dat", des_base_ang_velocities)
-        np.savetxt("quadruped_positions_abs_with_horizon.dat", des_positions_abs)
+        np.savetxt("quadruped_positions_abs_with_horizon_part1.dat", des_positions_abs[:,0:37])
+        np.savetxt("quadruped_positions_abs_with_horizon_part2.dat", des_positions_abs[:,37:])
         np.savetxt("des_contact_activation_with_horizon.dat", des_contact_activation)
