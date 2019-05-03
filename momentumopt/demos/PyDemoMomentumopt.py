@@ -26,7 +26,7 @@ import os, sys, getopt, numpy as np, pinocchio as pin
 
 from momentumopt.kinoptpy.momentum_kinematics_optimizer import MomentumKinematicsOptimizer
 from momentumexe.motion_execution import MotionExecutor
-from momentumopt.kinoptpy.create_data_file import create_file, create_lqr_impedance, create_reactive_lqr
+from momentumopt.kinoptpy.create_data_file import create_file, create_qp_files, create_lqr_files
 
 import matplotlib.pyplot as plt
 
@@ -230,19 +230,19 @@ class MotionPlanner():
                 self.dynamics_feedback,
                 self.planner_setting.get(PlannerDoubleParam_RobotWeight))
 
-        create_lqr_impedance(time_vector,
+        create_qp_files(time_vector,
                              self.kin_optimizer.motion_eff,
                              self.kin_optimizer.kinematics_sequence,
                              self.dyn_optimizer.dynamicsSequence(),
                              self.dynamics_feedback,
                              self.planner_setting.get(PlannerDoubleParam_RobotWeight))
 
-        create_reactive_lqr(time_vector,
-                             self.kin_optimizer.motion_eff,
-                             self.kin_optimizer.kinematics_sequence,
-                             self.dyn_optimizer.dynamicsSequence(),
-                             self.dynamics_feedback,
-                             self.planner_setting.get(PlannerDoubleParam_RobotWeight))
+        # create_lqr_files(time_vector,
+        #                      self.kin_optimizer.motion_eff,
+        #                      self.kin_optimizer.kinematics_sequence,
+        #                      self.dyn_optimizer.dynamicsSequence(),
+        #                      self.dynamics_feedback,
+        #                      self.planner_setting.get(PlannerDoubleParam_RobotWeight))
 
     def time_vector(self):
         return create_time_vector(self.dyn_optimizer.dynamicsSequence())
