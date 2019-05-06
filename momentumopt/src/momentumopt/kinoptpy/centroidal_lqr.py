@@ -1,10 +1,11 @@
-### computes gains using lqr in the centroidal space
+### computes gains using lqr in the centroidal space for solo (assumes legs are weightless)
 ### Author: Avadesh meduri
 ### Date:6/5/2019
 
 
 import numpy as np
 from numpy.linalg import inv
+from matplotlib import pyplot as plt
 from scipy.spatial.transform import Rotation as Rot
 
 
@@ -20,6 +21,13 @@ class centroidal_lqr:
         self.cent_force = np.loadtxt(dir + "/quadruped_centroidal_forces.dat", dtype=float)[:, [1,2,3]]
         self.cent_moments = np.loadtxt(dir + "/quadruped_centroidal_moments.dat", dtype=float)[:, [1,2,3]]
 
+        self.dt = 0.001
+        self.mass = 2.17
+        self.inertia_com_frame = [[0.00578574, 0.0, 0.0],
+                                  [0.0, 0.01938108, 0.0],
+                                  [0.0, 0.0, 0.02476124]]
+
+
     def compute_dyn(self,t , x_t, u_t):
 
         ### quat_d = omega * quat
@@ -34,17 +42,16 @@ class centroidal_lqr:
                     [np.zeros((4,3)),np.zeros((4,3)), self.omega, np.zeros((4,3))],
                     [np.zeros((3,3)), np.zeros((3,3)), np.zeros((3,4)), np.zeros((3,3))]])
 
-        self.inertia_com_frame = [[0.00578574, 0.0, 0.0],
-                                  [0.0, 0.01938108, 0.0],
-                                  [0.0, 0.0, 0.02476124]]
 
-
+        ## could be wrong (quat sequence and the output)
         rot_t = Rot.from_quat(self.com_ori[t]).as_dcm()
         self.inertia = np.matmul(np.matmul(np.transpose(rot_t),self.inertia_com_frame), rot_t)
         self.inv_inertia = inv(np.matrix(self.inertia))
 
+
+
         self.B_t = np.block([[np.zeros((3,3)), np.zeros((3,3))],
-                    [(1/2.2)*np.identity(3), np.zeros((3,3))],
+                    [(1/self.mass)*np.identity(3), np.zeros((3,3))],
                     [np.zeros((4,3)), np.zeros((4,3))],
                     [np.zeros((3,3)), self.inv_inertia]])
 
@@ -64,19 +71,34 @@ class centroidal_lqr:
 
         dyn_t = self.compute_dyn(t, x_t, u_t)
 
-        lin_B_t = self.B_t
+        # print(dyn_t)
 
         # partial derivative of a w.r.t x
         x_t1 = np.matrix(np.hstack((self.com_pos[t+1], self.com_vel[t+1], self.com_ori[t+1], self.com_ang_vel[t+1])))
         u_t1 = np.matrix(np.hstack((self.cent_force[t+1], self.cent_moments[t+1])))
 
+        print(x_t1 - x_t)
+
         lin_A_t = np.zeros((13,13))
 
         for i in range(13):
+            print(i)
             pd_x_t = x_t
+            delta_x = x_t1[: ,i] - x_t[: ,i]
+            print(delta_x)
             pd_x_t[: ,i] = x_t1[: ,i]
-            lin_A_t[:, i] = np.reshape(self.compute_dyn(t, pd_x_t, u_t), (13,))
+            lin_A_t[:, i] = np.reshape(((self.compute_dyn(t, pd_x_t, u_t) - dyn_t.copy())/(delta_x)), (13,))
+            # print(lin_A_t[:, i])
+        # print("\n")
 
+
+        lin_B_t = np.zeros((13,6))
+
+        for i in range(6):
+            pd_u_t = u_t
+            delta_u = u_t1[: ,i] - u_t[:, i]
+            pd_u_t[: ,i] = u_t1[:, i]
+            lin_B_t[:, i] = np.reshape(((self.compute_dyn(t, x_t, pd_u_t) - dyn_t)/(delta_u)), (13,))
 
         return lin_A_t, lin_B_t
 
@@ -100,25 +122,24 @@ class centroidal_lqr:
         K_array = []
 
         for t in range(horizon-2, 0, -1):
-            # print("\t")
+            # print(t)
             lin_A_t, lin_B_t = self.compute_lin_dyn(t)
             K_t, P_prev = self.compute_lqr_gains(Q, R, lin_A_t, lin_B_t, P_prev)
             K_array.append(K_t)
 
-            print(K_t)
+            # print(K_t)
             print("\n")
 
         return np.asarray(K_array)
 
 
 #### test
-
-
 tmp = centroidal_lqr("../../../../momentumopt/demos")
+
 # lin_A, lin_B = tmp.compute_lin_dyn(0)
 # K, P = tmp.compute_lqr_gains(np.identity(13), np.identity(6), lin_A, lin_B, np.zeros((13,13)))
 
-Q = 100*np.identity(13)
-R = np.identity(6)
+Q = 1000000*np.identity(13)
+R = 10*np.identity(6)
 
 K_array = tmp.lqr_backward_pass(Q,R)
