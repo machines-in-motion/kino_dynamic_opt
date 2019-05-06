@@ -142,6 +142,7 @@ def main(argv):
     #    print dynamics_feedback.forceGain(i)
         # motion_planner.plot_centroidal()
     # Create configuration and velocity file from motion plan for dynamic graph
+    #motion_planner.replay_kinematics()
     motion_planner.save_files()
     simulation = False
     #motion_planner.plot_centroidal()
