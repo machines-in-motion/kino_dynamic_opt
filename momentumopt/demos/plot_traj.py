@@ -103,7 +103,7 @@ ax[8].set_ylabel("m")
 ax[8].legend()
 ax[8].grid()
 
-fig1, ax1 = plt.subplots(2,1)
+fig1, ax1 = plt.subplots(3,1)
 ax1[0].plot(forces[:, 1], label = "com_force_x")
 ax1[0].plot(forces[:, 2], label = "com_force_y")
 ax1[0].plot(forces[:, 3], label = "com_force_z")
@@ -120,6 +120,13 @@ ax1[1].set_ylabel("m")
 ax1[1].legend()
 ax1[1].grid()
 
+ax1[2].plot(ang_vel[:, 1], label = "ang_vel_x")
+ax1[2].plot(ang_vel[:, 2], label = "ang_vel_y")
+ax1[2].plot(ang_vel[:, 3], label = "ang_vel_z")
+ax1[2].set_xlabel("millisec")
+ax1[2].set_ylabel("m")
+ax1[2].legend()
+ax1[2].grid()
 
 
 plt.show()

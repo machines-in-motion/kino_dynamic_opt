@@ -9,6 +9,8 @@ from matplotlib import pyplot as plt
 from scipy.spatial.transform import Rotation as Rot
 
 
+np.set_printoptions(linewidth=13000)
+
 class centroidal_lqr:
 
     def __init__(self, dir):
@@ -31,29 +33,27 @@ class centroidal_lqr:
     def compute_dyn(self,t , x_t, u_t):
 
         ### quat_d = omega * quat
+        omega = np.array([[0, x_t[: , 12], -1*x_t[:, 11], x_t[:, 10]],
+                      [-1*x_t[:,12], 0, x_t[:,10], x_t[:, 11]],
+                      [x_t[:,11], -1*x_t[:,10], 0, x_t[:,12]],
+                      [-1*x_t[:, 10], -1*x_t[:, 11], -1*x_t[:,12], 0]])
 
-        self.omega = np.array([[0, self.com_ang_vel[t][2], -1*self.com_ang_vel[t][1], self.com_ang_vel[t][0]],
-                      [-1*self.com_ang_vel[t][2], 0, self.com_ang_vel[t][0], self.com_ang_vel[t][1]],
-                      [self.com_ang_vel[t][1], -1*self.com_ang_vel[t][0], 0, self.com_ang_vel[t][2]],
-                      [-1*self.com_ang_vel[t][0], -1*self.com_ang_vel[t][1], -1*self.com_ang_vel[t][2], 0]])
 
         self.A_t = np.block([[np.zeros((3,3)), np.identity(3), np.zeros((3,4)), np.zeros((3,3))],
                     [np.zeros((3,3)), np.zeros((3,3)), np.zeros((3,4)), np.zeros((3,3))],
-                    [np.zeros((4,3)),np.zeros((4,3)), self.omega, np.zeros((4,3))],
+                    [np.zeros((4,3)),np.zeros((4,3)), 0.5*omega, np.zeros((4,3))],
                     [np.zeros((3,3)), np.zeros((3,3)), np.zeros((3,4)), np.zeros((3,3))]])
 
-
-        ## could be wrong (quat sequence and the output)
-        rot_t = Rot.from_quat(self.com_ori[t]).as_dcm()
-        self.inertia = np.matmul(np.matmul(np.transpose(rot_t),self.inertia_com_frame), rot_t)
-        self.inv_inertia = inv(np.matrix(self.inertia))
+        rot_t = np.reshape(Rot.from_quat(x_t[:, [6,7,8,9]]).as_dcm(), (3,3))
+        inertia = np.matmul(np.matmul(np.transpose(rot_t),self.inertia_com_frame), rot_t)
+        inv_inertia = inv(np.matrix(inertia))
 
 
 
         self.B_t = np.block([[np.zeros((3,3)), np.zeros((3,3))],
                     [(1/self.mass)*np.identity(3), np.zeros((3,3))],
                     [np.zeros((4,3)), np.zeros((4,3))],
-                    [np.zeros((3,3)), self.inv_inertia]])
+                    [np.zeros((3,3)), inv_inertia]])
 
 
         self.A_t = np.matrix(self.A_t)
@@ -71,40 +71,52 @@ class centroidal_lqr:
 
         dyn_t = self.compute_dyn(t, x_t, u_t)
 
-        # print(dyn_t)
 
         # partial derivative of a w.r.t x
         x_t1 = np.matrix(np.hstack((self.com_pos[t+1], self.com_vel[t+1], self.com_ori[t+1], self.com_ang_vel[t+1])))
         u_t1 = np.matrix(np.hstack((self.cent_force[t+1], self.cent_moments[t+1])))
 
-        print(x_t1 - x_t)
 
         lin_A_t = np.zeros((13,13))
 
         for i in range(13):
-            print(i)
-            pd_x_t = x_t
-            delta_x = x_t1[: ,i] - x_t[: ,i]
-            print(delta_x)
-            pd_x_t[: ,i] = x_t1[: ,i]
+            pd_x_t = x_t.copy()
+            delta_x = x_t1[: ,i].copy() - x_t[: ,i].copy()
+            pd_x_t[: ,i] = x_t1[: ,i].copy()
             lin_A_t[:, i] = np.reshape(((self.compute_dyn(t, pd_x_t, u_t) - dyn_t.copy())/(delta_x)), (13,))
-            # print(lin_A_t[:, i])
-        # print("\n")
+
 
 
         lin_B_t = np.zeros((13,6))
 
         for i in range(6):
-            pd_u_t = u_t
-            delta_u = u_t1[: ,i] - u_t[:, i]
-            pd_u_t[: ,i] = u_t1[:, i]
+            pd_u_t = u_t.copy()
+            delta_u = u_t1[: ,i].copy() - u_t[:, i].copy()
+            pd_u_t[: ,i] = u_t1[:, i].copy()
             lin_B_t[:, i] = np.reshape(((self.compute_dyn(t, x_t, pd_u_t) - dyn_t)/(delta_u)), (13,))
+
+
+        lin_A_t = np.nan_to_num(lin_A_t)
+        lin_B_t = np.nan_to_num(lin_B_t)
 
         return lin_A_t, lin_B_t
 
-    def compute_lqr_gains(self, Q, R, lin_A_t, lin_B_t, P_prev):
 
+    def descretise_dynamics(self, lin_A_t, lin_B_t):
+
+        ## descritizes the dynamics adn returns descritized lin_A, lin_B_t
+
+        des_lin_A_t = lin_A_t*self.dt + np.identity(13)
+        des_lin_B_t = lin_B_t*self.dt
+
+        # print(des_lin_A_t)
+        return des_lin_A_t, des_lin_B_t
+
+
+    def compute_lqr_gains(self, Q, R, lin_A_t, lin_B_t, P_prev):
+        ## input descritzed lin_A and lin_B
         ## solves ricati equation
+        # print(lin_A_t)
         K = inv(R + np.matmul(np.matmul(np.transpose(lin_B_t) , P_prev), lin_B_t))
         K = np.matmul(np.matmul(np.matmul(K, np.transpose(lin_B_t)), P_prev), lin_A_t)
         K = -1*K
@@ -122,24 +134,28 @@ class centroidal_lqr:
         K_array = []
 
         for t in range(horizon-2, 0, -1):
-            # print(t)
+            print(t/1000.0)
             lin_A_t, lin_B_t = self.compute_lin_dyn(t)
-            K_t, P_prev = self.compute_lqr_gains(Q, R, lin_A_t, lin_B_t, P_prev)
+            des_lin_A_t, des_lin_B_t = self.descretise_dynamics(lin_A_t, lin_B_t)
+            K_t, P_prev = self.compute_lqr_gains(Q, R, des_lin_A_t, des_lin_B_t, P_prev)
             K_array.append(K_t)
 
-            # print(K_t)
+            print(K_t)
             print("\n")
 
         return np.asarray(K_array)
 
 
-#### test
+# #### test
 tmp = centroidal_lqr("../../../../momentumopt/demos")
 
 # lin_A, lin_B = tmp.compute_lin_dyn(0)
 # K, P = tmp.compute_lqr_gains(np.identity(13), np.identity(6), lin_A, lin_B, np.zeros((13,13)))
 
-Q = 1000000*np.identity(13)
-R = 10*np.identity(6)
+Q = np.identity(13)
+# Q[0][0] = 10000
+# Q[1][1] = 10000
+# Q[2][2] = 10000
+R = 0.0001*np.identity(6)
 
 K_array = tmp.lqr_backward_pass(Q,R)
