@@ -169,12 +169,12 @@ class MotionPlanner():
                              self.dynamics_feedback,
                              self.planner_setting.get(PlannerDoubleParam_RobotWeight))
 
-        # create_lqr_files(time_vector,
-        #                      self.kin_optimizer.motion_eff,
-        #                      self.kin_optimizer.kinematics_sequence,
-        #                      self.dyn_optimizer.dynamicsSequence(),
-        #                      self.dynamics_feedback,
-        #                      self.planner_setting.get(PlannerDoubleParam_RobotWeight))
+        create_lqr_files(time_vector,
+                             self.kin_optimizer.motion_eff,
+                             self.kin_optimizer.kinematics_sequence,
+                             self.dyn_optimizer.dynamicsSequence(),
+                             self.dynamics_feedback,
+                             self.planner_setting.get(PlannerDoubleParam_RobotWeight))
 
     def time_vector(self):
         return create_time_vector(self.dyn_optimizer.dynamicsSequence())

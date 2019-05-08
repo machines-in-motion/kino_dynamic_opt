@@ -199,7 +199,7 @@ def create_lqr_files(time_vector, optimized_motion_eff, optimized_sequence, opti
     desired_pos_abs = interpolate("POSITION_ABSOLUTE", time_vector, optimized_motion_eff=optimized_motion_eff, optimized_sequence = optimized_sequence)
 
     max_time = 0 # time horizon in seconds
-    save_horizon = 4
+    save_horizon = 0
 
     if time_vector[-1] - int(time_vector[-1]) > 0.0:
         max_time = int(time_vector[-1]) + 1
@@ -298,14 +298,14 @@ def create_lqr_files(time_vector, optimized_motion_eff, optimized_sequence, opti
         des_forces*=robot_weight
         #print(desired_pos)
         print("saving trajectories....")
-        np.savetxt("quadruped_positions_eff.dat", des_positions_final)
-        np.savetxt("quadruped_velocities_eff.dat", des_velocities_final)
-        np.savetxt("quadruped_com_with_horizon.dat", des_com)
-        np.savetxt("quadruped_lmom_with_horizon.dat", des_lmom)
-        np.savetxt("quadruped_forces_with_horizon_part1.dat", des_forces[:,0:37])
-        np.savetxt("quadruped_forces_with_horizon_part2.dat", des_forces[:,37:])
-        np.savetxt("quadruped_quaternio_with_horizon.dat", des_quaternion)
-        np.savetxt("quadruped_base_ang_velocities_with_horizon.dat", des_base_ang_velocities)
-        np.savetxt("quadruped_positions_abs_with_horizon_part1.dat", des_positions_abs[:,0:37])
-        np.savetxt("quadruped_positions_abs_with_horizon_part2.dat", des_positions_abs[:,37:])
-        np.savetxt("des_contact_activation_with_horizon.dat", des_contact_activation)
+        # np.savetxt("quadruped_positions_eff.dat", des_positions_final)
+        # np.savetxt("quadruped_velocities_eff.dat", des_velocities_final)
+        # np.savetxt("quadruped_com_with_horizon.dat", des_com)
+        # np.savetxt("quadruped_lmom_with_horizon.dat", des_lmom)
+        # np.savetxt("quadruped_forces_with_horizon_part1.dat", des_forces[:,0:37])
+        # np.savetxt("quadruped_forces_with_horizon_part2.dat", des_forces[:,37:])
+        # np.savetxt("quadruped_quaternio_with_horizon.dat", des_quaternion)
+        # np.savetxt("quadruped_base_ang_velocities_with_horizon.dat", des_base_ang_velocities)
+        np.savetxt("quadruped_positions_abs_with_horizon_part.dat", des_positions_abs)
+        # np.savetxt("quadruped_positions_abs_with_horizon_part2.dat", des_positions_abs[:,37:])
+        # np.savetxt("des_contact_activation_with_horizon.dat", des_contact_activation)

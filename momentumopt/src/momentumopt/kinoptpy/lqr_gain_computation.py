@@ -177,7 +177,7 @@ class end_effector_lqr:
         self.com_ang_vel = np.loadtxt(dir + "/quadruped_base_ang_velocities.dat", dtype=float)[:, [1,2,3]]
 
         self.end_eff_forces = np.loadtxt(dir + "/quadruped_forces.dat", dtype=float)[:, 1:]
-        # self.end_eff_abs_pos = np.loadtxt(dir + "/quadruped_forces.dat", dtype=float)[:, 1:])
+        self.end_eff_abs_pos = np.loadtxt(dir + "/quadruped_positions_abs_with_horizon_part.dat", dtype=float)[:, 1:]
 
         self.delta = 0.000001
         self.dt = 0.001
@@ -187,11 +187,11 @@ class end_effector_lqr:
                                   [0.0, 0.0, 0.02476124]]
 
 
-    def compute_r_cross(self, rx, ry, rz):
+    def compute_r_cross(self, end_eff_abs_pos, com_pos):
 
-        r_cross_mat = [[0, -rz, ry],
-                       [rz, 0, -rx],
-                       [-ry, -rx, 0]]
+        r_cross_mat = [[0, -(end_eff_abs_pos[2] - com_pos[2]), (end_eff_abs_pos[1] - com_pos[1])],
+                       [(end_eff_abs_pos[2] - com_pos[2]), 0, -(end_eff_abs_pos[0] - com_pos[0])],
+                       [-(end_eff_abs_pos[1] - com_pos[1]), -(end_eff_abs_pos[0] - com_pos[0]), 0]]
 
         return r_cross_mat
 
@@ -214,10 +214,10 @@ class end_effector_lqr:
         inertia = np.matmul(np.matmul(np.transpose(rot_t),self.inertia_com_frame), rot_t)
         inv_inertia = inv(np.matrix(inertia))
 
-        r_cross_inv_inertia_fl = np.matmul(inv_inertia, self.compute_r_cross(0.2, 0.15, 0.0))
-        r_cross_inv_inertia_fr = np.matmul(inv_inertia, self.compute_r_cross(0.2, -0.15, 0.0))
-        r_cross_inv_inertia_hl = np.matmul(inv_inertia, self.compute_r_cross(-0.2, 0.15, 0.0))
-        r_cross_inv_inertia_hr = np.matmul(inv_inertia, self.compute_r_cross(-0.2, -0.15, 0.0))
+        r_cross_inv_inertia_fl = np.matmul(inv_inertia, self.compute_r_cross(self.end_eff_abs_pos[t][0:3], self.com_pos[t]))
+        r_cross_inv_inertia_fr = np.matmul(inv_inertia, self.compute_r_cross(self.end_eff_abs_pos[t][3:6], self.com_pos[t]))
+        r_cross_inv_inertia_hl = np.matmul(inv_inertia, self.compute_r_cross(self.end_eff_abs_pos[t][6:9], self.com_pos[t]))
+        r_cross_inv_inertia_hr = np.matmul(inv_inertia, self.compute_r_cross(self.end_eff_abs_pos[t][9:12], self.com_pos[t]))
 
         self.B_t = np.block([[np.zeros((3,3)), np.zeros((3,3)),np.zeros((3,3)), np.zeros((3,3))],
                             [(1/self.mass)*np.identity(3), (1/self.mass)*np.identity(3), (1/self.mass)*np.identity(3), (1/self.mass)*np.identity(3)],
