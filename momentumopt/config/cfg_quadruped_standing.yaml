@@ -4,7 +4,7 @@ initial_robot_configuration:
   # Initial robot configuration #
   ###############################
 
-  com: [0.0, 0.0, 0.25]
+  com: [0.0, 0.0, 0.20]
   amom: [0.0, 0.0, 0.0]
   lmom: [0.0, 0.0, 0.0]
   eef_ctrl:

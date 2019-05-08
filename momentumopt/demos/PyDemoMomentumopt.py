@@ -142,7 +142,10 @@ def main(argv):
     #    print dynamics_feedback.forceGain(i)
         # motion_planner.plot_centroidal()
     # Create configuration and velocity file from motion plan for dynamic graph
-    motion_planner.replay_kinematics()
+    try:
+        motion_planner.replay_kinematics()
+    except:
+        "gepeto not initialized..."    
     motion_planner.save_files()
     simulation = False
     #motion_planner.plot_centroidal()
