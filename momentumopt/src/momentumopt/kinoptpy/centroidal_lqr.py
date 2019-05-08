@@ -1,4 +1,5 @@
 ### computes gains using lqr in the centroidal space for solo (assumes legs are weightless)
+### Performs a backward pass to compute gains using a trajectory
 ### Author: Avadesh meduri
 ### Date:6/5/2019
 
@@ -15,6 +16,7 @@ class centroidal_lqr:
 
     def __init__(self, dir):
 
+        self.dir = dir
         self.com_pos = np.loadtxt(dir + "/quadruped_com.dat", dtype=float)[:, [1,2,3]]
         self.com_vel = np.loadtxt(dir + "/quadruped_com_vel.dat", dtype=float)[:, [1,2,3]]
         self.com_ori = np.loadtxt(dir + "/quadruped_quaternion.dat", dtype=float)[:, [1,2,3,4]]
@@ -23,6 +25,7 @@ class centroidal_lqr:
         self.cent_force = np.loadtxt(dir + "/quadruped_centroidal_forces.dat", dtype=float)[:, [1,2,3]]
         self.cent_moments = np.loadtxt(dir + "/quadruped_centroidal_moments.dat", dtype=float)[:, [1,2,3]]
 
+        self.delta = 0.000001
         self.dt = 0.001
         self.mass = 2.17
         self.inertia_com_frame = [[0.00578574, 0.0, 0.0],
@@ -83,6 +86,9 @@ class centroidal_lqr:
             pd_x_t = x_t.copy()
             delta_x = x_t1[: ,i].copy() - x_t[: ,i].copy()
             pd_x_t[: ,i] = x_t1[: ,i].copy()
+            if delta_x == 0.0:
+                delta_x = self.delta
+                pd_x_t[:, i] += self.delta
             lin_A_t[:, i] = np.reshape(((self.compute_dyn(t, pd_x_t, u_t) - dyn_t.copy())/(delta_x)), (13,))
 
 
@@ -93,11 +99,10 @@ class centroidal_lqr:
             pd_u_t = u_t.copy()
             delta_u = u_t1[: ,i].copy() - u_t[:, i].copy()
             pd_u_t[: ,i] = u_t1[:, i].copy()
-            lin_B_t[:, i] = np.reshape(((self.compute_dyn(t, x_t, pd_u_t) - dyn_t)/(delta_u)), (13,))
-
-
-        lin_A_t = np.nan_to_num(lin_A_t)
-        lin_B_t = np.nan_to_num(lin_B_t)
+            if delta_u == 0:
+                delta_u = self.delta
+                pd_u_t[:, i] += self.delta
+            lin_B_t[:, i] = np.reshape(((self.compute_dyn(t, x_t, pd_u_t) - dyn_t.copy())/(delta_u)), (13,))
 
         return lin_A_t, lin_B_t
 
@@ -116,7 +121,7 @@ class centroidal_lqr:
     def compute_lqr_gains(self, Q, R, lin_A_t, lin_B_t, P_prev):
         ## input descritzed lin_A and lin_B
         ## solves ricati equation
-        # print(lin_A_t)
+        # print(lin_B_t)
         K = inv(R + np.matmul(np.matmul(np.transpose(lin_B_t) , P_prev), lin_B_t))
         K = np.matmul(np.matmul(np.matmul(K, np.transpose(lin_B_t)), P_prev), lin_A_t)
         K = -1*K
@@ -133,29 +138,51 @@ class centroidal_lqr:
         P_prev = np.zeros((13,13))
         K_array = []
 
-        for t in range(horizon-2, 0, -1):
+        for t in range(horizon-2, -1, -1):
             print(t/1000.0)
             lin_A_t, lin_B_t = self.compute_lin_dyn(t)
             des_lin_A_t, des_lin_B_t = self.descretise_dynamics(lin_A_t, lin_B_t)
             K_t, P_prev = self.compute_lqr_gains(Q, R, des_lin_A_t, des_lin_B_t, P_prev)
             K_array.append(K_t)
-
+            # print(P_prev)
             print(K_t)
             print("\n")
+            # print("len", len(K_array))
+            # print(horizon)
 
         return np.asarray(K_array)
 
 
-# #### test
-tmp = centroidal_lqr("../../../../momentumopt/demos")
+    def store_lqr_gains(self, K_array):
 
-# lin_A, lin_B = tmp.compute_lin_dyn(0)
-# K, P = tmp.compute_lqr_gains(np.identity(13), np.identity(6), lin_A, lin_B, np.zeros((13,13)))
+        ## Stores gains as a 112d array
+        K_array = np.reshape(K_array, (len(K_array), 78))
 
+        np.savetxt(self.dir + "/quadruped_centroidal_gains1.dat", K_array[:,0:39])
+        np.savetxt(self.dir + "/quadruped_centroidal_gains2.dat", K_array[:,39:])
+
+
+
+
+#### test #####################################################################
 Q = np.identity(13)
-# Q[0][0] = 10000
-# Q[1][1] = 10000
-# Q[2][2] = 10000
-R = 0.0001*np.identity(6)
+Q[0][0] = 1000
+Q[1][1] = 1000
+Q[2][2] = 1000
+Q[3][3] = 0.01
+Q[4][4] = 0.01
+Q[5][5] = 0.01
+Q[6][6] = 100
+Q[7][7] = 100
+Q[8][8] = 100
+Q[9][9] = 0.01
+Q[10][10] = 0.01
+Q[11][11] = 0.01
+Q[12][12] = 0.01
 
-K_array = tmp.lqr_backward_pass(Q,R)
+R = 0.1*np.identity(6)
+
+
+solo_cent_lqr_computer = centroidal_lqr("../../../../momentumopt/demos")
+K_array = solo_cent_lqr_computer.lqr_backward_pass(Q,R)
+solo_cent_lqr_computer.store_lqr_gains(K_array)
