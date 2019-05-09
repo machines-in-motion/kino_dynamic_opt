@@ -238,6 +238,7 @@ class end_effector_lqr:
         u_t = np.matrix(self.end_eff_forces[t])
 
         dyn_t = self.compute_dyn(t, x_t, u_t)
+        # print(dyn_t)
         # partial derivative of a w.r.t x
         x_t1 = np.matrix(np.hstack((self.com_pos[t+1], self.com_vel[t+1], self.com_ori[t+1], self.com_ang_vel[t+1])))
         u_t1 = np.matrix(self.end_eff_forces[t+1])
@@ -328,27 +329,29 @@ class end_effector_lqr:
 
 
 #### test #####################################################################
-Q = np.identity(13)
-Q[0][0] = 1500
-Q[1][1] = 1000
-Q[2][2] = 1500
-Q[3][3] = 0.01
-Q[4][4] = 0.01
-Q[5][5] = 0.01
-Q[6][6] = 100
-Q[7][7] = 100
-Q[8][8] = 100
-Q[9][9] = 100
-Q[10][10] = 0.008
-Q[11][11] = 0.008
-Q[12][12] = 0.008
+# Q = np.identity(13)
+# Q[0][0] = 1500
+# Q[1][1] = 1000
+# Q[2][2] = 1500
+# Q[3][3] = 0.01
+# Q[4][4] = 0.01
+# Q[5][5] = 0.01
+# Q[6][6] = 100
+# Q[7][7] = 100
+# Q[8][8] = 100
+# Q[9][9] = 100
+# Q[10][10] = 0.008
+# Q[11][11] = 0.008
+# Q[12][12] = 0.008
+
+Q = np.zeros((13,13))
 
 R = 0.1*np.identity(6)
-R_eff = 0.1*np.identity(12)
+# R_eff = 0.1*np.identity(12)
 
-# solo_cent_lqr_computer = centroidal_lqr("../../../../momentumopt/demos")
-# K_array = solo_cent_lqr_computer.lqr_backward_pass(Q,R)
-# solo_cent_lqr_computer.store_lqr_gains(K_array)
+solo_cent_lqr_computer = centroidal_lqr("../../../../momentumopt/demos")
+K_array = solo_cent_lqr_computer.lqr_backward_pass(Q,R)
+solo_cent_lqr_computer.store_lqr_gains(K_array)
 
-solo_end_eff_lqr = end_effector_lqr("../../../../momentumopt/demos")
-K_array = solo_end_eff_lqr.lqr_backward_pass(Q,R_eff)
+# solo_end_eff_lqr = end_effector_lqr("../../../../momentumopt/demos")
+# K_array = solo_end_eff_lqr.lqr_backward_pass(Q,R_eff)

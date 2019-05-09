@@ -130,9 +130,9 @@ def main(argv):
     inv_kin.w_com_tracking[:3] = 1.
     inv_kin.w_com_tracking[3:] = 1.
     inv_kin.w_endeff_contact = 1.
-    inv_kin.p_endeff_tracking = 1.
+    inv_kin.p_endeff_tracking = 1.7
     inv_kin.p_com_tracking =1.
-    kin_optimizer.reg_orientation = .05
+    kin_optimizer.reg_orientation = 5.
 
     # Optimize the dynamic and kinematic motion.
     optimized_kin_plan, optimized_motion_eff, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector = motion_planner.optimize_motion()
@@ -145,7 +145,7 @@ def main(argv):
     try:
         motion_planner.replay_kinematics()
     except:
-        "gepeto not initialized..."    
+        "gepeto not initialized..."
     motion_planner.save_files()
     simulation = False
     #motion_planner.plot_centroidal()
