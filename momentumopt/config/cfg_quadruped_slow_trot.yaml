@@ -58,7 +58,7 @@ planner_variables:
   load_kinematics: true
   display_motion: true
   num_dofs: 8
-  kd_iterations: 1
+  kd_iterations: 2
   num_subsamples: 3
   active_dofs: [0, 1, 2, 3, 4, 5, 6, 7]
   min_joint_limits: [-2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5]

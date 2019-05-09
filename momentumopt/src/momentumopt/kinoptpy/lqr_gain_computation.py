@@ -300,7 +300,7 @@ class end_effector_lqr:
 
     def lqr_backward_pass(self, Q, R):
 
-        horizon = len(self.com_pos) - 100
+        horizon = len(self.com_pos)
         P_prev = np.zeros((13,13))
         K_array = []
 
@@ -316,42 +316,44 @@ class end_effector_lqr:
             # print("len", len(K_array))
             # print(horizon)
 
-        return np.asarray(K_array)
+        return np.asarray(np.flip(K_array,0))
 
 
     def store_lqr_gains(self, K_array):
 
         ## Stores gains as a 112d array
-        K_array = np.reshape(K_array, (len(K_array), 78))
+        K_array = np.reshape(K_array, (len(K_array), 156))
 
-        np.savetxt(self.dir + "/quadruped_centroidal_gains1.dat", K_array[:,0:39])
-        np.savetxt(self.dir + "/quadruped_centroidal_gains2.dat", K_array[:,39:])
-
+        np.savetxt(self.dir + "/quadruped_lqr1.dat", K_array[:,0:39])
+        np.savetxt(self.dir + "/quadruped_lqr2.dat", K_array[:,39:78])
+        np.savetxt(self.dir + "/quadruped_lqr3.dat", K_array[:,78:117])
+        np.savetxt(self.dir + "/quadruped_lqr4.dat", K_array[:,117:156])
 
 #### test #####################################################################
-# Q = np.identity(13)
-# Q[0][0] = 1500
-# Q[1][1] = 1000
-# Q[2][2] = 1500
-# Q[3][3] = 0.01
-# Q[4][4] = 0.01
-# Q[5][5] = 0.01
-# Q[6][6] = 100
-# Q[7][7] = 100
-# Q[8][8] = 100
-# Q[9][9] = 100
-# Q[10][10] = 0.008
-# Q[11][11] = 0.008
-# Q[12][12] = 0.008
+Q = np.identity(13)
+Q[0][0] = 1500
+Q[1][1] = 1000
+Q[2][2] = 1500
+Q[3][3] = 0.01
+Q[4][4] = 0.01
+Q[5][5] = 0.01
+Q[6][6] = 100
+Q[7][7] = 100
+Q[8][8] = 100
+Q[9][9] = 100
+Q[10][10] = 0.008
+Q[11][11] = 0.008
+Q[12][12] = 0.008
 
-Q = np.zeros((13,13))
+# Q = np.zeros((13,13))
 
-R = 0.1*np.identity(6)
-# R_eff = 0.1*np.identity(12)
+# R = 0.1*np.identity(6)
+R_eff = 0.1*np.identity(12)
 
-solo_cent_lqr_computer = centroidal_lqr("../../../../momentumopt/demos")
-K_array = solo_cent_lqr_computer.lqr_backward_pass(Q,R)
-solo_cent_lqr_computer.store_lqr_gains(K_array)
+# solo_cent_lqr_computer = centroidal_lqr("../../../../momentumopt/demos")
+# K_array = solo_cent_lqr_computer.lqr_backward_pass(Q,R)
+# solo_cent_lqr_computer.store_lqr_gains(K_array)
 
-# solo_end_eff_lqr = end_effector_lqr("../../../../momentumopt/demos")
-# K_array = solo_end_eff_lqr.lqr_backward_pass(Q,R_eff)
+solo_end_eff_lqr = end_effector_lqr("../../../../momentumopt/demos")
+K_array = solo_end_eff_lqr.lqr_backward_pass(Q,R_eff)
+solo_end_eff_lqr.store_lqr_gains(K_array)
