@@ -127,12 +127,12 @@ def main(argv):
     etg = kin_optimizer.endeff_traj_generator
     etg.z_offset = 0.05
 
-    inv_kin.w_com_tracking[:3] = 1.
+    inv_kin.w_com_tracking[:3] = .1
     inv_kin.w_com_tracking[3:] = 1.
     inv_kin.w_endeff_contact = 1.
     inv_kin.w_endeff_tracking = 1.
     inv_kin.p_endeff_tracking = 1.
-    inv_kin.p_com_tracking =1.
+    inv_kin.p_com_tracking = 1.
     kin_optimizer.reg_orientation = 5.
 
     # Optimize the dynamic and kinematic motion.
