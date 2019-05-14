@@ -13,7 +13,7 @@ import scipy
 
 np.set_printoptions(linewidth=13000)
 
-class centroidal_lqr:
+class end_effector_lqr:
 
     def __init__(self, dir):
 
@@ -23,8 +23,8 @@ class centroidal_lqr:
         self.com_ori = np.loadtxt(dir + "/quadruped_quaternion.dat", dtype=float)[:, [1,2,3,4]]
         self.com_ang_vel = np.loadtxt(dir + "/quadruped_base_ang_velocities.dat", dtype=float)[:, [1,2,3]]
 
-        self.cent_force = np.loadtxt(dir + "/quadruped_centroidal_forces.dat", dtype=float)[:, [1,2,3]]
-        self.cent_moments = np.loadtxt(dir + "/quadruped_centroidal_moments.dat", dtype=float)[:, [1,2,3]]
+        self.end_eff_forces = np.loadtxt(dir + "/quadruped_forces.dat", dtype=float)[:, 1:]
+        self.end_eff_abs_pos = np.loadtxt(dir + "/quadruped_positions_abs_with_horizon_part.dat", dtype=float)[:, 1:]
 
         self.delta = 0.000001
         self.dt = 0.001
@@ -32,6 +32,15 @@ class centroidal_lqr:
         self.inertia_com_frame = [[0.00578574, 0.0, 0.0],
                                   [0.0, 0.01938108, 0.0],
                                   [0.0, 0.0, 0.02476124]]
+
+
+    def compute_r_cross(self, end_eff_abs_pos, com_pos):
+
+        r_cross_mat = [[0, -(end_eff_abs_pos[2] - com_pos[2]), (end_eff_abs_pos[1] - com_pos[1])],
+                       [(end_eff_abs_pos[2] - com_pos[2]), 0, -(end_eff_abs_pos[0] - com_pos[0])],
+                       [-(end_eff_abs_pos[1] - com_pos[1]), -(end_eff_abs_pos[0] - com_pos[0]), 0]]
+
+        return r_cross_mat
 
 
     def compute_dyn(self,t , x_t, u_t):
@@ -47,22 +56,24 @@ class centroidal_lqr:
                     [np.zeros((3,3)), np.zeros((3,3)), np.zeros((3,4)), np.zeros((3,3))],
                     [np.zeros((4,3)),np.zeros((4,3)), 0.5*omega, np.zeros((4,3))],
                     [np.zeros((3,3)), np.zeros((3,3)), np.zeros((3,4)), np.zeros((3,3))]])
-        #
+
         rot_t = np.reshape(Rot.from_quat(x_t[:, [6,7,8,9]]).as_dcm(), (3,3))
-        inertia = np.matmul(np.matmul(rot_t,self.inertia_com_frame), np.transpose(rot_t))
+        inertia = np.matmul(np.matmul(np.transpose(rot_t),self.inertia_com_frame), rot_t)
         inv_inertia = inv(np.matrix(inertia))
-        # inv_inertia = inv(np.matrix(self.inertia_com_frame))
 
+        r_cross_inv_inertia_fl = np.matmul(inv_inertia, self.compute_r_cross(self.end_eff_abs_pos[t][0:3], self.com_pos[t]))
+        r_cross_inv_inertia_fr = np.matmul(inv_inertia, self.compute_r_cross(self.end_eff_abs_pos[t][3:6], self.com_pos[t]))
+        r_cross_inv_inertia_hl = np.matmul(inv_inertia, self.compute_r_cross(self.end_eff_abs_pos[t][6:9], self.com_pos[t]))
+        r_cross_inv_inertia_hr = np.matmul(inv_inertia, self.compute_r_cross(self.end_eff_abs_pos[t][9:12], self.com_pos[t]))
 
-        self.B_t = np.block([[np.zeros((3,3)), np.zeros((3,3))],
-                    [(1/self.mass)*np.identity(3), np.zeros((3,3))],
-                    [np.zeros((4,3)), np.zeros((4,3))],
-                    [np.zeros((3,3)), inv_inertia]])
+        self.B_t = np.block([[np.zeros((3,3)), np.zeros((3,3)),np.zeros((3,3)), np.zeros((3,3))],
+                            [(1/self.mass)*np.identity(3), (1/self.mass)*np.identity(3), (1/self.mass)*np.identity(3), (1/self.mass)*np.identity(3)],
+                            [np.zeros((4,3)), np.zeros((4,3)), np.zeros((4,3)), np.zeros((4,3))],
+                            [r_cross_inv_inertia_fl, r_cross_inv_inertia_fr, r_cross_inv_inertia_hl, r_cross_inv_inertia_hr]])
 
 
         self.A_t = np.matrix(self.A_t)
         self.B_t = np.matrix(self.B_t)
-
 
         return np.matmul(self.A_t, np.transpose(x_t)) + np.matmul(self.B_t, np.transpose(u_t))
 
@@ -71,49 +82,33 @@ class centroidal_lqr:
         ### computes linearized dymamics
 
         x_t = np.matrix(np.hstack((self.com_pos[t], self.com_vel[t], self.com_ori[t], self.com_ang_vel[t])))
-        u_t = np.matrix(np.hstack((self.cent_force[t], self.cent_moments[t])))
+        u_t = np.matrix(self.end_eff_forces[t])
 
         dyn_t = self.compute_dyn(t, x_t, u_t)
-
-
+        # print(dyn_t)
         # partial derivative of a w.r.t x
         x_t1 = np.matrix(np.hstack((self.com_pos[t+1], self.com_vel[t+1], self.com_ori[t+1], self.com_ang_vel[t+1])))
-        u_t1 = np.matrix(np.hstack((self.cent_force[t+1], self.cent_moments[t+1])))
+        u_t1 = np.matrix(self.end_eff_forces[t+1])
 
 
         lin_A_t = np.zeros((13,13))
 
         for i in range(13):
-            if i < 6  or i > 9:
-                pd_x_t = x_t.copy()
-                delta_x = x_t1[: ,i].copy() - x_t[: ,i].copy()
-                pd_x_t[: ,i] = x_t1[: ,i].copy()
-                if delta_x == 0.0:
-                    delta_x = self.delta
-                    pd_x_t[:, i] += self.delta
-                lin_A_t[:, i] = np.reshape(((self.compute_dyn(t, pd_x_t, u_t) - dyn_t.copy())/(delta_x)), (13,))
+            pd_x_t = x_t.copy()
+            delta_x = x_t1[: ,i].copy() - x_t[: ,i].copy()
+            pd_x_t[: ,i] = x_t1[: ,i].copy()
+            if delta_x == 0.0:
+                delta_x = self.delta
+                pd_x_t[:, i] += self.delta
+            lin_A_t[:, i] = np.reshape(((self.compute_dyn(t, pd_x_t, u_t) - dyn_t.copy())/(delta_x)), (13,))
 
-            else:
-                pd_x_t = x_t.copy()
-                pd_x_t[: ,i] = x_t1[: ,i].copy()
 
-                # print(pd_x_t[:, [6,7,8,9]])
-                delta_quat = Rot.from_dcm(np.matmul(np.transpose(np.reshape(Rot.from_quat(pd_x_t[:, [6,7,8,9]]).as_dcm(),(3,3))),np.reshape(Rot.from_quat(x_t[:, [6,7,8,9]]).as_dcm(),(3,3))))
-                delta_x = delta_quat.as_quat()[i-6]
-                # print(delta_quat.as_quat())
-                # assert False
-                if delta_x == 0.0:
-                    delta_x = self.delta
-                    pd_x_t[:, i] += self.delta
-                lin_A_t[:, i] = np.reshape(((self.compute_dyn(t, pd_x_t, u_t) - dyn_t.copy())/(delta_x)), (13,))
 
-        # print(lin_A_t)
-
-        lin_B_t = np.zeros((13,6))
+        lin_B_t = np.zeros((13,12))
         if np.linalg.norm(sum(u_t1)) < 0.001:
-            lin_B_t = np.zeros((13,6))
+            lin_B_t = np.zeros((13,12))
         else:
-            for i in range(6):
+            for i in range(12):
                 pd_u_t = u_t.copy()
                 delta_u = u_t1[: ,i].copy() - u_t[:, i].copy()
                 pd_u_t[: ,i] = u_t1[:, i].copy()
@@ -121,39 +116,6 @@ class centroidal_lqr:
                     delta_u = self.delta
                     pd_u_t[:, i] += self.delta
                 lin_B_t[:, i] = np.reshape(((self.compute_dyn(t, x_t, pd_u_t) - dyn_t.copy())/(delta_u)), (13,))
-
-        return lin_A_t, lin_B_t
-
-    def analytical_lin_dyn(self, t):
-
-        x_t = np.matrix(np.hstack((self.com_pos[t], self.com_vel[t], self.com_ori[t], self.com_ang_vel[t])))
-
-        ### quat_d = omega * quat
-        omega = np.array([[0, x_t[: , 12], -1*x_t[:, 11], x_t[:, 10]],
-                      [-1*x_t[:,12], 0, x_t[:,10], x_t[:, 11]],
-                      [x_t[:,11], -1*x_t[:,10], 0, x_t[:,12]],
-                      [-1*x_t[:, 10], -1*x_t[:, 11], -1*x_t[:,12], 0]])
-
-
-        pd_omega = np.array([[x_t[:, 9],-x_t[:, 8], -x_t[:, 7]],
-                            [x_t[:, 8],x_t[:, 9], -x_t[:, 6]],
-                            [-x_t[:, 7],-x_t[:, 6], x_t[:, 9]],
-                            [-x_t[:, 6],-x_t[:, 7], -x_t[:, 8]]])
-
-        pd_omega = np.reshape(pd_omega, (4,3))
-
-        lin_A_t = np.block([[np.zeros((3,3)), np.identity(3), np.zeros((3,4)), np.zeros((3,3))],
-                            [np.zeros((3,3)), np.zeros((3,3)), np.zeros((3,4)), np.zeros((3,3))],
-                            [np.zeros((4,3)), np.zeros((4,3)), np.zeros((4,4)), 0.5*pd_omega],
-                            [np.zeros((3,3)), np.zeros((3,3)), np.zeros((3,4)), np.zeros((3,3))]])
-
-        # print(lin_A_t)
-
-        lin_B_t = np.block([[np.zeros((3,3)), np.zeros((3,3))],
-                    [(1/self.mass)*np.identity(3), np.zeros((3,3))],
-                    [np.zeros((4,3)), np.zeros((4,3))],
-                    [np.zeros((3,3)), inv(self.inertia_com_frame)]])
-
 
         return lin_A_t, lin_B_t
 
@@ -188,31 +150,30 @@ class centroidal_lqr:
         P_prev = np.zeros((13,13))
         K_array = []
 
-        for t in range(horizon-2, 0, -1):
+        for t in range(horizon-2, -1, -1):
             print(t/1000.0)
-            # lin_A_t, lin_B_t = self.compute_lin_dyn(t)
-            lin_A_t, lin_B_t = self.analytical_lin_dyn(t)
+            lin_A_t, lin_B_t = self.compute_lin_dyn(t)
             des_lin_A_t, des_lin_B_t = self.descretise_dynamics(lin_A_t, lin_B_t)
             K_t, P_prev = self.compute_lqr_gains(Q, R, des_lin_A_t, des_lin_B_t, P_prev)
-
-            # K_array.insert(0,K_t)
             K_array.append(K_t)
             # print(P_prev)
             print(K_t)
             print("\n")
+            # print("len", len(K_array))
+            # print(horizon)
 
-        return np.asarray(K_array)
-
+        return np.asarray(np.flip(K_array,0))
 
 
     def store_lqr_gains(self, K_array):
 
         ## Stores gains as a 112d array
-        K_array = np.reshape(K_array, (len(K_array), 78))
+        K_array = np.reshape(K_array, (len(K_array), 156))
 
-        np.savetxt(self.dir + "/quadruped_centroidal_gains1.dat", K_array[:,0:39])
-        np.savetxt(self.dir + "/quadruped_centroidal_gains2.dat", K_array[:,39:])
-
+        np.savetxt(self.dir + "/quadruped_lqr1.dat", K_array[:,0:39])
+        np.savetxt(self.dir + "/quadruped_lqr2.dat", K_array[:,39:78])
+        np.savetxt(self.dir + "/quadruped_lqr3.dat", K_array[:,78:117])
+        np.savetxt(self.dir + "/quadruped_lqr4.dat", K_array[:,117:156])
 
 #### test #####################################################################
 Q = np.identity(13)
@@ -232,16 +193,8 @@ Q[12][12] = 0.0
 
 # Q = np.zeros((13,13))
 
-R = 0.1*np.identity(6)
-R[1][1] = 10.0
-R[3][3] = 10.0
-R[4][4] = 10.0
-R[5][5] = 10.0
+R_eff = 0.1*np.identity(12)
 
-solo_cent_lqr_computer = centroidal_lqr("../../../../momentumopt/demos")
-K_array = solo_cent_lqr_computer.lqr_backward_pass(Q,R)
-solo_cent_lqr_computer.store_lqr_gains(K_array)
-
-# for k in K_array:
-#     print(k)
-#     print("\n")
+solo_end_eff_lqr = end_effector_lqr("../../../../momentumopt/demos")
+K_array = solo_end_eff_lqr.lqr_backward_pass(Q,R_eff)
+solo_end_eff_lqr.store_lqr_gains(K_array)
