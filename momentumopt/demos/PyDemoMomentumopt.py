@@ -137,7 +137,6 @@ def main(argv):
 
     # Optimize the dynamic and kinematic motion.
     optimized_kin_plan, optimized_motion_eff, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector = motion_planner.optimize_motion()
-
     #for i in range(len(time_vector)):
     #    print "\n t:",time_vector[i],"\n"
     #    print dynamics_feedback.forceGain(i)
@@ -149,7 +148,7 @@ def main(argv):
         "gepeto not initialized..."
     motion_planner.save_files()
     simulation = False
-    #motion_planner.plot_centroidal()
+    motion_planner.plot_foot_traj()
     plot_com_motion(optimized_dyn_plan.dynamics_states, optimized_kin_plan.kinematics_states)
     #motion_planner.plot_base_trajecory()
 
