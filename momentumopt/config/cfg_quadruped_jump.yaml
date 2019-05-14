@@ -55,18 +55,18 @@ contact_plan:
                             # -1.0 : no contact planning
 
   effcnt_rf:
-  - [0.0, 2., 0.20, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
-  - [2.4, 3.0, 0.20, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [0.0, 1.0, 0.20, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [1.4, 2.0, 0.20, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
 
   effcnt_lf:
-  - [0.0, 2., 0.20, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
-  - [2.4, 3.0, 0.20, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [0.0, 1.0, 0.20, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [1.4, 2.0, 0.20, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
   effcnt_rh:
-  - [0.0, 2., -0.20, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
-  - [2.4, 3.0, -0.20, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [0.0, 1.0, -0.20, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [1.4, 2.0, -0.20, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
   effcnt_lh:
-  - [0.0, 2., -0.20, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
-  - [2.4, 3.0, -0.20, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [0.0, 1.0, -0.20, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [1.4, 2.0, -0.20, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
   effvia_rf: []
   effvia_lf: []
   effvia_rh: []
@@ -83,7 +83,7 @@ planner_variables:
   display_motion: true
   num_dofs: 8
   # Number of dynamic and kinematic optimization iterations
-  kd_iterations: 3
+  kd_iterations: 1
   num_subsamples: 3
   active_dofs: [0, 1, 2, 3, 4, 5, 6, 7]
   min_joint_limits: [-1.5, -2.5, -1.5, -2.5, -1.5, -2.5, -1.5, -2.5]
@@ -128,7 +128,7 @@ planner_variables:
   n_act_eefs: 4
   # time step discretization
   time_step: 0.01
-  time_horizon: 3.0
+  time_horizon: 2.0
   external_force: [0.00, 0.00, 0.00]
   com_displacement: [0.00, 0.0, 0.00]
   # Will only read via points if this number is great than 0
@@ -137,7 +137,7 @@ planner_variables:
   # [2.50                 # activation time of the via point
   #  0.500, 0.45,  0.00]  # position (x, y, z)
   com_viapoints:
-    via0: [2.50, 0.45, 0.71, 0.32]
+    via0: [1.20, 0.00, 0.00, 0.32]
 
   #####################
   # Timing parameters #
@@ -265,7 +265,7 @@ solverlqr_dynamics:
 
   problem_name: DynamicMomentumOptimization
   time_step: 0.01
-  time_horizon: 3.0
+  time_horizon: 2.0
   state_dimension: 9
   control_dimension: 12
   initial_state: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]

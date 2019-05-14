@@ -131,6 +131,18 @@ class MotionPlanner():
 
         return fig, axes
 
+    def plot_foot_traj(self):
+        fig, ax = plt.subplots(4,1)
+        foot_traj = self.kin_optimizer.motion_eff['trajectory']
+        label = ["foot_z_1", "foot_z_2", "foot_z_3", "foot_z_4"]
+        for i in range(4):
+            ax[i].plot(foot_traj[:,3*i+2], label = label[i])
+            ax[i].set_ylabel("m")
+            ax[i].set_xlabel("millisec")
+            ax[i].legend()
+            ax[i].grid(True)
+        plt.show()
+
     def replay_kinematics(self, start=0, end=None):
         self.kin_optimizer.robot.ensureDisplay()
         for ks in self.kin_optimizer.kinematics_sequence.kinematics_states[start:end]:
