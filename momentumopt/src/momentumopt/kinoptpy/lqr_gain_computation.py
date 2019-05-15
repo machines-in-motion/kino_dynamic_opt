@@ -144,7 +144,7 @@ class centroidal_lqr:
 
         lin_A_t = np.block([[np.zeros((3,3)), np.identity(3), np.zeros((3,4)), np.zeros((3,3))],
                             [np.zeros((3,3)), np.zeros((3,3)), np.zeros((3,4)), np.zeros((3,3))],
-                            [np.zeros((4,3)), np.zeros((4,3)), np.zeros((4,4)), 0.5*pd_omega],
+                            [np.zeros((4,3)), np.zeros((4,3)), 0.5*omega, 0.5*pd_omega],
                             [np.zeros((3,3)), np.zeros((3,3)), np.zeros((3,4)), np.zeros((3,3))]])
 
         # print(lin_A_t)
@@ -195,8 +195,8 @@ class centroidal_lqr:
             des_lin_A_t, des_lin_B_t = self.descretise_dynamics(lin_A_t, lin_B_t)
             K_t, P_prev = self.compute_lqr_gains(Q, R, des_lin_A_t, des_lin_B_t, P_prev)
 
-            # K_array.insert(0,K_t)
-            K_array.append(K_t)
+            K_array.insert(0,K_t)
+            #K_array.append(K_t)
             # print(P_prev)
             print(K_t)
             print("\n")
