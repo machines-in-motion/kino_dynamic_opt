@@ -24,8 +24,8 @@ class PointContactInverseKinematics(object):
         self.nv = self.model.nv
 
         # Tracking weights
-        self.w_endeff_tracking = 1.
-        self.w_endeff_contact = 1.
+        self.w_endeff_tracking = np.ones(3)
+        self.w_endeff_contact = np.ones(3)
         self.w_com_tracking = np.ones(6)
 
         # P gains for tracking the position
@@ -70,9 +70,9 @@ class PointContactInverseKinematics(object):
         w = [self.w_com_tracking]
         for eff in endeff_contact:
             if eff == 1.: # If in contact
-                w.append(self.w_endeff_contact * np.ones(3))
+                w.append(self.w_endeff_contact)
             else:
-                w.append(self.w_endeff_tracking * np.ones(3))
+                w.append(self.w_endeff_tracking)
         self.w = np.diag(np.hstack(w))
 
     def forward_robot(self, q, dq):
@@ -104,8 +104,13 @@ class PointContactInverseKinematics(object):
         self.fill_weights(endeff_contact)
 
         self.forwarded_robot = False
-
-        return np.matrix(self.qp_solver.quadprog_solve_qp(
-            self.J.T.dot(self.w).dot(self.J),
-            -self.J.T.dot(self.w).dot(self.vel_des).reshape(-1)
-        )).T
+        # print np.shape(self.w)
+        # print np.shape(self.J),"\n"
+        hessian = self.J.T.dot(self.w).dot(self.J)
+        # print hessian, "\n"
+        hessian += 1e-6*np.identity(len(hessian))
+        gradient = -self.J.T.dot(self.w).dot(self.vel_des).reshape(-1)
+        w,v=np.linalg.eig(hessian)
+        # np.set_printoptions(precision=6)
+        # print w,"\n"
+        return np.matrix(self.qp_solver.quadprog_solve_qp(hessian, gradient)).T

@@ -125,12 +125,12 @@ def main(argv):
     kin_optimizer = motion_planner.kin_optimizer
     inv_kin = kin_optimizer.inv_kin
     etg = kin_optimizer.endeff_traj_generator
-    etg.z_offset = 0.08
+    etg.z_offset = 0.1
 
     inv_kin.w_com_tracking[:3] = 1.0
-    inv_kin.w_com_tracking[3:] = 1.
-    inv_kin.w_endeff_contact = 1.
-    inv_kin.w_endeff_tracking = 1.
+    inv_kin.w_com_tracking[3:] = 1.0
+    inv_kin.w_endeff_contact = np.array([1., 1., 1.])
+    inv_kin.w_endeff_tracking = np.array([1., 1., 1.])
     inv_kin.p_endeff_tracking = 1.
     inv_kin.p_com_tracking = 1.
     kin_optimizer.reg_orientation = 5.

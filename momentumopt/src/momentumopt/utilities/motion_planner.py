@@ -23,7 +23,7 @@ from pysolverlqr import *
 
 import numpy as np
 
-from momentumopt.kinoptpy.momentum_kinematics_optimizer import MomentumKinematicsOptimizer
+from momentumopt.kinoptpy.momentum_kinematics_optimizer import MomentumKinematicsOptimizer, EndeffectorTrajectoryGenerator
 from momentumopt.kinoptpy.create_data_file import create_file, create_qp_files, create_lqr_files
 
 import matplotlib.pyplot as plt
@@ -133,15 +133,23 @@ class MotionPlanner():
 
     def plot_foot_traj(self):
         fig, ax = plt.subplots(4,1)
+        des_ee_traj = EndeffectorTrajectoryGenerator()
+        des_ee_pos = des_ee_traj(self.kin_optimizer)[0]
         foot_traj = self.kin_optimizer.motion_eff['trajectory']
-        label = ["foot_z_1", "foot_z_2", "foot_z_3", "foot_z_4"]
         for i in range(4):
-            ax[i].plot(foot_traj[:,3*i+2], label = label[i])
+            ax[i].plot(foot_traj[:,3*i+2], label = "act")
+            # ax[i].plot(foot_traj[:,3*i+1])
+            # ax[i].plot(foot_traj[:,3*i])
+            ax[i].plot(des_ee_pos[:,i,2], label = "des")
+            # ax[i].plot(des_ee_pos[:,i,1])
+            # ax[i].plot(des_ee_pos[:,i,0])
             ax[i].set_ylabel("m")
             ax[i].set_xlabel("millisec")
             ax[i].legend()
             ax[i].grid(True)
+        fig.suptitle('Desired and actual foot trajectory')
         plt.show()
+
 
     def replay_kinematics(self, start=0, end=None):
         self.kin_optimizer.robot.ensureDisplay()
