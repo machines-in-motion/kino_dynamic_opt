@@ -289,6 +289,7 @@ class MomentumKinematicsOptimizer(object):
             self.optimize_initial_position(init_state)
 
         # Compute inverse kinematics over the full trajectory.
+        self.inv_kin.is_init_time=0
         q, dq = self.q_init.copy(), self.dq_init.copy()
         for it in range(self.num_time_steps):
             quad_goal = se3.Quaternion(se3.rpy.rpyToMatrix(np.matrix([0.0, 0, 0.]).T))

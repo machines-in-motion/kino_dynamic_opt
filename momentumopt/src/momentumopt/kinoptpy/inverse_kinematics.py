@@ -19,14 +19,16 @@ class PointContactInverseKinematics(object):
         self.base_id = self.robot.model.getFrameId('base_link')
         self.endeff_frame_names = endeff_frame_names
         self.endeff_ids = [getFrameId(name) for name in endeff_frame_names]
+        self.is_init_time=1
 
         self.ne = len(self.endeff_ids)
         self.nv = self.model.nv
 
         # Tracking weights
-        self.w_endeff_tracking = np.ones(3)
-        self.w_endeff_contact = np.ones(3)
-        self.w_com_tracking = np.ones(6)
+        self.w_endeff_tracking = 1.
+        self.w_endeff_contact = 1.
+        self.w_lin_mom_tracking = 1.0
+        self.w_ang_mom_tracking = 1.0
 
         # P gains for tracking the position
         self.p_endeff_tracking = 1.
@@ -61,18 +63,23 @@ class PointContactInverseKinematics(object):
     def fill_vel_des(self, q, dq, com_ref, lmom_ref, amom_ref, endeff_pos_ref, endeff_vel_ref):
         self.vel_des[:3] = (lmom_ref + self.p_com_tracking * (com_ref - self.robot.com(q).T)).T
         self.vel_des[3:6] = amom_ref.reshape(3, 1)
+
         for i, idx in enumerate(self.endeff_ids):
-            self.vel_des[6 + 3*i: 6 + 3*(i + 1)] = endeff_vel_ref[i].reshape((3, 1)) + \
-                self.p_endeff_tracking * (
-                    endeff_pos_ref[i] - self.robot.data.oMf[idx].translation.T).T
+            if self.is_init_time:
+                self.vel_des[6 + 3*i: 6 + 3*(i + 1)] = endeff_vel_ref[i].reshape((3, 1)) + \
+                    1. * (endeff_pos_ref[i] - self.robot.data.oMf[idx].translation.T).T
+            else:
+                self.vel_des[6 + 3*i: 6 + 3*(i + 1)] = endeff_vel_ref[i].reshape((3, 1)) + \
+                    self.p_endeff_tracking * (
+                        endeff_pos_ref[i] - self.robot.data.oMf[idx].translation.T).T
 
     def fill_weights(self, endeff_contact):
-        w = [self.w_com_tracking]
+        w = [self.w_lin_mom_tracking * np.ones(3), self.w_ang_mom_tracking * np.ones(3)]
         for eff in endeff_contact:
             if eff == 1.: # If in contact
-                w.append(self.w_endeff_contact)
+                w.append(self.w_endeff_contact * np.ones(3))
             else:
-                w.append(self.w_endeff_tracking)
+                w.append(self.w_endeff_tracking * np.ones(3))
         self.w = np.diag(np.hstack(w))
 
     def forward_robot(self, q, dq):

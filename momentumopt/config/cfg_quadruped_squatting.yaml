@@ -67,6 +67,19 @@ planner_variables:
   default_joint_positions: [-0.52, 1.04, -0.52, 1.04, 0.52, -1.04, 0.52, -1.04]
 
   #########################
+  # Kinematics momentum parameters #
+  #########################
+
+  swing_traj_via_z: .1
+  w_lin_mom_tracking: 1.
+  w_ang_mom_tracking: 1.
+  w_endeff_contact: 1.
+  w_endeff_tracking: 1.
+  p_endeff_tracking: 15.
+  p_com_tracking: 1.
+  reg_orientation: 5.
+
+  #########################
   # Kinematics parameters #
   #########################
 

@@ -51,6 +51,8 @@ namespace momentumopt {
         for (int dof_id=0; dof_id<active_dofs_.size(); dof_id++) { extended_active_dofs_[6+dof_id] = 6+active_dofs_[dof_id]; }
       }
 
+    //
+
 	  // Dynamics parameters
 	  readParameter(planner_vars, "num_com_viapoints", num_com_viapoints_);
 	  com_viapoints_.clear();
@@ -137,6 +139,16 @@ namespace momentumopt {
 	    readParameter(planner_vars, "convergence_tolerance", convergence_tolerance_);
         readParameter(planner_vars, "lambda_regularization", lambda_regularization_);
       }
+
+      //kinematic momentum optimization
+      readParameter(planner_vars, "swing_traj_via_z", swing_traj_via_z_);
+      readParameter(planner_vars, "w_lin_mom_tracking", w_lin_mom_tracking_);
+      readParameter(planner_vars, "w_ang_mom_tracking", w_ang_mom_tracking_);
+      readParameter(planner_vars, "w_endeff_contact", w_endeff_contact_);
+      readParameter(planner_vars, "w_endeff_tracking", w_endeff_tracking_);
+      readParameter(planner_vars, "p_endeff_tracking", p_endeff_tracking_);
+      readParameter(planner_vars, "p_com_tracking", p_com_tracking_);
+      readParameter(planner_vars, "reg_orientation", reg_orientation_);
 
       // Storage information
       readParameter(planner_vars, "store_data", store_data_);
@@ -237,6 +249,16 @@ namespace momentumopt {
       case PlannerDoubleParam_WeightLegTorque : { return w_trq_leg_; }
       case PlannerDoubleParam_WeightTimeRegularization : { return w_time_;}
       case PlannerDoubleParam_WeightTimePenalty : { return w_time_penalty_; }
+
+      // Kinematics momentum optimization weights
+      case PlannerDoubleParam_SwingTrajViaZ : { return swing_traj_via_z_; }
+      case PlannerDoubleParam_WeightLinMomentumTracking : { return w_lin_mom_tracking_; }
+      case PlannerDoubleParam_WeightAngMomentumTracking : { return w_ang_mom_tracking_; }
+      case PlannerDoubleParam_WeightEndEffContact : { return w_endeff_contact_; }
+      case PlannerDoubleParam_WeightEndEffTracking : { return w_endeff_tracking_; }
+      case PlannerDoubleParam_PGainEndEffTracking : { return p_endeff_tracking_; }
+      case PlannerDoubleParam_PGainComTracking : { return p_com_tracking_; }
+      case PlannerDoubleParam_PGainOrientationTracking : { return reg_orientation_; }
 
       // Not handled parameters
       default: { throw std::runtime_error("PlannerSetting::get PlannerDoubleParam invalid"); break; }
@@ -433,6 +455,16 @@ namespace momentumopt {
       case PlannerDoubleParam_WeightLegTorque : { return w_trq_leg_; }
       case PlannerDoubleParam_WeightTimeRegularization : { return w_time_;}
       case PlannerDoubleParam_WeightTimePenalty : { return w_time_penalty_; }
+
+      // Kinematics momentum optimization weights
+      case PlannerDoubleParam_SwingTrajViaZ : { return swing_traj_via_z_; }
+      case PlannerDoubleParam_WeightLinMomentumTracking : { return w_lin_mom_tracking_; }
+      case PlannerDoubleParam_WeightAngMomentumTracking : { return w_ang_mom_tracking_; }
+      case PlannerDoubleParam_WeightEndEffContact : { return w_endeff_contact_; }
+      case PlannerDoubleParam_WeightEndEffTracking : { return w_endeff_tracking_; }
+      case PlannerDoubleParam_PGainEndEffTracking : { return p_endeff_tracking_; }
+      case PlannerDoubleParam_PGainComTracking : { return p_com_tracking_; }
+      case PlannerDoubleParam_PGainOrientationTracking : { return reg_orientation_; }
 
       // Not handled parameters
       default: { throw std::runtime_error("PlannerSetting::set PlannerDoubleParam invalid"); break; }

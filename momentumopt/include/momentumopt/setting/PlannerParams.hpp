@@ -80,6 +80,16 @@ namespace momentumopt {
 	PlannerDoubleParam_KinIntegrationStep,
 	PlannerDoubleParam_LambdaRegularization,
     PlannerDoubleParam_KinConvergenceTolerance,
+
+  //kinematics momentum optimization
+  PlannerDoubleParam_SwingTrajViaZ,
+  PlannerDoubleParam_WeightLinMomentumTracking,
+  PlannerDoubleParam_WeightAngMomentumTracking,
+  PlannerDoubleParam_WeightEndEffContact,
+  PlannerDoubleParam_WeightEndEffTracking,
+  PlannerDoubleParam_PGainEndEffTracking,
+  PlannerDoubleParam_PGainComTracking,
+  PlannerDoubleParam_PGainOrientationTracking,
   };
 
   /*! Available string variables used by the planner */
