@@ -148,6 +148,7 @@ namespace momentumopt {
       readParameter(planner_vars, "w_endeff_tracking", w_endeff_tracking_);
       readParameter(planner_vars, "p_endeff_tracking", p_endeff_tracking_);
       readParameter(planner_vars, "p_com_tracking", p_com_tracking_);
+      readParameter(planner_vars, "w_joint_regularization", w_joint_regularization_);
       readParameter(planner_vars, "reg_orientation", reg_orientation_);
 
       // Storage information
@@ -258,6 +259,7 @@ namespace momentumopt {
       case PlannerDoubleParam_WeightEndEffTracking : { return w_endeff_tracking_; }
       case PlannerDoubleParam_PGainEndEffTracking : { return p_endeff_tracking_; }
       case PlannerDoubleParam_PGainComTracking : { return p_com_tracking_; }
+      case PlannerDoubleParam_WeightJointReg : { return w_joint_regularization_; }
       case PlannerDoubleParam_PGainOrientationTracking : { return reg_orientation_; }
 
       // Not handled parameters
@@ -464,6 +466,7 @@ namespace momentumopt {
       case PlannerDoubleParam_WeightEndEffTracking : { return w_endeff_tracking_; }
       case PlannerDoubleParam_PGainEndEffTracking : { return p_endeff_tracking_; }
       case PlannerDoubleParam_PGainComTracking : { return p_com_tracking_; }
+      case PlannerDoubleParam_WeightJointReg : { return w_joint_regularization_; }
       case PlannerDoubleParam_PGainOrientationTracking : { return reg_orientation_; }
 
       // Not handled parameters

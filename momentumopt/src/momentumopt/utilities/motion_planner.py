@@ -134,6 +134,7 @@ class MotionPlanner():
     def plot_foot_traj(self):
         fig, ax = plt.subplots(4,1)
         des_ee_traj = EndeffectorTrajectoryGenerator()
+        des_ee_traj.z_offset = self.planner_setting.get(PlannerDoubleParam_SwingTrajViaZ)
         des_ee_pos = des_ee_traj(self.kin_optimizer)[0]
         foot_traj = self.kin_optimizer.motion_eff['trajectory']
         for i in range(4):

@@ -84,6 +84,7 @@ planner_variables:
   w_endeff_tracking: 1.
   p_endeff_tracking: 15.
   p_com_tracking: 1.
+  w_joint_regularization: .001
   reg_orientation: 5.
 
   #########################

@@ -29,6 +29,7 @@ class PointContactInverseKinematics(object):
         self.w_endeff_contact = 1.
         self.w_lin_mom_tracking = 1.0
         self.w_ang_mom_tracking = 1.0
+        self.w_joint_regularization = 0.01
 
         # P gains for tracking the position
         self.p_endeff_tracking = 1.
@@ -39,8 +40,9 @@ class PointContactInverseKinematics(object):
 
         # Allocate space for the jacobian and desired velocities.
         # Using two entires for the linear and angular velocity of the base.
-        self.J = np.zeros(((self.ne + 2) * 3, self.nv))
-        self.vel_des = np.zeros(((self.ne + 2) * 3, 1))
+        # (self.nv - 6) is the number of jointss for posture regularization
+        self.J = np.zeros(((self.ne + 2) * 3 + (self.nv - 6), self.nv))
+        self.vel_des = np.zeros(((self.ne + 2) * 3 + (self.nv - 6), 1))
 
         self.qp_solver = QpSolver()
 
@@ -59,6 +61,10 @@ class PointContactInverseKinematics(object):
 #         self.J[:3, :] = robot.data.Jcom * invkin.mass
         for i, idx in enumerate(self.endeff_ids):
             self.J[6 + 3 * i: 6 + 3 * (i + 1), :] = self.get_world_oriented_frame_jacobian(q, idx)[:3]
+        # this is joint regularization part
+        self.J[(self.ne + 2) * 3:,6:] = np.identity(self.nv - 6)
+        #print "jac:\n",self.J,"\n\n"
+
 
     def fill_vel_des(self, q, dq, com_ref, lmom_ref, amom_ref, endeff_pos_ref, endeff_vel_ref):
         self.vel_des[:3] = (lmom_ref + self.p_com_tracking * (com_ref - self.robot.com(q).T)).T
@@ -72,6 +78,8 @@ class PointContactInverseKinematics(object):
                 self.vel_des[6 + 3*i: 6 + 3*(i + 1)] = endeff_vel_ref[i].reshape((3, 1)) + \
                     self.p_endeff_tracking * (
                         endeff_pos_ref[i] - self.robot.data.oMf[idx].translation.T).T
+        self.vel_des[(self.ne + 2) * 3:] = zero(self.nv - 6)
+        #print "vel:\n",self.vel_des,"\n\n"
 
     def fill_weights(self, endeff_contact):
         w = [self.w_lin_mom_tracking * np.ones(3), self.w_ang_mom_tracking * np.ones(3)]
@@ -80,7 +88,10 @@ class PointContactInverseKinematics(object):
                 w.append(self.w_endeff_contact * np.ones(3))
             else:
                 w.append(self.w_endeff_tracking * np.ones(3))
+        w.append(self.w_joint_regularization * np.ones(self.nv - 6))
         self.w = np.diag(np.hstack(w))
+        #print "w:\n",self.w,"\n\n"
+
 
     def forward_robot(self, q, dq):
         # Update the pinocchio model.
@@ -115,7 +126,7 @@ class PointContactInverseKinematics(object):
         # print np.shape(self.J),"\n"
         hessian = self.J.T.dot(self.w).dot(self.J)
         # print hessian, "\n"
-        hessian += 1e-6*np.identity(len(hessian))
+        hessian += 1e-6 * np.identity(len(hessian))
         gradient = -self.J.T.dot(self.w).dot(self.vel_des).reshape(-1)
         w,v=np.linalg.eig(hessian)
         # np.set_printoptions(precision=6)

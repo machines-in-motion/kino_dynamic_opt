@@ -216,7 +216,7 @@ class MomentumKinematicsOptimizer(object):
 
         # The endeffector informations as well.
         self.motion_eff['trajectory'][it] = framesPos(self.inv_kin.endeff_ids)
-        self.motion_eff['velocity'][it] = self.inv_kin.J[6:].dot(dq).T
+        self.motion_eff['velocity'][it] = self.inv_kin.J[6:(self.inv_kin.ne + 2) * 3].dot(dq).T
 
         self.motion_eff['trajectory_wrt_base'][it] = \
             self.motion_eff['trajectory'][it] - framesPos(self.hip_ids)

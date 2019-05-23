@@ -75,6 +75,7 @@ void init_params(py::module &m)
   .value("PlannerDoubleParam_WeightEndEffTracking", PlannerDoubleParam_WeightEndEffTracking)
   .value("PlannerDoubleParam_PGainEndEffTracking", PlannerDoubleParam_PGainEndEffTracking)
   .value("PlannerDoubleParam_PGainComTracking", PlannerDoubleParam_PGainComTracking)
+  .value("PlannerDoubleParam_WeightJointReg", PlannerDoubleParam_WeightJointReg)
   .value("PlannerDoubleParam_PGainOrientationTracking", PlannerDoubleParam_PGainOrientationTracking)
   .export_values();
 

@@ -89,6 +89,7 @@ namespace momentumopt {
   PlannerDoubleParam_WeightEndEffTracking,
   PlannerDoubleParam_PGainEndEffTracking,
   PlannerDoubleParam_PGainComTracking,
+  PlannerDoubleParam_WeightJointReg,
   PlannerDoubleParam_PGainOrientationTracking,
   };
 
