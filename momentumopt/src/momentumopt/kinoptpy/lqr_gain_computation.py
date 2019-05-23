@@ -1,5 +1,4 @@
 ### computes gains using lqr in the centroidal space for solo (assumes legs are weightless)
-### computes gains using lqr in the end_effector space for solo (assumes legs are weightless)
 ### Performs a backward pass to compute gains using a trajectory
 ### Author: Avadesh meduri
 ### Date:6/5/2019
@@ -129,10 +128,10 @@ class centroidal_lqr:
         x_t = np.matrix(np.hstack((self.com_pos[t], self.com_vel[t], self.com_ori[t], self.com_ang_vel[t])))
 
         ### quat_d = omega * quat
-        omega = np.array([[0, x_t[: , 12], -1*x_t[:, 11], x_t[:, 10]],
-                      [-1*x_t[:,12], 0, x_t[:,10], x_t[:, 11]],
-                      [x_t[:,11], -1*x_t[:,10], 0, x_t[:,12]],
-                      [-1*x_t[:, 10], -1*x_t[:, 11], -1*x_t[:,12], 0]])
+        omega = np.array(([[0., x_t[: , 12], -x_t[:, 11], x_t[:, 10]],
+                         [-x_t[:,12], 0., x_t[:,10], x_t[:, 11]],
+                         [x_t[:,11], -x_t[:,10], 0., x_t[:,12]],
+                         [-x_t[:, 10], -x_t[:, 11], -x_t[:,12], 0.]]),float)
 
 
         pd_omega = np.array([[x_t[:, 9],-x_t[:, 8], -x_t[:, 7]],
@@ -147,7 +146,6 @@ class centroidal_lqr:
                             [np.zeros((4,3)), np.zeros((4,3)), 0.5*omega, 0.5*pd_omega],
                             [np.zeros((3,3)), np.zeros((3,3)), np.zeros((3,4)), np.zeros((3,3))]])
 
-        # print(lin_A_t)
 
         lin_B_t = np.block([[np.zeros((3,3)), np.zeros((3,3))],
                     [(1/self.mass)*np.identity(3), np.zeros((3,3))],
@@ -230,7 +228,7 @@ Q[10][10] = 0.0
 Q[11][11] = 0.0
 Q[12][12] = 0.0
 
-# Q = np.zeros((13,13))
+Q = np.zeros((13,13))
 
 R = 0.1*np.identity(6)
 R[1][1] = 10.0

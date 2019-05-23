@@ -1,4 +1,3 @@
-### computes gains using lqr in the centroidal space for solo (assumes legs are weightless)
 ### computes gains using lqr in the end_effector space for solo (assumes legs are weightless)
 ### Performs a backward pass to compute gains using a trajectory
 ### Author: Avadesh meduri
