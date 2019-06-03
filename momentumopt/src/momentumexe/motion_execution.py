@@ -119,7 +119,7 @@ def interpolate(specification, time_vector, optimized_motion_eff=None,\
     def centroidal_force_vector(dynamic_state, robot_weight):
         centroidal_force = np.zeros(len(dynamic_state.effForce(0)))
         for eff_id in range(dynamic_state.effNum()):
-            centroidal_force += dynamic_state.effForce(eff_id) * robot_weight
+            centroidal_force += (dynamic_state.effForce(eff_id) * robot_weight)
         return centroidal_force
 
     def centroidal_moment_vector(dynamic_state, robot_weight):
