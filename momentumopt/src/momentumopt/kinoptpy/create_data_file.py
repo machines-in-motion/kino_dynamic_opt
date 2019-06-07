@@ -68,10 +68,10 @@ def create_qp_files(time_vector, optimized_motion_eff, optimized_sequence, optim
     desired_vel_abs = interpolate("VELOCITY_ABSOLUTE", time_vector, optimized_motion_eff=optimized_motion_eff, optimized_sequence = optimized_sequence)
     max_time = 0 # time horizon in seconds
 
-    # if time_vector[-1] - int(time_vector[-1]) > 0.0:
-    #     max_time = int(time_vector[-1]) + 1
-    # else:
-    max_time = int(time_vector[-1])
+    if time_vector[-1] - int(time_vector[-1]) > 0.001:
+        max_time = int(time_vector[-1]) + 1
+    else:
+        max_time = int(time_vector[-1])
 
     print("max_time:" , max_time)
     num_points = max_time * sample_frequency
@@ -202,10 +202,10 @@ def create_lqr_files(time_vector, optimized_motion_eff, optimized_sequence, opti
     max_time = 0 # time horizon in seconds
     save_horizon = 0
 
-    # if time_vector[-1] - int(time_vector[-1]) > 0.0:
-    #     max_time = int(time_vector[-1]) + 1
-    # else:
-    max_time = int(time_vector[-1])
+    if time_vector[-1] - int(time_vector[-1]) > 0.001:
+        max_time = int(time_vector[-1]) + 1
+    else:
+        max_time = int(time_vector[-1])
 
     print("max_time:" , max_time)
     num_points = max_time * sample_frequency
