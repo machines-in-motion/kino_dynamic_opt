@@ -87,7 +87,7 @@ planner_variables:
   # Kinematics momentum parameters #
   #########################
 
-  swing_traj_via_z: .1
+  swing_traj_via_z: .08
   w_lin_mom_tracking: 1.
   w_ang_mom_tracking: 10.
   w_endeff_contact: 1.

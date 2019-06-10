@@ -34,7 +34,7 @@ class CentroidalLqr:
         self.inertia_com_frame = [[0.00578574, 0.0, 0.0],
                                   [0.0, 0.01938108, 0.0],
                                   [0.0, 0.0, 0.02476124]]
-        self.weight = self.mass * np.array([0., 0., -9.81])
+        self.weight = self.mass * np.array([0., 0., 9.81])
         # state control and error dimensions 
         self.N = self.com_pos.shape[0]
         self.n = 13 
@@ -102,6 +102,22 @@ class CentroidalLqr:
         dq = self.exp_quaternion(.5*self.dt*w)
         return self.quaternion_product(dq,q) 
 
+    def integrate_position(self, x, u, q):
+        # in the commented part below I check if velocity provided 
+        # is in body or global frame
+        return x[:3] + self.dt * u # self.quaternion_to_rotation(q).T.dot(u)
+
+    def integrate_veocity(self, v, f):
+        return v + self.dt/self.m * (f-self.weight) 
+
+    def integrate_angular_velocity(self, w, q, tau):
+        R = self.quaternion_to_rotation(q)
+        factor = linalg.cho_factor(R.dot(self.inertia_com_frame).dot(R.T))
+        wnext = w + self.dt * linalg.cho_solve(factor, tau)
+        return wnext 
+
+    
+
     def integrate_step(self, t, x, u):
         """ state vector x is given by x = [c, v, q, w] where
         c: center of mass catesian position 
@@ -110,7 +126,7 @@ class CentroidalLqr:
         w: center of mass angular velocity 
          """
         
-        cnext = x[:3] + self.dt * x[3:6]
+        cnext = x[:3] + self.dt * x[3:6] 
         vnext = x[3:6] + (self.dt/self.m) * (u[:3] + self.weight)
         qnext = self.integrate_quaternion(x[6:10], x[10:13])
         R = self.quaternion_to_rotation(x[6:10])
