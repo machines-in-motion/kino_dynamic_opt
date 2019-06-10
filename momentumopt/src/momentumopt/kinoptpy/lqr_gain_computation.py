@@ -34,7 +34,7 @@ class centroidal_lqr:
 
 
     def compute_dyn(self,t , x_t, u_t):
-
+        # returns continuous time dynamics 
         ### quat_d = omega * quat
         omega = np.array([[0, x_t[: , 12], -1*x_t[:, 11], x_t[:, 10]],
                       [-1*x_t[:,12], 0, x_t[:,10], x_t[:, 11]],
