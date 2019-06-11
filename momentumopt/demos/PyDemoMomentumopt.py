@@ -121,7 +121,6 @@ def main(argv):
 
     motion_planner = MotionPlanner(cfg_file)
 
-    # TODO: Read the kinematic weights from the config file.
     kin_optimizer = motion_planner.kin_optimizer
     inv_kin = kin_optimizer.inv_kin
     etg = kin_optimizer.endeff_traj_generator
