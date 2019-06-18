@@ -8,8 +8,8 @@ import numpy as np
 from numpy.linalg import inv
 from matplotlib import pyplot as plt
 # from scipy.spatial.transform import Rotation as Rot
-import scipy.linalg as linalg 
-import pinocchio as se3 
+import scipy.linalg as linalg
+import pinocchio as se3
 
 
 np.set_printoptions(linewidth=13000)
@@ -26,27 +26,29 @@ class CentroidalLqr:
         #
         self.cent_force = np.loadtxt(dir + "/quadruped_centroidal_forces.dat", dtype=float)[:, [1,2,3]]
         self.cent_moments = np.loadtxt(dir + "/quadruped_centroidal_moments.dat", dtype=float)[:, [1,2,3]]
-        
+
         #
         self.eps = 1.e-6
         self.dt = 1.e-3
         self.mass = 2.17
+        self.base_mass = 1.43315
         self.inertia_com_frame = [[0.00578574, 0.0, 0.0],
                                   [0.0, 0.01938108, 0.0],
                                   [0.0, 0.0, 0.02476124]]
+        self.inertia_com_frame_scaled = np.dot(self.mass/self.base_mass,self.inertia_com_frame)
         self.weight = self.mass * np.array([0., 0., 9.81])
-        # state control and error dimensions 
+        # state control and error dimensions
         self.N = self.com_pos.shape[0]
-        self.n = 13 
-        self.m = 6 
+        self.n = 13
+        self.m = 6
         self.nx = self.n - 1
-        # allocate memory for derivative computations 
+        # allocate memory for derivative computations
         self.fx = np.zeros((self.N,self.nx, self.nx))
         self.fu = np.zeros((self.N, self.nx, self.m))
         self.cx = np.zeros((self.N,self.nx))
         self.cu = np.zeros((self.N,self.m))
         self.K = np.zeros((self.N, self.m, self.nx))
-        # check if quaternions from planner are unitary 
+        # check if quaternions from planner are unitary
         for t in range(self.N):
             q = se3.Quaternion(self.com_ori[t, 3],
                                self.com_ori[t, 0],
@@ -54,7 +56,7 @@ class CentroidalLqr:
                                self.com_ori[t, 2])
             assert (se3.Quaternion.norm(q)-1.)**2 <= self.eps, \
             'Quaternions are not unitary'
-        # initial trajectory 
+        # initial trajectory
         self.x0 = np.zeros((self.N, self.n))
         self.x0[:, :3] = self.com_pos.copy()
         self.x0[:,3:6] = self.com_vel.copy()
@@ -65,10 +67,10 @@ class CentroidalLqr:
     def skew(self, v):
         '''converts vector v to skew symmetric matrix'''
         assert v.shape[0] == 3, 'vector dimension is not 3 in skew method'
-        return np.array([[0., -v[2], v[1]], 
-                         [v[2], 0., -v[0]], 
+        return np.array([[0., -v[2], v[1]],
+                         [v[2], 0., -v[0]],
                          [-v[1], v[0], 0.]])
-    
+
     def quaternion_to_rotation(self, q):
         ''' converts quaternion to rotation matrix '''
         return (q[3]**2 - q[:3].dot(q[:3]))*np.eye(3) \
@@ -78,11 +80,11 @@ class CentroidalLqr:
         ''' converts angular velocity to quaternion '''
         qexp = np.zeros(4)
         th = np.linalg.norm(w)
-        
+
         if th**2 <= self.eps:
-            ''' small norm causes closed form to diverge, 
+            ''' small norm causes closed form to diverge,
             use taylor expansion to approximate '''
-            qexp[:3] =(1-(th**2)/6)*w 
+            qexp[:3] =(1-(th**2)/6)*w
             qexp[3] = 1-(th**2)/2
         else:
             u = w/th
@@ -100,52 +102,52 @@ class CentroidalLqr:
     def integrate_quaternion(self, q, w):
         """ updates quaternion with tangent vector w """
         dq = self.exp_quaternion(.5*self.dt*w)
-        return self.quaternion_product(dq,q) 
+        return self.quaternion_product(dq,q)
 
     def integrate_position(self, x, u, q):
-        # in the commented part below I check if velocity provided 
+        # in the commented part below I check if velocity provided
         # is in body or global frame
         return x[:3] + self.dt * u # self.quaternion_to_rotation(q).T.dot(u)
 
     def integrate_veocity(self, v, f):
-        return v + self.dt/self.m * (f-self.weight) 
+        return v + (self.dt/self.mass) * (f - self.weight)
 
     def integrate_angular_velocity(self, w, q, tau):
         R = self.quaternion_to_rotation(q)
         factor = linalg.cho_factor(R.dot(self.inertia_com_frame).dot(R.T))
         wnext = w + self.dt * linalg.cho_solve(factor, tau)
-        return wnext 
+        return wnext
 
-    
+
 
     def integrate_step(self, t, x, u):
         """ state vector x is given by x = [c, v, q, w] where
-        c: center of mass catesian position 
+        c: center of mass cartesian position
         v: center of mass linear velocity
-        q: center of mass orientation represented as a quaternion 
-        w: center of mass angular velocity 
+        q: center of mass orientation represented as a quaternion
+        w: center of mass angular velocity
          """
-        
-        cnext = x[:3] + self.dt * x[3:6] 
-        vnext = x[3:6] + (self.dt/self.m) * (u[:3] + self.weight)
+
+        cnext = x[:3] + self.dt * x[3:6]
+        vnext = x[3:6] + (self.dt/self.mass) * (u[:3] - self.weight)
         qnext = self.integrate_quaternion(x[6:10], x[10:13])
         R = self.quaternion_to_rotation(x[6:10])
         factor = linalg.cho_factor(R.dot(self.inertia_com_frame).dot(R.T))
         wnext = x[10:13] + self.dt * linalg.cho_solve(factor, u[3:])
         return np.hstack([cnext, vnext, qnext, wnext])
-         
+
 
     def dynamics_derivatives(self, t, x, u):
         """ computes df/dx and df/du """
         pass
 
-    def tracking_cost(self, t, x, u): 
+    def tracking_cost(self, t, x, u):
         """ a tracking cost for state and controls """
-        pass 
+        pass
 
     def cost_derivatives(self, t, x, u):
-        pass 
+        pass
 
     def compute_gains(self):
         """ includes """
-        pass 
+        pass
