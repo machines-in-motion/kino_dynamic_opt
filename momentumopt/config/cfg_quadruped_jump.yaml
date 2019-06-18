@@ -83,7 +83,7 @@ planner_variables:
   display_motion: true
   num_dofs: 8
   # Number of dynamic and kinematic optimization iterations
-  kd_iterations: 10
+  kd_iterations: 5
   num_subsamples: 3
   active_dofs: [0, 1, 2, 3, 4, 5, 6, 7]
   min_joint_limits: [-1.5, -2.5, -1.5, -2.5, -1.5, -2.5, -1.5, -2.5]
@@ -94,12 +94,12 @@ planner_variables:
   # Kinematics momentum parameters #
   #########################
 
-  swing_traj_via_z: .3
+  swing_traj_via_z: .1
   w_lin_mom_tracking: 10.
   w_ang_mom_tracking: 1.
-  w_endeff_contact: 10.
+  w_endeff_contact: 20.
   w_endeff_tracking: 1.
-  p_endeff_tracking: 10.
+  p_endeff_tracking: 5.
   p_com_tracking: 1.
   w_joint_regularization: .01
   reg_orientation: 5.
@@ -138,7 +138,7 @@ planner_variables:
   # Dynamics parameters #
   #######################
 
-  heuristic: SoftConstraint  # Types: TrustRegion, SoftConstraint, TimeOptimization #
+  heuristic: TrustRegion  # Types: TrustRegion, SoftConstraint, TimeOptimization #
   n_act_eefs: 4
   # time step discretization
   time_step: 0.01
@@ -198,11 +198,11 @@ planner_variables:
   w_time: 1000.0
   w_com: [1000., 1420.0, 10000]
   w_amom: [0.010, 1.42, 0.010]
-  w_lmom: [0.001, 0.0070999999999999995, 0.001]
+  w_lmom: [0.001, 0.007, 0.001]
   w_amomd: [0.100, 0.142, 0.100]
-  w_lmomd: [0.005, 0.11359999999999999, 0.005]
+  w_lmomd: [0.005, 0.1, 0.005]
   w_amom_final: [10.00, 14.2, 10.00]
-  w_lmom_final: [10.00, 14.2, 10.00]
+  w_lmom_final: [10.00, 14.2, 100.00]
   w_com_via: [0.000, 0.0, 0.000]
   w_frc_arm: [0.001, 0.00142, 0.001]
   w_frc_leg: [0.001, 0.00142, 0.001]
@@ -210,7 +210,7 @@ planner_variables:
   w_dfrc_leg: [0.000, 0.0, 0.010]            # [ 0.000,  0.000,  0.000]
   w_com_track: [1.000, 0.0, 1.000]
   w_lmom_track: [10.00, 1.42, 10.00]
-  w_amom_track: [1.000, 142.0, 1.000]
+  w_amom_track: [1.000, 1.00, 1.000]
 
   ######################
   # Kinematics weights #

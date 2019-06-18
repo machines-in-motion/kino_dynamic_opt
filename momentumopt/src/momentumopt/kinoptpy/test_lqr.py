@@ -101,48 +101,48 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
     #         plt.title(n)
     #     plt.show()
 
-    def test_angular_velocity__integration(self):
-        lqr_solver = lqr_gain_manifold.CentroidalLqr(
-            "../../../../momentumopt/demos")
-        x = lqr_solver.x0.copy()
-        w = np.zeros((lqr_solver.N, 3))
-        w[0] = x[0, 10:].copy()
-        for t in range(lqr_solver.N-1):
-            w[t+1] = lqr_solver.integrate_angular_velocity(w[t], x[t,6:10], lqr_solver.cent_moments[t])
-
-        time_array = lqr_solver.dt * np.arange(lqr_solver.N)
-        names = ['wx', 'wy', 'wz']
-        for i, n in enumerate(names):
-            plt.figure(n)
-            plt.plot(time_array, lqr_solver.x0[:, i+10], label='solver')
-            plt.plot(time_array, w[:, i], label='integrated')
-            plt.grid()
-            plt.legend()
-            plt.title(n)
-        plt.show()
-
-    # def test_integrate_step(self):
+    # def test_angular_velocity__integration(self):
     #     lqr_solver = lqr_gain_manifold.CentroidalLqr(
     #         "../../../../momentumopt/demos")
-    #     x = np.zeros((lqr_solver.N, lqr_solver.n))
-    #     x[0] = lqr_solver.x0[0].copy()
-    #     u = np.zeros((lqr_solver.N, lqr_solver.m))
-    #     u[:, :3] = lqr_solver.cent_force.copy()
-    #     u[:, 3:] = lqr_solver.cent_moments.copy()
+    #     x = lqr_solver.x0.copy()
+    #     w = np.zeros((lqr_solver.N, 3))
+    #     w[0] = x[0, 10:].copy()
     #     for t in range(lqr_solver.N-1):
-    #         x[t+1] = lqr_solver.integrate_step(t, x[t], u[t])
-    #     time_array = lqr_solver.dt * np.arange(lqr_solver.N)
-    #     names = ['cx', 'cy', 'cz', 'vx', 'vy',
-    #              'vz', 'quatx', 'quaty', 'quatz', 'quatw', 'wx', 'wy', 'wz']
+    #         w[t+1] = lqr_solver.integrate_angular_velocity(w[t], x[t,6:10], lqr_solver.cent_moments[t])
     #
-    #     for i in range(lqr_solver.n):
-    #         plt.figure(names[i])
-    #         plt.plot(time_array, lqr_solver.x0[:, i], label='solver')
-    #         plt.plot(time_array, x[:, i], label='integrated')
+    #     time_array = lqr_solver.dt * np.arange(lqr_solver.N)
+    #     names = ['wx', 'wy', 'wz']
+    #     for i, n in enumerate(names):
+    #         plt.figure(n)
+    #         plt.plot(time_array, lqr_solver.x0[:, i+10], label='solver')
+    #         plt.plot(time_array, w[:, i], label='integrated')
     #         plt.grid()
     #         plt.legend()
-    #         plt.title(names[i])
+    #         plt.title(n)
     #     plt.show()
+
+    def test_integrate_step(self):
+        lqr_solver = lqr_gain_manifold.CentroidalLqr(
+            "../../../../momentumopt/demos")
+        x = np.zeros((lqr_solver.N, lqr_solver.n))
+        x[0] = lqr_solver.x0[0].copy()
+        u = np.zeros((lqr_solver.N, lqr_solver.m))
+        u[:, :3] = lqr_solver.cent_force.copy()
+        u[:, 3:] = lqr_solver.cent_moments.copy()
+        for t in range(lqr_solver.N-1):
+            x[t+1] = lqr_solver.integrate_step(t, x[t], u[t])
+        time_array = lqr_solver.dt * np.arange(lqr_solver.N)
+        names = ['cx', 'cy', 'cz', 'vx', 'vy',
+                 'vz', 'quatx', 'quaty', 'quatz', 'quatw', 'wx', 'wy', 'wz']
+
+        for i in range(lqr_solver.n):
+            plt.figure(names[i])
+            plt.plot(time_array, lqr_solver.x0[:, i], label='solver')
+            plt.plot(time_array, x[:, i], label='integrated')
+            plt.grid()
+            plt.legend()
+            plt.title(names[i])
+        plt.show()
 
 if __name__ == '__main__':
     unittest.main()

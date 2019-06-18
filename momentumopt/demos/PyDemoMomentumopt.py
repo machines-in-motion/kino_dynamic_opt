@@ -66,38 +66,6 @@ class PinocchioKinematicsInterface(KinematicsInterface):
             kin_state.endeffector_positions[eff_id] = self.robot.data.oMf[self.robot.model.getFrameId(self.eff_names[eff_id])].translation
 
 
-def plot_com_motion(dynamics_states, kinematics_states):
-    fig, axes = plt.subplots(3, 3, figsize=(12, 8), sharex=True)
-    axes = np.array(axes)
-
-    def states_to_vec(states):
-        com = np.vstack([s.com for s in states])
-        lmom = np.vstack([s.lmom for s in states])
-        amom = np.vstack([s.amom for s in states])
-        return com, lmom, amom
-
-
-    for i, (title, dyn, kin) in enumerate(zip(
-        ['com', 'lmom', 'amom'],
-        states_to_vec(dynamics_states),
-        states_to_vec(kinematics_states))):
-
-        axes[0, i].set_title(title)
-
-        for j in range(3):
-            axes[j, i].plot(dyn[:, j], label='desired')
-            axes[j, i].plot(kin[:, j], label='actual')
-
-    [ax.grid(True) for ax in axes.reshape(-1)]
-
-    for i, label in enumerate(['x', 'y', 'z']):
-        axes[i, 0].set_ylabel(label + ' [m]')
-        axes[2, i].set_xlabel('time steps [5ms]')
-
-    axes[0, 2].legend()
-
-    plt.show()
-
 'Main function for optimization demo'
 def main(argv):
 
@@ -150,7 +118,7 @@ def main(argv):
     motion_planner.save_files()
     simulation = False
     motion_planner.plot_foot_traj()
-    plot_com_motion(optimized_dyn_plan.dynamics_states, optimized_kin_plan.kinematics_states)
+    motion_planner.plot_com_motion(optimized_dyn_plan.dynamics_states, optimized_kin_plan.kinematics_states)
     #motion_planner.plot_base_trajecory()
 
     if simulation:

@@ -174,6 +174,38 @@ class MotionPlanner():
             ax[i].grid(True)
         plt.show()
 
+    def plot_com_motion(self, dynamics_states, kinematics_states):
+        fig, axes = plt.subplots(3, 3, figsize=(12, 8), sharex=True)
+        axes = np.array(axes)
+
+        def states_to_vec(states):
+            com = np.vstack([s.com for s in states])
+            lmom = np.vstack([s.lmom for s in states])
+            amom = np.vstack([s.amom for s in states])
+            return com, lmom, amom
+
+
+        for i, (title, dyn, kin) in enumerate(zip(
+            ['com', 'lmom', 'amom'],
+            states_to_vec(dynamics_states),
+            states_to_vec(kinematics_states))):
+
+            axes[0, i].set_title(title)
+
+            for j in range(3):
+                axes[j, i].plot(dyn[:, j], label='desired')
+                axes[j, i].plot(kin[:, j], label='actual')
+
+        [ax.grid(True) for ax in axes.reshape(-1)]
+
+        for i, label in enumerate(['x', 'y', 'z']):
+            axes[i, 0].set_ylabel(label + ' [m]')
+            axes[2, i].set_xlabel('time steps [5ms]')
+
+        axes[0, 2].legend()
+
+        plt.show()
+
 
     def save_files(self):
         time_vector = create_time_vector(self.dyn_optimizer.dynamicsSequence())
@@ -208,9 +240,9 @@ class MotionPlanner():
         for kd_iter in range(0, self.planner_setting.get(PlannerIntParam_KinDynIterations)):
             self.optimize_kinematics(kd_iter + 1, plotting=False)
             self.optimize_dynamics(kd_iter + 1)
-            #optimized_kin_plan = kin_optimizer.kinematics_sequence
-            #optimized_dyn_plan = dyn_optimizer.dynamicsSequence()
-            #plot_com_motion(optimized_dyn_plan.dynamics_states, optimized_kin_plan.kinematics_states)
+            # optimized_kin_plan = self.kin_optimizer.kinematics_sequence
+            # optimized_dyn_plan = self.dyn_optimizer.dynamicsSequence()
+            # self.plot_com_motion(optimized_dyn_plan.dynamics_states, optimized_kin_plan.kinematics_states)
 
         optimized_kin_plan = kin_optimizer.kinematics_sequence
         optimized_dyn_plan = dyn_optimizer.dynamicsSequence()

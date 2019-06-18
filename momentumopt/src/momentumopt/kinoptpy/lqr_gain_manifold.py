@@ -115,7 +115,7 @@ class CentroidalLqr:
     def integrate_angular_velocity(self, w, q, tau):
         R = self.quaternion_to_rotation(q)
         factor = linalg.cho_factor(R.dot(self.inertia_com_frame).dot(R.T))
-        wnext = w + self.dt * linalg.cho_solve(factor, tau)
+        wnext = w + self.dt * linalg.cho_solve(factor, tau-np.cross(w,np.dot(R.dot(self.inertia_com_frame).dot(R.T),w)))
         return wnext
 
 
@@ -133,7 +133,7 @@ class CentroidalLqr:
         qnext = self.integrate_quaternion(x[6:10], x[10:13])
         R = self.quaternion_to_rotation(x[6:10])
         factor = linalg.cho_factor(R.dot(self.inertia_com_frame).dot(R.T))
-        wnext = x[10:13] + self.dt * linalg.cho_solve(factor, u[3:])
+        wnext = x[10:13] + self.dt * linalg.cho_solve(factor, u[3:]-np.cross(x[10:13],np.dot(R.dot(self.inertia_com_frame).dot(R.T),x[10:13])))
         return np.hstack([cnext, vnext, qnext, wnext])
 
 
