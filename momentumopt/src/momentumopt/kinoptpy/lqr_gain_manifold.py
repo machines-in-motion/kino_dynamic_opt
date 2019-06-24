@@ -62,6 +62,13 @@ class CentroidalLqr:
         self.x0[:,3:6] = self.com_vel.copy()
         self.x0[:,6:10] = self.com_ori.copy()
         self.x0[:,10:13] = self.com_ang_vel.copy()
+        self.u0 = np.zeros((self.N-1, self.m))
+        self.u0[:, :3] = self.cent_force[:-1].copy()
+        self.u0[:, 3:] = self.cent_moments[:-1].copy()
+
+        self.x0 = self.compute_trajectory_from_controls(self.x0, self.u0)
+
+
 
 
     def skew(self, v):
@@ -110,7 +117,7 @@ class CentroidalLqr:
         return x[:3] + self.dt * u # self.quaternion_to_rotation(q).T.dot(u)
 
     def integrate_veocity(self, v, f):
-        return v + (self.dt/self.mass) * (f - self.weight)
+        return v + (self.dt/self.mass) * (f - self.weight) 
 
     def integrate_angular_velocity(self, w, q, tau):
         R = self.quaternion_to_rotation(q)
@@ -118,6 +125,11 @@ class CentroidalLqr:
         wnext = w + self.dt * linalg.cho_solve(factor, tau-np.cross(w,np.dot(R.dot(self.inertia_com_frame).dot(R.T),w)))
         return wnext
 
+    def compute_trajectory_from_controls(self, x, u):
+        ''' xu0 contains initial trajectory at x[0], and controls for the full horizon '''
+        for t in range(self.N-1):
+            x[t+1] = self.integrate_step(t, x[t], u[t])
+        return x.copy() 
 
 
     def integrate_step(self, t, x, u):
@@ -129,17 +141,43 @@ class CentroidalLqr:
          """
 
         cnext = x[:3] + self.dt * x[3:6]
-        vnext = x[3:6] + (self.dt/self.mass) * (u[:3] - self.weight)
+        vnext = x[3:6] + (self.dt/self.mass) * (u[:3] - self.weight) 
         qnext = self.integrate_quaternion(x[6:10], x[10:13])
         R = self.quaternion_to_rotation(x[6:10])
         factor = linalg.cho_factor(R.dot(self.inertia_com_frame).dot(R.T))
         wnext = x[10:13] + self.dt * linalg.cho_solve(factor, u[3:]-np.cross(x[10:13],np.dot(R.dot(self.inertia_com_frame).dot(R.T),x[10:13])))
         return np.hstack([cnext, vnext, qnext, wnext])
 
+    def increment_x(self, x, dx):
+        """ perturbs x with dx """
+        return x 
+
+    def diff_x(self, x2, x1):
+        """ return the difference between x2 and x1 as x2 (-) x1 on the manifold """
+        return x2 - x1 
 
     def dynamics_derivatives(self, t, x, u):
         """ computes df/dx and df/du """
-        pass
+        fx = np.zeros((self.nx, self.nx))
+        fu = np.zeros((self.nx, self.m))
+        dx = np.zeros(self.nx)
+        f0 = self.integrate_step(t,x,u)
+        for i in range(self.nx): 
+            dx[i] = self.eps 
+            fp = self.integrate_step(t, self.increment_x(x,dx), u)
+            fx[:,i] = self.diff_x(fp, f0)
+            dx[i] = 0. 
+        fx /= self.eps 
+        du = np.zeros(self.m)
+        for i in range(self.m): 
+            du[i] = self.eps 
+            fp = self.integrate_step(t, x, u+du)
+            du[i] = 0.
+        fu /= self.eps 
+        return fx, fu  
+
+
+
 
     def tracking_cost(self, t, x, u):
         """ a tracking cost for state and controls """
