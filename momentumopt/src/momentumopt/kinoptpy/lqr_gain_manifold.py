@@ -239,6 +239,101 @@ class CentroidalLqr:
 
         return cx, cu
 
+    def dxdx(self, t, x, u):
+        if not (0 <= t <= self.horizon):
+            raise AttributeError('Expected time=%d to be in horizon[0, %d]'
+                                 % (t, self.horizon))
+        cxx = np.zeros((self.n, self.n))
+        states1 = x[:]
+        states2 = x[:]
+
+        for row in range(self.n):
+            states1[row] += self.diff_tolerance
+            states2[row] -= self.diff_tolerance
+            for col in range(self.n):
+                states1[col] += self.diff_tolerance
+                spp = self(t, states1, u)
+                states1[col] -= 2*self.diff_tolerance
+                spm = self(t, states1, u)
+                states1[col] += self.diff_tolerance
+
+                states2[col] += self.diff_tolerance
+                smp = self(t, states2, u)
+                states2[col] -= 2 * self.diff_tolerance
+                smm = self(t, states2, u)
+                states2[col] += self.diff_tolerance
+                cxx[col, row] = (1./(4. * self.diff_tolerance**2)) *\
+                    (spp - spm - smp + smm)
+            states1[row] -= self.diff_tolerance
+            states2[row] += self.diff_tolerance
+
+        return cxx
+
+    def dudu(self, t, x, u):
+        if not (0 <= t <= self.horizon):
+            raise AttributeError('Expected time=%d to be in horizon[0, %d]'
+                                 % (t, self.horizon))
+        if t < self.horizon:
+            cuu = np.zeros((self.m, self.m))
+            cntrl1 = u[:]
+            cntrl2 = u[:]
+            for row in range(self.m):
+                cntrl1[row] += self.diff_tolerance
+                cntrl2[row] -= self.diff_tolerance
+                for col in range(self.m):
+                    cntrl1[col] += self.diff_tolerance
+                    spp = self(t, x, cntrl1)
+                    cntrl1[col] -= 2*self.diff_tolerance
+                    spm = self(t, x, cntrl1)
+                    cntrl1[col] += self.diff_tolerance
+
+                    cntrl2[col] += self.diff_tolerance
+                    smp = self(t, x, cntrl2)
+                    cntrl2[col] -= 2 * self.diff_tolerance
+                    smm = self(t, x, cntrl2)
+                    cntrl2[col] += self.diff_tolerance
+                    cuu[col, row] = (1./(4. * self.diff_tolerance**2)) *\
+                        (spp - spm - smp + smm)
+                cntrl1[row] -= self.diff_tolerance
+                cntrl2[row] += self.diff_tolerance
+            return cuu
+        else:
+            return np.zeros((self.m, self.m))
+
+    def dxdu(self, t, x, u):
+        if not (0 <= t <= self.horizon):
+            raise AttributeError('Expected time=%d to be in horizon[0, %d]'
+                                 % (t, self.horizon))
+        if t < self.horizon:
+            cxu = np.zeros((self.n, self.m))
+            states1 = x[:]
+            states2 = x[:]
+            cntrl1 = u[:]
+            cntrl2 = u[:]
+
+            for col in range(self.m):
+                cntrl1[col] += self.diff_tolerance
+                cntrl2[col] -= self.diff_tolerance
+                for row in range(self.n):
+                    states1[row] += self.diff_tolerance
+                    spp = self(t, states1, cntrl1)
+                    states1[row] -= 2 * self.diff_tolerance
+                    spm = self(t, states1, cntrl1)
+                    states1[row] += self.diff_tolerance
+                    states2[row] += self.diff_tolerance
+                    smp = self(t, states2, cntrl2)
+                    states2[row] -= 2 * self.diff_tolerance
+                    smm = self(t, states2, cntrl2)
+                    states2[row] += self.diff_tolerance
+                    cxu[row, col] = (1. / (4. * self.diff_tolerance ** 2)) * \
+                        (spp - spm - smp + smm)
+                cntrl1[col] -= self.diff_tolerance
+                cntrl2[col] += self.diff_tolerance
+            return cxu
+        else:
+            return np.zeros((self.n, self.m))
+
+
 
 
 
