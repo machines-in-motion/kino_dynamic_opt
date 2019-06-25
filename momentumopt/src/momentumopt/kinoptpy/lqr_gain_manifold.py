@@ -42,11 +42,7 @@ class CentroidalLqr:
         self.n = 13
         self.m = 6
         self.nx = self.n - 1
-        # allocate memory for derivative computations
-        self.fx = np.zeros((self.N,self.nx, self.nx))
-        self.fu = np.zeros((self.N, self.nx, self.m))
-        self.cx = np.zeros((self.N,self.nx))
-        self.cu = np.zeros((self.N,self.m))
+        # allocate memory for computed gains 
         self.K = np.zeros((self.N, self.m, self.nx))
         # check if quaternions from planner are unitary
         for t in range(self.N):
@@ -57,16 +53,20 @@ class CentroidalLqr:
             assert (se3.Quaternion.norm(q)-1.)**2 <= self.eps, \
             'Quaternions are not unitary'
         # initial trajectory
-        self.x0 = np.zeros((self.N, self.n))
-        self.x0[:, :3] = self.com_pos.copy()
-        self.x0[:,3:6] = self.com_vel.copy()
-        self.x0[:,6:10] = self.com_ori.copy()
-        self.x0[:,10:13] = self.com_ang_vel.copy()
+        self.xp = np.zeros((self.N, self.n))
+        self.xp[:, :3] = self.com_pos.copy()
+        self.xp[:,3:6] = self.com_vel.copy()
+        self.xp[:,6:10] = self.com_ori.copy()
+        self.xp[:,10:13] = self.com_ang_vel.copy()
         self.u0 = np.zeros((self.N-1, self.m))
         self.u0[:, :3] = self.cent_force[:-1].copy()
         self.u0[:, 3:] = self.cent_moments[:-1].copy()
-
-        self.x0 = self.compute_trajectory_from_controls(self.x0, self.u0)
+        # the line below integrates the full trajectory from the given controls
+        # removing it sets initial trajectory to the one computed from kinodynamic planner   
+        self.x0 = self.compute_trajectory_from_controls(self.xp.copy(), self.u0)
+        # defining cost weights 
+        self.Q = [np.eye(self.nx)]*self.N
+        self.R = [1.e-3*np.eye(self.m)]*(self.N-1) 
 
 
     def skew(self, v):
@@ -115,20 +115,20 @@ class CentroidalLqr:
 
     def integrate_quaternion(self, q, w):
         """ updates quaternion with tangent vector w """
-        dq = self.exp_quaternion(.5*self.dt*w)
+        dq = self.exp_quaternion(.5*w)
         return self.quaternion_product(dq,q)
 
     def quaternion_difference(self, q1, q2):
         """computes the tangent vector from q1 to q2 at Identity
         returns vecotr w  
-        s.t. q2 = exp(.5 * dt * w)*q1  
+        s.t. q2 = exp(.5 * w)*q1  
          """
         # first compute dq s.t.  q2 = q1*dq
         q1conjugate = np.array([-q1[0],-q1[1],-q1[2],q1[3]])
         # order of multiplication is very essential here 
         dq = self.quaternion_product(q2, q1conjugate)
-        # increment is log of dq 
-        return self.log_quaternion(dq)/self.dt   
+        # increment is log of dq  
+        return self.log_quaternion(dq)   
 
     def integrate_veocity(self, v, f):
         return v + (self.dt/self.mass) * (f - self.weight) 
@@ -136,7 +136,8 @@ class CentroidalLqr:
     def integrate_angular_velocity(self, w, q, tau):
         R = self.quaternion_to_rotation(q)
         factor = linalg.cho_factor(R.dot(self.inertia_com_frame).dot(R.T))
-        wnext = w + self.dt * linalg.cho_solve(factor, tau-np.cross(w,np.dot(R.dot(self.inertia_com_frame).dot(R.T),w)))
+        wnext = w + self.dt * linalg.cho_solve(factor, tau-np.cross(w,
+                        np.dot(R.dot(self.inertia_com_frame).dot(R.T),w)))
         return wnext
 
     def compute_trajectory_from_controls(self, x, u):
@@ -155,10 +156,11 @@ class CentroidalLqr:
          """
         cnext = x[:3] + self.dt * x[3:6]
         vnext = x[3:6] + (self.dt/self.mass) * (u[:3] - self.weight) 
-        qnext = self.integrate_quaternion(x[6:10], x[10:13])
+        qnext = self.integrate_quaternion(x[6:10], self.dt * x[10:13])
         R = self.quaternion_to_rotation(x[6:10])
         factor = linalg.cho_factor(R.dot(self.inertia_com_frame).dot(R.T))
-        wnext = x[10:13] + self.dt * linalg.cho_solve(factor, u[3:]-np.cross(x[10:13],np.dot(R.dot(self.inertia_com_frame).dot(R.T),x[10:13])))
+        wnext = x[10:13] + self.dt * linalg.cho_solve(factor, u[3:]-np.cross(x[10:13],
+                             np.dot(R.dot(self.inertia_com_frame).dot(R.T),x[10:13])))
         return np.hstack([cnext, vnext, qnext, wnext])
 
     def increment_x(self, x, dx):
@@ -173,10 +175,11 @@ class CentroidalLqr:
         dw = x[10:] + dx[9:]
         return np.hstack([dc, dv, dq, dw])
 
-    def diff_x(self, x2, x1):
-        """ return the difference between x2 and x1 as x2 (-) x1 on the manifold """
+    def diff_x(self, x1, x2):
+        """ return the difference between x2 and x1 as x2 (-) x1 on the manifold 
+        """
         dcv = x2[:6] - x1[:6]
-        dq = self.quaternion_difference(x1[6:10], x2[6:10])
+        dq = self.quaternion_difference(x1[6:10], x2[6:10])  
         dw = x2[10:] - x1[10:]
         return np.hstack([dcv, dq, dw])
 
@@ -202,8 +205,15 @@ class CentroidalLqr:
         return fx, fu  
 
     def tracking_cost(self, t, x, u):
-        """ a tracking cost for state and controls """
-        pass
+        """ a tracking cost for state and controls 
+            here we assume x0 to be the reference trajectory """
+        dx = self.diff_x(x, self.x0[t])
+        if t == self.N-1:
+            return  dx.T.dot(self.Q[t]).dot(dx)
+        elif t < self.N-1:
+            return dx.T.dot(self.Q[t]).dot(dx) + u.T.dot(self.R[t].dot(u))
+        else:
+            raise BaseException, 'time index is greater than the horizon'
 
     def cost_derivatives(self, t, x, u):
         pass

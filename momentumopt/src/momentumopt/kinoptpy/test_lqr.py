@@ -45,7 +45,7 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
         quat_trajectory[0] = lqr_solver.com_ori[0].copy()
         for t in range(lqr_solver.N-1):
             quat_trajectory[t+1] = lqr_solver.integrate_quaternion(quat_trajectory[t],
-                                   lqr_solver.com_ang_vel[t])
+                                   lqr_solver.dt * lqr_solver.com_ang_vel[t])
         # time_array = lqr_solver.dt * np.arange(lqr_solver.N)
         # names = ['x', 'y', 'z', 'w']
         # for i in range(4):
@@ -77,6 +77,7 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
             w = np.random.rand(3)
             q2 = lqr_solver.integrate_quaternion(quat_trajectory[i], w)
             diff = lqr_solver.quaternion_difference(quat_trajectory[i], q2)
+            # integrate quaternion accounts for dt, hence need to divide by it 
             np.testing.assert_almost_equal(w,diff)
 
     
@@ -87,14 +88,23 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
         fx, fu = lqr_solver.dynamics_derivatives(0, lqr_solver.x0[0], lqr_solver.u0[0])
         # can test smaller blocks individually, will do that later but seems ok for now 
 
-        # print fx 
-        # print '==================='
-        # print fu 
+        print fx 
+        print '==================='
+        print fu 
 
     def test_cost_along_trajectory(self):
         '''tests computation of cost residuals along a reference trajectory '''
         lqr_solver = lqr_gain_manifold.CentroidalLqr(
             "../../../../momentumopt/demos")
+        c = 0. 
+        # here we compute cost of planner trajectory compared to integrated trajectory 
+        for t in range(lqr_solver.N): 
+            if t == lqr_solver.N -1:
+                c+= lqr_solver.tracking_cost(t,lqr_solver.xp[t], np.zeros(lqr_solver.m))  
+            else:
+                c+= lqr_solver.tracking_cost(t,lqr_solver.xp[t], lqr_solver.u0[t])  
+
+        print 'cost along trajectory = ', c
 
 
 
