@@ -28,7 +28,7 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
             lqr_solver.cent_moments.shape[1] == lqr_solver.m
 
     def test_quaternion_to_rotation(self):
-        '''check if rotation matrix from quaternion satisfies all conditions '''
+        '''check if rotation matrix from quaternion satisfies all group conditions '''
         lqr_solver = lqr_gain_manifold.CentroidalLqr(
             "../../../../momentumopt/demos")
         for t in range(lqr_solver.N):
@@ -58,6 +58,29 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
         # plt.show()
         np.testing.assert_array_almost_equal(quat_trajectory,
                                  lqr_solver.com_ori, decimal=4)
+
+    def test_explog_quaternion(self): 
+        """ test if q = exp(log(quat)) """
+        lqr_solver = lqr_gain_manifold.CentroidalLqr(
+            "../../../../momentumopt/demos")
+        quat_trajectory = lqr_solver.com_ori.copy()
+        for i in range(quat_trajectory.shape[0]):
+            qnew = lqr_solver.exp_quaternion(.5 * lqr_solver.log_quaternion(quat_trajectory[i]))
+            np.testing.assert_array_almost_equal(quat_trajectory[i], qnew)
+
+    def test_quaternion_difference(self): 
+        ''' check if computed quaternion differences equal scaled angular velocities '''
+        lqr_solver = lqr_gain_manifold.CentroidalLqr(
+            "../../../../momentumopt/demos")
+        quat_trajectory = lqr_solver.com_ori.copy()
+        omega_trajectory = lqr_solver.com_ang_vel.copy()
+        for t in range(10): #omega_trajectory.shape[0]-1):
+            diff = lqr_solver.quaternion_difference(quat_trajectory[t], quat_trajectory[t+1])
+            
+            print diff  
+            print omega_trajectory[t]
+
+
 
     
 
@@ -164,45 +187,45 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
     #         plt.title(names[i])
     #     plt.show()
 
-    def test_compute_trajectory_from_controls(self):
-        lqr_solver = lqr_gain_manifold.CentroidalLqr(
-            "../../../../momentumopt/demos")
+    # def test_compute_trajectory_from_controls(self):
+    #     lqr_solver = lqr_gain_manifold.CentroidalLqr(
+    #         "../../../../momentumopt/demos")
 
-        names = ['cx', 'cy', 'cz']
-        names2 = ['vx', 'vy', 'vz']
-        names3 = ['quatx', 'quaty', 'quatz', 'quatw']
-        names4 = ['wx', 'wy', 'wz']
-        time_array = lqr_solver.dt * np.arange(lqr_solver.N)
+    #     names = ['cx', 'cy', 'cz']
+    #     names2 = ['vx', 'vy', 'vz']
+    #     names3 = ['quatx', 'quaty', 'quatz', 'quatw']
+    #     names4 = ['wx', 'wy', 'wz']
+    #     time_array = lqr_solver.dt * np.arange(lqr_solver.N)
 
-        plt.figure('CoM position')
-        for i,n in enumerate(names):
-            plt.plot(time_array, lqr_solver.x0[:,i], label=n)
-        plt.grid()
-        plt.legend()
-        plt.title('CoM position')
+    #     plt.figure('CoM position')
+    #     for i,n in enumerate(names):
+    #         plt.plot(time_array, lqr_solver.x0[:,i], label=n)
+    #     plt.grid()
+    #     plt.legend()
+    #     plt.title('CoM position')
 
-        plt.figure('CoM velocity')
-        for i,n in enumerate(names2):
-            plt.plot(time_array, lqr_solver.x0[:,i+3], label=n)
-        plt.grid()
-        plt.legend()
-        plt.title('CoM velocity')
+    #     plt.figure('CoM velocity')
+    #     for i,n in enumerate(names2):np.zeros((lqr_solver.N,4))
+    #         plt.plot(time_array, lqr_np.zeros((lqr_solver.N,4))
+    #     plt.grid()
+    #     plt.legend()
+    #     plt.title('CoM velocity')
 
-        plt.figure('Base orientation')
-        for i,n in enumerate(names3):
-            plt.plot(time_array, lqr_solver.x0[:,i+6], label=n)
-        plt.grid()
-        plt.legend()
-        plt.title('Base orientation')
+    #     plt.figure('Base orientation')
+    #     for i,n in enumerate(names3):
+    #         plt.plot(time_array, lqr_solver.x0[:,i+6], label=n)
+    #     plt.grid()
+    #     plt.legend()
+    #     plt.title('Base orientation')
 
-        plt.figure('Base angular velocity')
-        for i,n in enumerate(names4):
-            plt.plot(time_array, lqr_solver.x0[:,i+10], label=n)
-        plt.grid()
-        plt.legend()
-        plt.title('Base angular velocity')
+    #     plt.figure('Base angular velocity')
+    #     for i,n in enumerate(names4):
+    #         plt.plot(time_array, lqr_solver.x0[:,i+10], label=n)
+    #     plt.grid()
+    #     plt.legend()
+    #     plt.title('Base angular velocity')
 
-        plt.show()
+    #     plt.show()
 
 
 

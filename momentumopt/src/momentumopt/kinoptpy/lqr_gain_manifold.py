@@ -1,6 +1,6 @@
 ### computes gains using lqr in the centroidal space for solo (assumes legs are weightless)
 ### Performs a backward pass to compute gains using a trajectory
-### Author: Avadesh meduri
+### Author: Bilal Hammoud 
 ### Date:6/5/2019
 
 
@@ -69,8 +69,6 @@ class CentroidalLqr:
         self.x0 = self.compute_trajectory_from_controls(self.x0, self.u0)
 
 
-
-
     def skew(self, v):
         '''converts vector v to skew symmetric matrix'''
         assert v.shape[0] == 3, 'vector dimension is not 3 in skew method'
@@ -99,6 +97,17 @@ class CentroidalLqr:
             qexp[3] = np.cos(th)
         return qexp
 
+    def log_quaternion(self, q):
+        """ lives on the tangent space of SO(3) """
+        v = q[:3]
+        w = q[3]
+        vnorm = np.linalg.norm(v)
+        if vnorm <= self.eps:
+
+            return 2 * v/w * (1 - vnorm**2/(3*w**2))
+        else:
+            return 2*np.arctan2(vnorm, w) * v / vnorm  
+
     def quaternion_product(self, q1, q2):
         """ computes quaternion product of q1 x q2 """
         p = np.zeros(4)
@@ -110,6 +119,14 @@ class CentroidalLqr:
         """ updates quaternion with tangent vector w """
         dq = self.exp_quaternion(.5*self.dt*w)
         return self.quaternion_product(dq,q)
+
+    def quaternion_difference(self, q1, q2):
+        """computes the tangent vector from q1 to q2 at Identity """
+        # first compute dq s.t.  q2 = q1*dq
+        q1conjugate = np.array([-q1[0],-q1[1],-q1[2],q1[3]])
+        dq = self.quaternion_product(q1conjugate, q2)
+        # increment is log of dq 
+        return self.log_quaternion(dq)
 
     def integrate_position(self, x, u, q):
         # in the commented part below I check if velocity provided
@@ -136,8 +153,8 @@ class CentroidalLqr:
         """ state vector x is given by x = [c, v, q, w] where
         c: center of mass cartesian position
         v: center of mass linear velocity
-        q: center of mass orientation represented as a quaternion
-        w: center of mass angular velocity
+        q: base orientation represented as a quaternion
+        w: base angular velocity
          """
 
         cnext = x[:3] + self.dt * x[3:6]
@@ -150,10 +167,12 @@ class CentroidalLqr:
 
     def increment_x(self, x, dx):
         """ perturbs x with dx """
+        #TODO: compute state increments 
         return x 
 
     def diff_x(self, x2, x1):
         """ return the difference between x2 and x1 as x2 (-) x1 on the manifold """
+        #TODO: compute state difference 
         return x2 - x1 
 
     def dynamics_derivatives(self, t, x, u):
