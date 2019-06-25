@@ -85,7 +85,6 @@ class CentroidalLqr:
         ''' converts angular velocity to quaternion '''
         qexp = np.zeros(4)
         th = np.linalg.norm(w)
-
         if th**2 <= self.eps:
             ''' small norm causes closed form to diverge,
             use taylor expansion to approximate '''
@@ -103,7 +102,6 @@ class CentroidalLqr:
         w = q[3]
         vnorm = np.linalg.norm(v)
         if vnorm <= self.eps:
-
             return 2 * v/w * (1 - vnorm**2/(3*w**2))
         else:
             return 2*np.arctan2(vnorm, w) * v / vnorm  
@@ -121,17 +119,16 @@ class CentroidalLqr:
         return self.quaternion_product(dq,q)
 
     def quaternion_difference(self, q1, q2):
-        """computes the tangent vector from q1 to q2 at Identity """
+        """computes the tangent vector from q1 to q2 at Identity
+        returns vecotr w  
+        s.t. q2 = exp(.5 * dt * w)*q1  
+         """
         # first compute dq s.t.  q2 = q1*dq
         q1conjugate = np.array([-q1[0],-q1[1],-q1[2],q1[3]])
-        dq = self.quaternion_product(q1conjugate, q2)
+        # order of multiplication is very essential here 
+        dq = self.quaternion_product(q2, q1conjugate)
         # increment is log of dq 
-        return self.log_quaternion(dq)
-
-    def integrate_position(self, x, u, q):
-        # in the commented part below I check if velocity provided
-        # is in body or global frame
-        return x[:3] + self.dt * u # self.quaternion_to_rotation(q).T.dot(u)
+        return self.log_quaternion(dq)/self.dt   
 
     def integrate_veocity(self, v, f):
         return v + (self.dt/self.mass) * (f - self.weight) 
@@ -156,7 +153,6 @@ class CentroidalLqr:
         q: base orientation represented as a quaternion
         w: base angular velocity
          """
-
         cnext = x[:3] + self.dt * x[3:6]
         vnext = x[3:6] + (self.dt/self.mass) * (u[:3] - self.weight) 
         qnext = self.integrate_quaternion(x[6:10], x[10:13])
@@ -167,16 +163,25 @@ class CentroidalLqr:
 
     def increment_x(self, x, dx):
         """ perturbs x with dx """
-        #TODO: compute state increments 
-        return x 
+        # com pos
+        dc = x[:3] + dx[:3]
+        # com vel 
+        dv = x[3:6] + dx[3:6]
+        # base orientation 
+        dq = self.integrate_quaternion(x[6:10], dx[6:9])
+        # base angular vel 
+        dw = x[10:] + dx[9:]
+        return np.hstack([dc, dv, dq, dw])
 
     def diff_x(self, x2, x1):
         """ return the difference between x2 and x1 as x2 (-) x1 on the manifold """
-        #TODO: compute state difference 
-        return x2 - x1 
+        dcv = x2[:6] - x1[:6]
+        dq = self.quaternion_difference(x1[6:10], x2[6:10])
+        dw = x2[10:] - x1[10:]
+        return np.hstack([dcv, dq, dw])
 
     def dynamics_derivatives(self, t, x, u):
-        """ computes df/dx and df/du """
+        """ computes df/dx and df/du using finite differentiation """
         fx = np.zeros((self.nx, self.nx))
         fu = np.zeros((self.nx, self.m))
         dx = np.zeros(self.nx)
@@ -191,12 +196,10 @@ class CentroidalLqr:
         for i in range(self.m): 
             du[i] = self.eps 
             fp = self.integrate_step(t, x, u+du)
+            fu[:,i] = self.diff_x(fp, f0)
             du[i] = 0.
         fu /= self.eps 
         return fx, fu  
-
-
-
 
     def tracking_cost(self, t, x, u):
         """ a tracking cost for state and controls """

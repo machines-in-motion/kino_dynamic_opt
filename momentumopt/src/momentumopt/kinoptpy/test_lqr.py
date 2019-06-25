@@ -73,12 +73,30 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
         lqr_solver = lqr_gain_manifold.CentroidalLqr(
             "../../../../momentumopt/demos")
         quat_trajectory = lqr_solver.com_ori.copy()
-        omega_trajectory = lqr_solver.com_ang_vel.copy()
-        for t in range(10): #omega_trajectory.shape[0]-1):
-            diff = lqr_solver.quaternion_difference(quat_trajectory[t], quat_trajectory[t+1])
-            
-            print diff  
-            print omega_trajectory[t]
+        for i in range(10):
+            w = np.random.rand(3)
+            q2 = lqr_solver.integrate_quaternion(quat_trajectory[i], w)
+            diff = lqr_solver.quaternion_difference(quat_trajectory[i], q2)
+            np.testing.assert_almost_equal(w,diff)
+
+    
+    def test_dynamics_derivatives(self): 
+        lqr_solver = lqr_gain_manifold.CentroidalLqr(
+            "../../../../momentumopt/demos")
+
+        fx, fu = lqr_solver.dynamics_derivatives(0, lqr_solver.x0[0], lqr_solver.u0[0])
+        # can test smaller blocks individually, will do that later but seems ok for now 
+
+        # print fx 
+        # print '==================='
+        # print fu 
+
+    def test_cost_along_trajectory(self):
+        '''tests computation of cost residuals along a reference trajectory '''
+        lqr_solver = lqr_gain_manifold.CentroidalLqr(
+            "../../../../momentumopt/demos")
+
+
 
 
 
