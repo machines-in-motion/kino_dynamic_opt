@@ -88,9 +88,9 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
         fx, fu = lqr_solver.dynamics_derivatives(0, lqr_solver.x0[0], lqr_solver.u0[0])
         # can test smaller blocks individually, will do that later but seems ok for now 
 
-        print fx 
-        print '==================='
-        print fu 
+        # print fx 
+        # print '==================='
+        # print fu 
 
     def test_cost_along_trajectory(self):
         '''tests computation of cost residuals along a reference trajectory '''
@@ -100,9 +100,9 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
         # here we compute cost of planner trajectory compared to integrated trajectory 
         for t in range(lqr_solver.N): 
             if t == lqr_solver.N -1:
-                c+= lqr_solver.tracking_cost(t,lqr_solver.xp[t], np.zeros(lqr_solver.m))  
+                c+= lqr_solver.cost(t,lqr_solver.xp[t], np.zeros(lqr_solver.m))  
             else:
-                c+= lqr_solver.tracking_cost(t,lqr_solver.xp[t], lqr_solver.u0[t])  
+                c+= lqr_solver.cost(t,lqr_solver.xp[t], lqr_solver.u0[t])  
 
         print 'cost along trajectory = ', c
 
@@ -110,10 +110,17 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
         lqr_solver = lqr_gain_manifold.CentroidalLqr(
             "../../../../momentumopt/demos")
 
-        cx, cu = lqr_solver.cost_derivatives(0, lqr_solver.x0[0], lqr_solver.u0[0])
+        cx, cu, cxx, cuu, cxu = lqr_solver.cost_derivatives(0, lqr_solver.x0[0], lqr_solver.u0[0])
         print cx 
         print '==================='
         print cu 
+        print '==================='
+        print cxx 
+        print '==================='
+        print cuu
+        print '==================='
+        print cxu
+
 
 
 

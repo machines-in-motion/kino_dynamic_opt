@@ -68,6 +68,21 @@ class CentroidalLqr:
         self.Q = [np.eye(self.nx)]*self.N
         self.R = [1.e-3*np.eye(self.m)]*(self.N-1) 
 
+        # allocate value function and gain arrays 
+        self.value = np.zeros(self.N-1)
+        self.value_dx = np.zeros((self.N-1, self.nx))
+        self.value_dxdx = np.zeros((self.N-1, self.nx, self.nx))
+        self.Q0 = np.zeros(self.N-1)
+        self.Qdx = np.zeros((self.N-1, self.nx))
+        self.Qdu = np.zeros((self.N-1, self.m))
+        self.Qdxdx = np.zeros((self.N-1, self.nx, self.nx))
+        self.Qdudu = np.zeros((self.N-1, self.m, self.m))
+        self.Qdxdu = np.zeros((self.N-1, self.nx, self.m))
+        self.kfb = np.zeros((self.N-2, self.m, self.nx))
+        self.kff = np.zeros((self.N-2, self.m))
+
+
+
 
     def skew(self, v):
         '''converts vector v to skew symmetric matrix'''
@@ -204,7 +219,7 @@ class CentroidalLqr:
         fu /= self.eps 
         return fx, fu  
 
-    def tracking_cost(self, t, x, u):
+    def cost(self, t, x, u):
         """ a tracking cost for state and controls 
             here we assume x0 to be the reference trajectory """
         dx = self.diff_x(x, self.x0[t])
@@ -217,130 +232,149 @@ class CentroidalLqr:
 
     def cost_derivatives(self, t, x, u):
         """ compute cx, cxx, cu, cuu, cxu using finite differences """
-        c0 = self.tracking_cost(t, x, u)
+        c0 = self.cost(t, x, u)
         cx = np.zeros(self.nx)
         cu = np.zeros(self.m)
         dx = np.zeros(self.nx)
         # compute gradients 
         for i in range(self.nx): 
             dx[i] = self.eps 
-            cp = self.tracking_cost(t, self.increment_x(x,dx), u)
+            cp = self.cost(t, self.increment_x(x,dx), u)
             cx[i] = cp - c0 
             dx[i] = 0. 
         cx /= self.eps 
         du = np.zeros(self.m)
         for i in range(self.m):
             du[i] = self.eps
-            cp = self.tracking_cost(t, x, u+du)
+            cp = self.cost(t, x, u+du)
             cu[i] = cp-c0
             du[i] = 0. 
         cu /= self.eps 
         # compute hessians 
+        cxx = self.cost_dxdx(t, x, u)
+        cuu = self.cost_dudu(t, x, u)
+        cxu = self.cost_dxdu(t,x,u)
 
-        return cx, cu
+        return cx, cu, cxx, cuu, cxu   
 
-    def dxdx(self, t, x, u):
-        if not (0 <= t <= self.horizon):
-            raise AttributeError('Expected time=%d to be in horizon[0, %d]'
-                                 % (t, self.horizon))
-        cxx = np.zeros((self.n, self.n))
-        states1 = x[:]
-        states2 = x[:]
+    def cost_dxdx(self, t, x, u):
+        x0 = x.copy()
+        cxx = np.zeros((self.nx, self.nx))
+        dx1 = np.zeros(self.nx)
+        dx2 = np.zeros(self.nx)
+        for row in range(self.nx):
+            dx1[row] += self.eps
+            dx2[row] -= self.eps 
+            for col in range(self.nx):
+                dx1[col] += self.eps
+                spp = self.cost(t, self.increment_x(x,dx1), u)
+                dx1[col] -= 2*self.eps 
+                spm = self.cost(t, self.increment_x(x,dx1), u)
+                dx1[col] -= self.eps 
+                # 
+                dx2[col] += self.eps
+                smp = self.cost(t, self.increment_x(x,dx2), u)
+                dx2[col] -= 2*self.eps
+                smm = self.cost(t, self.increment_x(x,dx2), u)
+                dx2[col] += self.eps
+                cxx[row,col] = spp-spm-smp+smm
+            dx1[row] -= self.eps
+            dx2[row] += self.eps
+        cxx /= (4*self.eps**2)
+        # make sure its symmetric 
+        return .5 * (cxx + cxx.T)
 
-        for row in range(self.n):
-            states1[row] += self.diff_tolerance
-            states2[row] -= self.diff_tolerance
-            for col in range(self.n):
-                states1[col] += self.diff_tolerance
-                spp = self(t, states1, u)
-                states1[col] -= 2*self.diff_tolerance
-                spm = self(t, states1, u)
-                states1[col] += self.diff_tolerance
-
-                states2[col] += self.diff_tolerance
-                smp = self(t, states2, u)
-                states2[col] -= 2 * self.diff_tolerance
-                smm = self(t, states2, u)
-                states2[col] += self.diff_tolerance
-                cxx[col, row] = (1./(4. * self.diff_tolerance**2)) *\
-                    (spp - spm - smp + smm)
-            states1[row] -= self.diff_tolerance
-            states2[row] += self.diff_tolerance
-
-        return cxx
-
-    def dudu(self, t, x, u):
-        if not (0 <= t <= self.horizon):
-            raise AttributeError('Expected time=%d to be in horizon[0, %d]'
-                                 % (t, self.horizon))
-        if t < self.horizon:
-            cuu = np.zeros((self.m, self.m))
-            cntrl1 = u[:]
-            cntrl2 = u[:]
-            for row in range(self.m):
-                cntrl1[row] += self.diff_tolerance
-                cntrl2[row] -= self.diff_tolerance
-                for col in range(self.m):
-                    cntrl1[col] += self.diff_tolerance
-                    spp = self(t, x, cntrl1)
-                    cntrl1[col] -= 2*self.diff_tolerance
-                    spm = self(t, x, cntrl1)
-                    cntrl1[col] += self.diff_tolerance
-
-                    cntrl2[col] += self.diff_tolerance
-                    smp = self(t, x, cntrl2)
-                    cntrl2[col] -= 2 * self.diff_tolerance
-                    smm = self(t, x, cntrl2)
-                    cntrl2[col] += self.diff_tolerance
-                    cuu[col, row] = (1./(4. * self.diff_tolerance**2)) *\
-                        (spp - spm - smp + smm)
-                cntrl1[row] -= self.diff_tolerance
-                cntrl2[row] += self.diff_tolerance
-            return cuu
-        else:
-            return np.zeros((self.m, self.m))
-
-    def dxdu(self, t, x, u):
-        if not (0 <= t <= self.horizon):
-            raise AttributeError('Expected time=%d to be in horizon[0, %d]'
-                                 % (t, self.horizon))
-        if t < self.horizon:
-            cxu = np.zeros((self.n, self.m))
-            states1 = x[:]
-            states2 = x[:]
-            cntrl1 = u[:]
-            cntrl2 = u[:]
-
+    def cost_dudu(self, t, x ,u): 
+        cuu = np.zeros((self.m, self.m))
+        u1 = u.copy()
+        u2 = u.copy() 
+        for row in range(self.m):
+            u1[row] += self.eps
+            u2[row] -= self.eps
             for col in range(self.m):
-                cntrl1[col] += self.diff_tolerance
-                cntrl2[col] -= self.diff_tolerance
-                for row in range(self.n):
-                    states1[row] += self.diff_tolerance
-                    spp = self(t, states1, cntrl1)
-                    states1[row] -= 2 * self.diff_tolerance
-                    spm = self(t, states1, cntrl1)
-                    states1[row] += self.diff_tolerance
-                    states2[row] += self.diff_tolerance
-                    smp = self(t, states2, cntrl2)
-                    states2[row] -= 2 * self.diff_tolerance
-                    smm = self(t, states2, cntrl2)
-                    states2[row] += self.diff_tolerance
-                    cxu[row, col] = (1. / (4. * self.diff_tolerance ** 2)) * \
-                        (spp - spm - smp + smm)
-                cntrl1[col] -= self.diff_tolerance
-                cntrl2[col] += self.diff_tolerance
-            return cxu
-        else:
-            return np.zeros((self.n, self.m))
+                u1[col] += self.eps
+                spp = self.cost(t, x, u1)
+                u1[col] -= 2*self.eps
+                spm = self.cost(t, x, u1)
+                u1[col] += self.eps
+                # 
+                u2[col] += self.eps
+                smp = self.cost(t, x, u2)
+                u2[col] -= 2 * self.eps
+                smm = self.cost(t, x, u2)
+                u2[col] += self.eps
+                cuu[row, col] = spp -spm - smp + smm
+            u1[row] -= self.eps
+            u2[row] += self.eps
+        cuu /= (4*self.eps**2)
+        return .5 * (cuu + cuu.T)
 
+    def cost_dxdu(self, t, x, u):
+        cxu = np.zeros((self.nx, self.m))
+        dx1 = np.zeros(self.nx)
+        dx2 = np.zeros(self.nx)
+        u1 = u.copy()
+        u2 = u.copy()
+        for col in range(self.m):
+            u1[col] += self.eps
+            u2[col] -= self.eps
+            for row in range(self.nx):
+                dx1[row] += self.eps
+                spp = self.cost(t, self.increment_x(x,dx1), u1)
+                dx1[row] -= 2 * self.eps
+                spm = self.cost(t, self.increment_x(x,dx1), u1)
+                dx1[row] += self.eps
+                dx2[row] += self.eps
+                smp = self.cost(t, self.increment_x(x,dx2), u2)
+                dx2[row] -= 2 * self.eps
+                smm = self.cost(t, self.increment_x(x,dx2), u2)
+                dx2[row] += self.eps
+                cxu[row, col] = spp - spm - smp + smm
+            u1[col] -= self.eps
+            u2[col] += self.eps
+        cxu /= (4*self.eps**2)
+        return cxu 
 
+    def compute_Q(self, V_next, Vx_next, Vxx_next, t, x, u):
+        self.Q0[t] = self.cost(t,x,u) + V_next
+        fx, fu = self.dynamics_derivatives(t,x,u)
+        cx, cu, cxx, cuu, cxu = self.cost_derivatives(t,x,u)
+        self.Qdx[t,:] = cx + Vx_next.dot(fx) 
+        self.Qdu[t,:] = cu + Vx_next.dot(fu)
+        self.Qdxdx[t,:,:] = cxx + fx.T.dot(Vxx_next).dot(fx)
+        self.Qdudu[t,:,:] = cuu + fu.T.dot(Vxx_next).dot(fu)
+        self.Qdxdu[t,:,:] = cxu + fx.T.dot(Vxx_next).dot(fu)
+    
+    def compute_value_function(self, t):
+        lQuu = linalg.cho_factor(self.Qdudu[t])
+        self.kff[t,:] = linalg.cho_solve(lQuu, self.Qdu[t])
+        self.kfb[t,:,:] = linalg.cho_solve(lQuu, self.Qdxdu[t].T)
+        self.value[t] = self.Q0[t] + .5 * self.kff[t].T.dot(self.Qdudu[t]).dot(self.kff[t]) \
+                       - self.kff[t].T.dot(self.Qdu[t])
+        #
+        self.value_dx[t,:] = self.Qdx[t] - 2.*self.Qdu[t].dot(self.kfb[t]) \
+                        + self.kff[t].dot(self.Qdudu[t]).dot(self.kfb[t])   
+        # 
+        self.value_dxdx[t, :, :] = self.Qdxdx[t] - self.Qdxdu[t].dot(self.kfb[t])
 
 
 
     def compute_gains(self):
         """ performs a backward pass to compute the lqr gain for the 
         reference trajectories """
+        #TODO: Extreme care to be taken with indexing
 
-        # initialize value function at terminal state 
-        # do backward recursion to compute the trajectory gains 
-        pass
+        # fill out value function at terminal state 
+        # compute Q function at N-1 
+        # compute value function at N-1 
+
+
+        # create a loop to compute Q and value functions recursively 
+        for t in range(self.N-2,-1, -1):
+            self.compute_Q(self.value[t+1], self.value_dx[t+1], self.value_dxdx[t+1],
+                            t, self.x0[t], self.u0[t])
+            self.compute_value_function(t)
+                
+
+         
+        
