@@ -106,6 +106,17 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
 
         print 'cost along trajectory = ', c
 
+    def test_cost_derivatives(self): 
+        lqr_solver = lqr_gain_manifold.CentroidalLqr(
+            "../../../../momentumopt/demos")
+
+        cx, cu = lqr_solver.cost_derivatives(0, lqr_solver.x0[0], lqr_solver.u0[0])
+        print cx 
+        print '==================='
+        print cu 
+
+
+
 
 
 

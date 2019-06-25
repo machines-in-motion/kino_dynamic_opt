@@ -210,14 +210,42 @@ class CentroidalLqr:
         dx = self.diff_x(x, self.x0[t])
         if t == self.N-1:
             return  dx.T.dot(self.Q[t]).dot(dx)
-        elif t < self.N-1:
-            return dx.T.dot(self.Q[t]).dot(dx) + u.T.dot(self.R[t].dot(u))
         else:
-            raise BaseException, 'time index is greater than the horizon'
+            return dx.T.dot(self.Q[t]).dot(dx) + u.T.dot(self.R[t].dot(u))
+        # else:
+        #     raise BaseException, 'time index is greater than the horizon'
 
     def cost_derivatives(self, t, x, u):
-        pass
+        """ compute cx, cxx, cu, cuu, cxu using finite differences """
+        c0 = self.tracking_cost(t, x, u)
+        cx = np.zeros(self.nx)
+        cu = np.zeros(self.m)
+        dx = np.zeros(self.nx)
+        # compute gradients 
+        for i in range(self.nx): 
+            dx[i] = self.eps 
+            cp = self.tracking_cost(t, self.increment_x(x,dx), u)
+            cx[i] = cp - c0 
+            dx[i] = 0. 
+        cx /= self.eps 
+        du = np.zeros(self.m)
+        for i in range(self.m):
+            du[i] = self.eps
+            cp = self.tracking_cost(t, x, u+du)
+            cu[i] = cp-c0
+            du[i] = 0. 
+        cu /= self.eps 
+        # compute hessians 
+
+        return cx, cu
+
+
+
 
     def compute_gains(self):
-        """ includes """
+        """ performs a backward pass to compute the lqr gain for the 
+        reference trajectories """
+
+        # initialize value function at terminal state 
+        # do backward recursion to compute the trajectory gains 
         pass
