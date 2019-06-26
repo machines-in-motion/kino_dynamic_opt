@@ -134,6 +134,8 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
 
         plt.figure('gains')
         plt.plot(time, norms)
+        plt.grid()
+        plt.show()
 
 
 

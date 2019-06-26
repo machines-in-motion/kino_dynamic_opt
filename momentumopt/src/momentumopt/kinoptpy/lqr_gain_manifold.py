@@ -26,7 +26,8 @@ class CentroidalLqr:
         #
         self.cent_force = np.loadtxt(dir + "/quadruped_centroidal_forces.dat", dtype=float)[:, [1,2,3]]
         self.cent_moments = np.loadtxt(dir + "/quadruped_centroidal_moments.dat", dtype=float)[:, [1,2,3]]
-
+        #
+        self.contact_plan = np.loadtxt(dir + "/quadruped_contact_activation.dat", dtype=float)
         #
         self.eps = 1.e-6
         self.dt = 1.e-3
@@ -50,6 +51,8 @@ class CentroidalLqr:
                                self.com_ori[t, 2])
             assert (se3.Quaternion.norm(q)-1.)**2 <= self.eps, \
             'Quaternions are not unitary'
+        # determine switching instances 
+        self.active_contacts = self.switching_dynamics()
         # initial trajectory
         self.xp = np.zeros((self.N+1, self.n))
         self.xp[:, :3] = self.com_pos.copy()
@@ -78,6 +81,19 @@ class CentroidalLqr:
         self.Qdxdu = np.zeros((self.N+1, self.nx, self.m))
         self.kfb = np.zeros((self.N, self.m, self.nx))
         self.kff = np.zeros((self.N, self.m))
+
+    def switching_dynamics(self):
+        ''' loops over active contacts to determine if control authority 
+            is available or not 
+        '''
+        active = []
+        for i in range(self.contact_plan.shape[0]):
+            s = np.sum(self.contact_plan[i,1:])
+            if s > self.eps:
+                active +=[1.]
+            else:
+                active +=[0.]
+        return active
 
 
 
@@ -168,11 +184,11 @@ class CentroidalLqr:
         w: base angular velocity
          """
         cnext = x[:3] + self.dt * x[3:6]
-        vnext = x[3:6] + (self.dt/self.mass) * (u[:3] - self.weight) 
+        vnext = x[3:6] + (self.dt/self.mass) * (self.active_contacts[t]*u[:3] - self.weight) 
         qnext = self.integrate_quaternion(x[6:10], self.dt * x[10:13])
         R = self.quaternion_to_rotation(x[6:10])
         factor = linalg.cho_factor(R.dot(self.inertia_com_frame).dot(R.T))
-        wnext = x[10:13] + self.dt * linalg.cho_solve(factor, u[3:]-np.cross(x[10:13],
+        wnext = x[10:13] + self.dt * linalg.cho_solve(factor, self.active_contacts[t]*u[3:]-np.cross(x[10:13],
                              np.dot(R.dot(self.inertia_com_frame).dot(R.T),x[10:13])))
         return np.hstack([cnext, vnext, qnext, wnext])
 
@@ -279,57 +295,64 @@ class CentroidalLqr:
             dx1[row] -= self.eps
             dx2[row] += self.eps
         cxx /= (4*self.eps**2)
-        return cxx #  .5 * (cxx + cxx.T) 
+        return .5 * (cxx + cxx.T) 
 
     def cost_dudu(self, t, x ,u): 
+        '''for quadratic tracking cost, structure is trivial
+            uncomment finite difference for different cost implementation '''
         cuu = np.zeros((self.m, self.m))
-        u1 = u.copy()
-        u2 = u.copy() 
-        for row in range(self.m):
-            u1[row] += self.eps
-            u2[row] -= self.eps
-            for col in range(self.m):
-                u1[col] += self.eps
-                spp = self.cost(t, x, u1)
-                u1[col] -= 2*self.eps
-                spm = self.cost(t, x, u1)
-                u1[col] += self.eps
-                # 
-                u2[col] += self.eps
-                smp = self.cost(t, x, u2)
-                u2[col] -= 2 * self.eps
-                smm = self.cost(t, x, u2)
-                u2[col] += self.eps
-                cuu[row, col] = spp -spm - smp + smm
-            u1[row] -= self.eps
-            u2[row] += self.eps
-        cuu /= (4*self.eps**2)
-        return  cuu #.5 * (cuu + cuu.T)
+        if t != self.N:
+            cuu = self.R[t]
+        # u1 = u.copy()
+        # u2 = u.copy() 
+        # for row in range(self.m):
+        #     u1[row] += self.eps
+        #     u2[row] -= self.eps
+        #     for col in range(self.m):
+        #         u1[col] += self.eps
+        #         spp = self.cost(t, x, u1)
+        #         u1[col] -= 2*self.eps
+        #         spm = self.cost(t, x, u1)
+        #         u1[col] += self.eps
+        #         # 
+        #         u2[col] += self.eps
+        #         smp = self.cost(t, x, u2)
+        #         u2[col] -= 2 * self.eps
+        #         smm = self.cost(t, x, u2)
+        #         u2[col] += self.eps
+        #         cuu[row, col] = spp -spm - smp + smm
+        #     u1[row] -= self.eps
+        #     u2[row] += self.eps
+        # cuu /= (4*self.eps**2)
+        return  .5 * (cuu + cuu.T)
 
     def cost_dxdu(self, t, x, u):
+        ''' structure is trivial for quadratic cost 
+            uncomment finite differences for any other structure 
+            '''
         cxu = np.zeros((self.nx, self.m))
-        dx1 = np.zeros(self.nx)
-        dx2 = np.zeros(self.nx)
-        u1 = u.copy()
-        u2 = u.copy()
-        for col in range(self.m):
-            u1[col] += self.eps
-            u2[col] -= self.eps
-            for row in range(self.nx):
-                dx1[row] += self.eps
-                spp = self.cost(t, self.increment_x(x,dx1), u1)
-                dx1[row] -= 2 * self.eps
-                spm = self.cost(t, self.increment_x(x,dx1), u1)
-                dx1[row] += self.eps
-                dx2[row] += self.eps
-                smp = self.cost(t, self.increment_x(x,dx2), u2)
-                dx2[row] -= 2 * self.eps
-                smm = self.cost(t, self.increment_x(x,dx2), u2)
-                dx2[row] += self.eps
-                cxu[row, col] = spp - spm - smp + smm
-            u1[col] -= self.eps
-            u2[col] += self.eps
-        cxu /= (4*self.eps**2)
+        # dx1 = np.zeros(self.nx)
+        # dx2 = np.zeros(self.nx)
+        # u1 = u.copy()
+        # u2 = u.copy()
+        # for col in range(self.m):
+        #     u1[col] += self.eps
+        #     u2[col] -= self.eps
+        #     for row in range(self.nx):
+        #         dx1[row] += self.eps
+        #         spp = self.cost(t, self.increment_x(x,dx1), u1)
+        #         dx1[row] -= 2 * self.eps
+        #         spm = self.cost(t, self.increment_x(x,dx1), u1)
+        #         dx1[row] += self.eps
+        #         dx2[row] += self.eps
+        #         smp = self.cost(t, self.increment_x(x,dx2), u2)
+        #         dx2[row] -= 2 * self.eps
+        #         smm = self.cost(t, self.increment_x(x,dx2), u2)
+        #         dx2[row] += self.eps
+        #         cxu[row, col] = spp - spm - smp + smm
+        #     u1[col] -= self.eps
+        #     u2[col] += self.eps
+        # cxu /= (4*self.eps**2)
         return cxu 
 
     def compute_Q(self, V_next, Vx_next, Vxx_next, t, x, u):
@@ -355,7 +378,7 @@ class CentroidalLqr:
             self.kff[t,:] = linalg.cho_solve(lQuu, self.Qdu[t])
             self.kfb[t,:,:] = linalg.cho_solve(lQuu, self.Qdxdu[t].T)
         except:
-            print 'smoothing '
+            # print 'smoothing '
             invQuu = self._smooth_inv(self.Qdudu[t])
             self.kff[t,:] = invQuu.dot(self.Qdu[t])
             self.kfb[t,:,:] =  invQuu.dot(self.Qdxdu[t].T)
@@ -386,11 +409,15 @@ class CentroidalLqr:
 
         # create a loop to compute Q and value functions recursively 
         for t in range(self.N-2,-1, -1):
-            print 'performing backward pass at node %s'%t
+            # print 'performing backward pass at node %s'%t
             self.compute_Q(self.value[t+1], self.value_dx[t+1], self.value_dxdx[t+1],
                             t, self.x0[t], self.u0[t])
             # gains are internally stored in compute_value_fcn 
             self.compute_value_function(t)
+
+        k = np.reshape(self.kfb,(len(self.kfb), 72))
+        # once computation is done, store feedback gains 
+        np.savetxt(self.dir + "/quadruped_centroidal_gains_manifold.dat", k)
                 
 
          
