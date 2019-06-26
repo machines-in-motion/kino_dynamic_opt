@@ -240,9 +240,9 @@ class MotionPlanner():
         for kd_iter in range(0, self.planner_setting.get(PlannerIntParam_KinDynIterations)):
             self.optimize_kinematics(kd_iter + 1, plotting=False)
             self.optimize_dynamics(kd_iter + 1)
-            # optimized_kin_plan = self.kin_optimizer.kinematics_sequence
-            # optimized_dyn_plan = self.dyn_optimizer.dynamicsSequence()
-            # self.plot_com_motion(optimized_dyn_plan.dynamics_states, optimized_kin_plan.kinematics_states)
+            optimized_kin_plan = self.kin_optimizer.kinematics_sequence
+            optimized_dyn_plan = self.dyn_optimizer.dynamicsSequence()
+            self.plot_com_motion(optimized_dyn_plan.dynamics_states, optimized_kin_plan.kinematics_states)
 
         optimized_kin_plan = kin_optimizer.kinematics_sequence
         optimized_dyn_plan = dyn_optimizer.dynamicsSequence()
