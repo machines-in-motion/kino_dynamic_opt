@@ -38,12 +38,10 @@ class CentroidalLqr:
         self.inertia_com_frame_scaled = np.dot(self.mass/self.base_mass,self.inertia_com_frame)
         self.weight = self.mass * np.array([0., 0., 9.81])
         # state control and error dimensions
-        self.N = self.com_pos.shape[0]
+        self.N = self.com_pos.shape[0]-1 
         self.n = 13
         self.m = 6
         self.nx = self.n - 1
-        # allocate memory for computed gains 
-        self.K = np.zeros((self.N, self.m, self.nx))
         # check if quaternions from planner are unitary
         for t in range(self.N):
             q = se3.Quaternion(self.com_ori[t, 3],
@@ -53,33 +51,33 @@ class CentroidalLqr:
             assert (se3.Quaternion.norm(q)-1.)**2 <= self.eps, \
             'Quaternions are not unitary'
         # initial trajectory
-        self.xp = np.zeros((self.N, self.n))
+        self.xp = np.zeros((self.N+1, self.n))
         self.xp[:, :3] = self.com_pos.copy()
         self.xp[:,3:6] = self.com_vel.copy()
         self.xp[:,6:10] = self.com_ori.copy()
         self.xp[:,10:13] = self.com_ang_vel.copy()
-        self.u0 = np.zeros((self.N-1, self.m))
+        self.u0 = np.zeros((self.N, self.m))
         self.u0[:, :3] = self.cent_force[:-1].copy()
         self.u0[:, 3:] = self.cent_moments[:-1].copy()
         # the line below integrates the full trajectory from the given controls
         # removing it sets initial trajectory to the one computed from kinodynamic planner   
         self.x0 = self.compute_trajectory_from_controls(self.xp.copy(), self.u0)
         # defining cost weights 
-        self.Q = [np.eye(self.nx)]*self.N
-        self.R = [1.e-3*np.eye(self.m)]*(self.N-1) 
+        self.Q = [np.eye(self.nx)]*(self.N+1)
+        self.R = [1.e-3*np.eye(self.m)]*self.N 
 
         # allocate value function and gain arrays 
-        self.value = np.zeros(self.N-1)
-        self.value_dx = np.zeros((self.N-1, self.nx))
-        self.value_dxdx = np.zeros((self.N-1, self.nx, self.nx))
-        self.Q0 = np.zeros(self.N-1)
-        self.Qdx = np.zeros((self.N-1, self.nx))
-        self.Qdu = np.zeros((self.N-1, self.m))
-        self.Qdxdx = np.zeros((self.N-1, self.nx, self.nx))
-        self.Qdudu = np.zeros((self.N-1, self.m, self.m))
-        self.Qdxdu = np.zeros((self.N-1, self.nx, self.m))
-        self.kfb = np.zeros((self.N-2, self.m, self.nx))
-        self.kff = np.zeros((self.N-2, self.m))
+        self.value = np.zeros(self.N+1)
+        self.value_dx = np.zeros((self.N+1, self.nx))
+        self.value_dxdx = np.zeros((self.N+1, self.nx, self.nx))
+        self.Q0 = np.zeros(self.N+1)
+        self.Qdx = np.zeros((self.N+1, self.nx))
+        self.Qdu = np.zeros((self.N+1, self.m))
+        self.Qdxdx = np.zeros((self.N+1, self.nx, self.nx))
+        self.Qdudu = np.zeros((self.N+1, self.m, self.m))
+        self.Qdxdu = np.zeros((self.N+1, self.nx, self.m))
+        self.kfb = np.zeros((self.N, self.m, self.nx))
+        self.kff = np.zeros((self.N, self.m))
 
 
 
@@ -157,7 +155,7 @@ class CentroidalLqr:
 
     def compute_trajectory_from_controls(self, x, u):
         ''' xu0 contains initial trajectory at x[0], and controls for the full horizon '''
-        for t in range(self.N-1):
+        for t in range(self.N):
             x[t+1] = self.integrate_step(t, x[t], u[t])
         return x.copy() 
 
@@ -222,11 +220,11 @@ class CentroidalLqr:
     def cost(self, t, x, u):
         """ a tracking cost for state and controls 
             here we assume x0 to be the reference trajectory """
-        dx = self.diff_x(x, self.x0[t])
-        if t == self.N-1:
+        dx = self.diff_x(self.x0[t], x)
+        if t == self.N:
             return  dx.T.dot(self.Q[t]).dot(dx)
         else:
-            return dx.T.dot(self.Q[t]).dot(dx) + u.T.dot(self.R[t].dot(u))
+            return .5 * dx.T.dot(self.Q[t]).dot(dx) + .5 * u.T.dot(self.R[t]).dot(u)
         # else:
         #     raise BaseException, 'time index is greater than the horizon'
 
@@ -281,8 +279,7 @@ class CentroidalLqr:
             dx1[row] -= self.eps
             dx2[row] += self.eps
         cxx /= (4*self.eps**2)
-        # make sure its symmetric 
-        return .5 * (cxx + cxx.T)
+        return cxx #  .5 * (cxx + cxx.T) 
 
     def cost_dudu(self, t, x ,u): 
         cuu = np.zeros((self.m, self.m))
@@ -307,7 +304,7 @@ class CentroidalLqr:
             u1[row] -= self.eps
             u2[row] += self.eps
         cuu /= (4*self.eps**2)
-        return .5 * (cuu + cuu.T)
+        return  cuu #.5 * (cuu + cuu.T)
 
     def cost_dxdu(self, t, x, u):
         cxu = np.zeros((self.nx, self.m))
@@ -344,11 +341,26 @@ class CentroidalLqr:
         self.Qdxdx[t,:,:] = cxx + fx.T.dot(Vxx_next).dot(fx)
         self.Qdudu[t,:,:] = cuu + fu.T.dot(Vxx_next).dot(fu)
         self.Qdxdu[t,:,:] = cxu + fx.T.dot(Vxx_next).dot(fu)
+        
+    @staticmethod
+    def _smooth_inv(m):
+        """ adds positive value to eigen values before inverting """
+        w, v = np.linalg.eigh(m)
+        w_inv = w / (w ** 2 + 1e-2)
+        return v.dot(np.diag(w_inv)).dot(v.transpose())
     
     def compute_value_function(self, t):
-        lQuu = linalg.cho_factor(self.Qdudu[t])
-        self.kff[t,:] = linalg.cho_solve(lQuu, self.Qdu[t])
-        self.kfb[t,:,:] = linalg.cho_solve(lQuu, self.Qdxdu[t].T)
+        try:
+            lQuu = linalg.cho_factor(self.Qdudu[t])
+            self.kff[t,:] = linalg.cho_solve(lQuu, self.Qdu[t])
+            self.kfb[t,:,:] = linalg.cho_solve(lQuu, self.Qdxdu[t].T)
+        except:
+            print 'smoothing '
+            invQuu = self._smooth_inv(self.Qdudu[t])
+            self.kff[t,:] = invQuu.dot(self.Qdu[t])
+            self.kfb[t,:,:] =  invQuu.dot(self.Qdxdu[t].T)
+
+        
         self.value[t] = self.Q0[t] + .5 * self.kff[t].T.dot(self.Qdudu[t]).dot(self.kff[t]) \
                        - self.kff[t].T.dot(self.Qdu[t])
         #
@@ -362,17 +374,22 @@ class CentroidalLqr:
     def compute_gains(self):
         """ performs a backward pass to compute the lqr gain for the 
         reference trajectories """
-        #TODO: Extreme care to be taken with indexing
 
-        # fill out value function at terminal state 
-        # compute Q function at N-1 
-        # compute value function at N-1 
-
+        N = self.N
+        self.value[N] = self.cost(N, self.x0[N], np.zeros(self.m))
+        cx, cu, cxx, cuu, cxu  = self.cost_derivatives(N, self.x0[N], np.zeros(self.m))
+        self.value_dx[N,:] = cx.copy()
+        self.value_dxdx[N,:,:] = cxx.copy()
+        self.compute_Q(self.value[N], self.value_dx[N], self.value_dxdx[N], 
+                        N-1, self.x0[N-1],self.u0[N-1])
+        self.compute_value_function(N-1)
 
         # create a loop to compute Q and value functions recursively 
         for t in range(self.N-2,-1, -1):
+            print 'performing backward pass at node %s'%t
             self.compute_Q(self.value[t+1], self.value_dx[t+1], self.value_dxdx[t+1],
                             t, self.x0[t], self.u0[t])
+            # gains are internally stored in compute_value_fcn 
             self.compute_value_function(t)
                 
 

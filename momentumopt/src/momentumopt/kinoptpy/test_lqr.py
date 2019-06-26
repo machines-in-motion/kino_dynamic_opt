@@ -18,12 +18,12 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
         lqr_solver = lqr_gain_manifold.CentroidalLqr("../../../../momentumopt/demos")
         assert lqr_solver.com_pos.shape[1]+lqr_solver.com_vel.shape[1]\
             +lqr_solver.com_ori.shape[1]+lqr_solver.com_ang_vel.shape[1] == lqr_solver.n
-        assert lqr_solver.com_pos.shape[0] == lqr_solver.N
-        assert lqr_solver.com_vel.shape[0] == lqr_solver.N
-        assert lqr_solver.com_ori.shape[0] == lqr_solver.N
-        assert lqr_solver.com_ang_vel.shape[0] == lqr_solver.N
-        assert lqr_solver.cent_force.shape[0] == lqr_solver.N
-        assert lqr_solver.cent_moments.shape[0] == lqr_solver.N
+        assert lqr_solver.com_pos.shape[0] == lqr_solver.N+1
+        assert lqr_solver.com_vel.shape[0] == lqr_solver.N+1
+        assert lqr_solver.com_ori.shape[0] == lqr_solver.N+1
+        assert lqr_solver.com_ang_vel.shape[0] == lqr_solver.N+1
+        assert lqr_solver.cent_force.shape[0] == lqr_solver.N+1
+        assert lqr_solver.cent_moments.shape[0] == lqr_solver.N+1
         assert lqr_solver.cent_force.shape[1] + \
             lqr_solver.cent_moments.shape[1] == lqr_solver.m
 
@@ -31,7 +31,7 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
         '''check if rotation matrix from quaternion satisfies all group conditions '''
         lqr_solver = lqr_gain_manifold.CentroidalLqr(
             "../../../../momentumopt/demos")
-        for t in range(lqr_solver.N):
+        for t in range(lqr_solver.N+1):
             rotation = lqr_solver.quaternion_to_rotation(lqr_solver.com_ori[t])
             np.testing.assert_array_almost_equal(rotation.dot(rotation.T), np.eye(3))
             np.testing.assert_almost_equal(np.linalg.det(rotation), 1.)
@@ -41,9 +41,9 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
         velocity matches obtained quaternion trajectory """
         lqr_solver = lqr_gain_manifold.CentroidalLqr(
             "../../../../momentumopt/demos")
-        quat_trajectory = np.zeros((lqr_solver.N,4))
+        quat_trajectory = np.zeros((lqr_solver.N+1,4))
         quat_trajectory[0] = lqr_solver.com_ori[0].copy()
-        for t in range(lqr_solver.N-1):
+        for t in range(lqr_solver.N):
             quat_trajectory[t+1] = lqr_solver.integrate_quaternion(quat_trajectory[t],
                                    lqr_solver.dt * lqr_solver.com_ang_vel[t])
         # time_array = lqr_solver.dt * np.arange(lqr_solver.N)
@@ -111,15 +111,30 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
             "../../../../momentumopt/demos")
 
         cx, cu, cxx, cuu, cxu = lqr_solver.cost_derivatives(0, lqr_solver.x0[0], lqr_solver.u0[0])
-        print cx 
-        print '==================='
-        print cu 
-        print '==================='
-        print cxx 
-        print '==================='
-        print cuu
-        print '==================='
-        print cxu
+        # print cx 
+        # print '==================='
+        # print cu 
+        # print '==================='
+        # print cxx 
+        # # print '==================='
+        # # print cuu
+        # # print '==================='
+        # # print cxu
+    
+    def test_compute_gains(self):
+        lqr_solver = lqr_gain_manifold.CentroidalLqr(
+            "../../../../momentumopt/demos")
+        lqr_solver.compute_gains()
+        
+        feedback = lqr_solver.kfb.copy()
+        time = lqr_solver.dt * np.arange(feedback.shape[0])
+        norms = [] 
+        for t in range(feedback.shape[0]):
+            norms+= [np.linalg.norm(feedback[t])]
+
+        plt.figure('gains')
+        plt.plot(time, norms)
+
 
 
 
