@@ -120,6 +120,11 @@ def create_qp_files(time_vector, optimized_motion_eff, optimized_sequence, optim
             des_base_ang_velocities[i, :] = np.hstack((i, desired_base_ang_velocity(i / 1e3)))
             des_velocities_abs[i, :] = np.hstack((i, desired_vel_abs(i /1e3)))
 
+
+        ## hack for penalizing impact force
+        # for i in range(1490,num_points):
+        #     des_centroidal_forces[i, 3] = des_centroidal_forces[-1, 3]
+
         ## resequencing the eff sequence
 
         des_forces[: ,[1,2,3]], des_forces[: ,[4,5,6]] = des_forces[: ,[4,5,6]], des_forces[:, [1,2,3]].copy()

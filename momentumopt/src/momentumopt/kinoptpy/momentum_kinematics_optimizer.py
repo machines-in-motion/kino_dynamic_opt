@@ -135,6 +135,7 @@ class MomentumKinematicsOptimizer(object):
         self.q_init = None
         self.dq_init = None
         self.reg_orientation = 1e-2
+        self.reg_joint_position = 2.
 
     def reset(self):
         self.kinematics_sequence = KinematicsSequence()
@@ -262,7 +263,7 @@ class MomentumKinematicsOptimizer(object):
             amom_ref = 1e-2 * se3.log((quad_goal * quad_q.inverse()).matrix())
 
             res = self.inv_kin.compute(q, dq, com_ref, lmom_ref, amom_ref,
-                                      endeff_pos_ref, endeff_vel_ref, endeff_contact)
+                                      endeff_pos_ref, endeff_vel_ref, endeff_contact, None)
             q = se3.integrate(self.robot.model, q, res)
 
             if np.linalg.norm(res) < 1e-3:
@@ -295,6 +296,7 @@ class MomentumKinematicsOptimizer(object):
             quad_goal = se3.Quaternion(se3.rpy.rpyToMatrix(np.matrix([0.0, 0, 0.]).T))
             quad_q = se3.Quaternion(float(q[6]), float(q[3]), float(q[4]), float(q[5]))
             amom_ref = (self.reg_orientation * se3.log((quad_goal * quad_q.inverse()).matrix()).T + self.amom_dyn[it]).reshape(-1)
+            joint_regularization_ref = self.reg_joint_position * (self.q_init[7 : ] - q[7 : ])
 
             # Fill the kinematics results for it.
             self.inv_kin.forward_robot(q, dq)
@@ -303,7 +305,7 @@ class MomentumKinematicsOptimizer(object):
             dq = self.inv_kin.compute(
                     q, dq, self.com_dyn[it], self.lmom_dyn[it], amom_ref,
                     self.endeff_pos_ref[it], self.endeff_vel_ref[it],
-                    self.endeff_contact[it])
+                    self.endeff_contact[it], joint_regularization_ref)
 
             # Integrate to the next state.
             q = se3.integrate(self.robot.model, q, dq * self.dt)

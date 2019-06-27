@@ -66,7 +66,7 @@ class PointContactInverseKinematics(object):
         #print "jac:\n",self.J,"\n\n"
 
 
-    def fill_vel_des(self, q, dq, com_ref, lmom_ref, amom_ref, endeff_pos_ref, endeff_vel_ref):
+    def fill_vel_des(self, q, dq, com_ref, lmom_ref, amom_ref, endeff_pos_ref, endeff_vel_ref, joint_regularization_ref):
         self.vel_des[:3] = (lmom_ref + self.p_com_tracking * (com_ref - self.robot.com(q).T)).T
         self.vel_des[3:6] = amom_ref.reshape(3, 1)
 
@@ -78,8 +78,11 @@ class PointContactInverseKinematics(object):
                 self.vel_des[6 + 3*i: 6 + 3*(i + 1)] = endeff_vel_ref[i].reshape((3, 1)) + \
                     self.p_endeff_tracking * (
                         endeff_pos_ref[i] - self.robot.data.oMf[idx].translation.T).T
-        self.vel_des[(self.ne + 2) * 3:] = zero(self.nv - 6)
-        #print "vel:\n",self.vel_des,"\n\n"
+        if joint_regularization_ref is None:
+            self.vel_des[(self.ne + 2) * 3:] = zero(self.nv - 6)
+        else:
+            self.vel_des[(self.ne + 2) * 3:] = joint_regularization_ref
+            # print "vel:\n",self.vel_des,"\n\n"
 
     def fill_weights(self, endeff_contact):
         w = [self.w_lin_mom_tracking * np.ones(3), self.w_ang_mom_tracking * np.ones(3)]
@@ -103,7 +106,7 @@ class PointContactInverseKinematics(object):
         self.last_q = q.copy()
         self.last_dq = dq.copy()
 
-    def compute(self, q, dq, com_ref, lmom_ref, amom_ref, endeff_pos_ref, endeff_vel_ref, endeff_contact):
+    def compute(self, q, dq, com_ref, lmom_ref, amom_ref, endeff_pos_ref, endeff_vel_ref, endeff_contact, joint_regularization_ref):
         """
         Arguments:
             q: Current robot state
@@ -118,7 +121,7 @@ class PointContactInverseKinematics(object):
             self.forward_robot(q, dq)
 
         self.fill_jacobians(q)
-        self.fill_vel_des(q, dq, com_ref, lmom_ref, amom_ref, endeff_pos_ref, endeff_vel_ref)
+        self.fill_vel_des(q, dq, com_ref, lmom_ref, amom_ref, endeff_pos_ref, endeff_vel_ref, joint_regularization_ref)
         self.fill_weights(endeff_contact)
 
         self.forwarded_robot = False
