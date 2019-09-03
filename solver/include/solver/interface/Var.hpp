@@ -20,6 +20,13 @@
 #include <memory>
 #include <solver/interface/SolverParams.hpp>
 
+namespace rt_solver {
+
+  template<int Max_Ineq_Rows, int Max_Eq_Rows, int Num_OptVars>
+  class RtModel;
+
+}
+
 namespace solver {
 
   enum class VarType {Binary, Continuous};
@@ -47,6 +54,9 @@ namespace solver {
 
       friend class LinExpr;
       friend class ConicProblem;
+
+      template<int Max_Ineq_Rows, int Max_Eq_Rows, int Num_OptVars>
+      friend class rt_solver::RtModel;
 
     private:
       Var(int col_no, const VarType& type, double lb, double ub, double guess=0.0);

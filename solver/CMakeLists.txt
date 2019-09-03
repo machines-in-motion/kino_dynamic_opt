@@ -37,8 +37,8 @@ search_for_eigen()
 # catkin package #
 ##################
 
-set(EXPORTED_CFG_EXTRAS ${EXPORTED_CFG_EXTRAS})
 set(EXPORTED_LIBRARIES ${EXPORTED_LIBRARIES} "solver")
+set(EXPORTED_CFG_EXTRAS ${EXPORTED_CFG_EXTRAS} "solver.cmake")
 set(EXPORTED_INCLUDE_DIRS ${EXPORTED_INCLUDE_DIRS} "include" ${EIGEN3_INCLUDE_DIR})
 
 if(IPOPT_FOUND)
@@ -154,6 +154,7 @@ endif (GUROBI_FOUND)
 
 add_library(solver ${solver_SRC_FILES})
 target_link_libraries(solver ${solver_LIBS})
+set_target_properties(solver PROPERTIES COMPILE_DEFINITIONS "${solver_DEFINITIONS}")
 
 ###################
 # python bindings #
@@ -173,6 +174,7 @@ set(GTEST_FILES ${GTEST_FILES}
   tests/GtestMain.cpp
   tests/TestLbfgs.cpp
   tests/TestSolver.cpp
+  tests/TestRtSolver.cpp
 )
 
 if(IPOPT_FOUND)

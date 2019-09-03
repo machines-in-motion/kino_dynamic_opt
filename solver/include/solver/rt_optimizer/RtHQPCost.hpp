@@ -1,5 +1,5 @@
 /*
- * Copyright [2017] Max Planck Society. All rights reserved.
+ * Copyright [2019] Max Planck Society. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,19 +17,20 @@
 
 #pragma once
 
-#ifdef USE_GUROBI
-#include <gurobi_c++.h>
-#endif
+#include <cassert>
+#include <iostream>
 
-#ifdef USE_IPOPT
-#include <IpSolveStatistics.hpp>
-#include <IpIpoptApplication.hpp>
-#endif
+namespace rt_solver {
 
-#include <solver/interface/Var.hpp>
-#include <solver/interface/Exprs.hpp>
-#include <solver/interface/Model.hpp>
-#include <solver/interface/OptVar.hpp>
-#include <solver/rt_optimizer/RtModel.h>
-#include <solver/interface/SolverParams.hpp>
-#include <solver/interface/SolverSetting.hpp>
+  class RtHQPCost
+  {
+    public:
+      RtHQPCost(){};
+      virtual ~RtHQPCost(){};
+
+      virtual int maxRank() const = 0;
+      virtual void updateAfterSolutionFound() = 0;
+      virtual void addCostToHierarchy(int rank) const = 0;
+      virtual void addCostToHierarchyAfterReduction(int rank) const{};
+  };
+}
