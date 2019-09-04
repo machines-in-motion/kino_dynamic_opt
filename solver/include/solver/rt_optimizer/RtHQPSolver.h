@@ -34,10 +34,6 @@ namespace rt_solver {
     inequality_relaxation_ = (params["ineq_relax"] ? params["ineq_relax"].as<double>() : 1.e-6);
     eq_condition_threash_ = (params["hsol_max_eq_cond"] ? params["hsol_max_eq_cond"].as<double>() : 1.e8);
     diag_addition_for_psd_hessian_ = (params["psd_hessian_diag"] ? params["psd_hessian_diag"].as<double>() : 1.e-8);
-
-    //inequality_relaxation_ = params["ineq_relax"].as<double>();
-    //eq_condition_threash_ = params["hsol_max_eq_cond"].as<double>();
-    //diag_addition_for_psd_hessian_ = params["psd_hessian_diag"].as<double>();
   }
 
   template<int All_A_Rows, int Max_Num_Vars, int Max_B_Rows>
