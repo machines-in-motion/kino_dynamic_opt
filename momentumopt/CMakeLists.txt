@@ -121,26 +121,6 @@ target_link_libraries(momentumopt ${momentumopt_LIBS})
 set_target_properties(momentumopt PROPERTIES
     COMPILE_DEFINITIONS CFG_SRC_PATH="${CONFIG_PATH}/")
 
-#########
-# tests #
-#########
-
-catkin_add_gtest(momentumopt_tests
-  tests/gtest_main.cpp
-  tests/TestMomentumopt.cpp
-)
-target_link_libraries(momentumopt_tests momentumopt)
-set_target_properties(momentumopt_tests PROPERTIES
-    COMPILE_DEFINITIONS TEST_PATH="${TEST_PATH}/yaml_config_files/")
-
-#########
-# demos #
-#########
-add_executable(demo_momentumopt demos/DemoMomentumopt.cpp)
-target_link_libraries(demo_momentumopt momentumopt ${catkin_LIBRARIES})
-set_target_properties(demo_momentumopt PROPERTIES
-    COMPILE_DEFINITIONS CFG_SRC_PATH="${CONFIG_PATH}/")
-
 ###################
 # python bindings #
 ###################
@@ -156,3 +136,28 @@ install(TARGETS pymomentum DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
 ################
 
 catkin_python_setup()
+
+
+#########
+# tests #
+#########
+
+catkin_add_gtest(momentumopt_tests
+  tests/gtest_main.cpp
+  tests/TestMomentumopt.cpp
+)
+target_link_libraries(momentumopt_tests momentumopt)
+set_target_properties(momentumopt_tests PROPERTIES
+    COMPILE_DEFINITIONS TEST_PATH="${TEST_PATH}/yaml_config_files/")
+
+if (CATKIN_ENABLE_TESTING)
+  catkin_add_nosetests(tests/test_solo_generation.py)
+endif()
+
+#########
+# demos #
+#########
+add_executable(demo_momentumopt demos/DemoMomentumopt.cpp)
+target_link_libraries(demo_momentumopt momentumopt ${catkin_LIBRARIES})
+set_target_properties(demo_momentumopt PROPERTIES
+    COMPILE_DEFINITIONS CFG_SRC_PATH="${CONFIG_PATH}/")

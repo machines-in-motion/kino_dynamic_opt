@@ -76,6 +76,23 @@ class MotionPlanner():
 
         self.dynamics_feedback = None
 
+        self._setup_from_settings()
+
+    def _init_from_settings(self):
+        kin_optimizer = self.kin_optimizer
+        inv_kin = kin_optimizer.inv_kin
+        etg = kin_optimizer.endeff_traj_generator
+        etg.z_offset = self.planner_setting.get(PlannerDoubleParam_SwingTrajViaZ)
+
+        inv_kin.w_lin_mom_tracking = self.planner_setting.get(PlannerDoubleParam_WeightLinMomentumTracking)
+        inv_kin.w_ang_mom_tracking = self.planner_setting.get(PlannerDoubleParam_WeightAngMomentumTracking)
+        inv_kin.w_endeff_contact = self.planner_setting.get(PlannerDoubleParam_WeightEndEffContact)
+        inv_kin.w_endeff_tracking = self.planner_setting.get(PlannerDoubleParam_WeightEndEffTracking)
+        inv_kin.p_endeff_tracking = self.planner_setting.get(PlannerDoubleParam_PGainEndEffTracking)
+        inv_kin.p_com_tracking = self.planner_setting.get(PlannerDoubleParam_PGainComTracking)
+        inv_kin.w_joint_regularization = self.planner_setting.get(PlannerDoubleParam_WeightJointReg)
+        kin_optimizer.reg_orientation = self.planner_setting.get(PlannerDoubleParam_PGainOrientationTracking)
+
     def optimize_dynamics(self, kd_iter):
         print("DynOpt", kd_iter)
         start = time.time()

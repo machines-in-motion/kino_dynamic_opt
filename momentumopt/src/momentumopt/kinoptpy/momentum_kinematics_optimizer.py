@@ -155,10 +155,7 @@ class MomentumKinematicsOptimizer(object):
         self.max_iterations = max_iterations
         self.eps = eps
 
-        # Load the robot from URDF-model
-        urdf = str(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + '/urdf/quadruped.urdf')
-        # print("urdf_path:", urdf)
-        self.robot = QuadrupedWrapper(urdf)
+        self.robot = QuadrupedWrapper()
 
         self.reset()
 

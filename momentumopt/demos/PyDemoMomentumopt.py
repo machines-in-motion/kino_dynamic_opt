@@ -89,20 +89,6 @@ def main(argv):
 
     motion_planner = MotionPlanner(cfg_file)
 
-    kin_optimizer = motion_planner.kin_optimizer
-    inv_kin = kin_optimizer.inv_kin
-    etg = kin_optimizer.endeff_traj_generator
-    etg.z_offset = motion_planner.planner_setting.get(PlannerDoubleParam_SwingTrajViaZ)
-
-    inv_kin.w_lin_mom_tracking = motion_planner.planner_setting.get(PlannerDoubleParam_WeightLinMomentumTracking)
-    inv_kin.w_ang_mom_tracking = motion_planner.planner_setting.get(PlannerDoubleParam_WeightAngMomentumTracking)
-    inv_kin.w_endeff_contact = motion_planner.planner_setting.get(PlannerDoubleParam_WeightEndEffContact)
-    inv_kin.w_endeff_tracking = motion_planner.planner_setting.get(PlannerDoubleParam_WeightEndEffTracking)
-    inv_kin.p_endeff_tracking = motion_planner.planner_setting.get(PlannerDoubleParam_PGainEndEffTracking)
-    inv_kin.p_com_tracking = motion_planner.planner_setting.get(PlannerDoubleParam_PGainComTracking)
-    inv_kin.w_joint_regularization = motion_planner.planner_setting.get(PlannerDoubleParam_WeightJointReg)
-    kin_optimizer.reg_orientation = motion_planner.planner_setting.get(PlannerDoubleParam_PGainOrientationTracking)
-
 
     # Optimize the dynamic and kinematic motion.
     optimized_kin_plan, optimized_motion_eff, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector = motion_planner.optimize_motion()
