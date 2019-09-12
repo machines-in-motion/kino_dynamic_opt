@@ -22,11 +22,13 @@ from pymomentum import *
 from pysolverlqr import *
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 from momentumopt.kinoptpy.momentum_kinematics_optimizer import MomentumKinematicsOptimizer, EndeffectorTrajectoryGenerator
 from momentumopt.kinoptpy.create_data_file import create_file, create_qp_files, create_lqr_files
 
-import matplotlib.pyplot as plt
+from quadruped.quadruped_wrapper import QuadrupedWrapper
+
 
 def create_time_vector(dynamics_sequence):
     num_time_steps = len(dynamics_sequence.dynamics_states)
@@ -38,9 +40,11 @@ def create_time_vector(dynamics_sequence):
 
     return time
 
+
 class MotionPlanner():
 
-    def __init__(self, cfg_file, KinOpt=MomentumKinematicsOptimizer):
+    def __init__(self, cfg_file, KinOpt=MomentumKinematicsOptimizer,
+                 RobotWrapper=QuadrupedWrapper, with_lqr=True):
         'define problem configuration'
         self.planner_setting = PlannerSetting()
         self.planner_setting.initialize(cfg_file)
@@ -72,11 +76,12 @@ class MotionPlanner():
 
         'Kinematics Optimizer'
         self.kin_optimizer = KinOpt()
-        self.kin_optimizer.initialize(self.planner_setting)
+        self.kin_optimizer.initialize(self.planner_setting, RobotWrapper=RobotWrapper)
 
         self.dynamics_feedback = None
+        self.with_lqr = with_lqr
 
-        self._setup_from_settings()
+        self._init_from_settings()
 
     def _init_from_settings(self):
         kin_optimizer = self.kin_optimizer
@@ -148,7 +153,7 @@ class MotionPlanner():
 
         return fig, axes
 
-    def plot_foot_traj(self):
+    def plot_foot_traj(self, plot_show=True):
         fig, ax = plt.subplots(4,1)
         des_ee_traj = EndeffectorTrajectoryGenerator()
         des_ee_traj.z_offset = self.planner_setting.get(PlannerDoubleParam_SwingTrajViaZ)
@@ -162,11 +167,13 @@ class MotionPlanner():
             # ax[i].plot(des_ee_pos[:,i,1])
             # ax[i].plot(des_ee_pos[:,i,0])
             ax[i].set_ylabel("m")
-            ax[i].set_xlabel("millisec")
+            ax[i].set_xlabel("t [ms]")
             ax[i].legend()
             ax[i].grid(True)
         fig.suptitle('Desired and actual foot trajectory')
-        plt.show()
+
+        if plot_show:
+            plt.show()
 
 
     def replay_kinematics(self, start=0, end=None):
@@ -186,12 +193,13 @@ class MotionPlanner():
         for i in range(3):
             ax[i].plot(q_app[1:end,i], label = label[i])
             ax[i].set_ylabel("m")
-            ax[i].set_xlabel("millisec")
+            ax[i].set_xlabel("t [ms]")
             ax[i].legend()
             ax[i].grid(True)
         plt.show()
 
-    def plot_com_motion(self, dynamics_states, kinematics_states):
+    def plot_com_motion(self, dynamics_states, kinematics_states,
+            plot_show=True, fig_suptitle=''):
         fig, axes = plt.subplots(3, 3, figsize=(12, 8), sharex=True)
         axes = np.array(axes)
 
@@ -210,8 +218,8 @@ class MotionPlanner():
             axes[0, i].set_title(title)
 
             for j in range(3):
-                axes[j, i].plot(dyn[:, j], label='desired')
-                axes[j, i].plot(kin[:, j], label='actual')
+                axes[j, i].plot(dyn[:, j], label='dynamic')
+                axes[j, i].plot(kin[:, j], label='kinematic')
 
         [ax.grid(True) for ax in axes.reshape(-1)]
 
@@ -221,8 +229,14 @@ class MotionPlanner():
 
         axes[0, 2].legend()
 
-        plt.show()
+        if plot_suptitle:
+            fig.suptitle(fig_suptitle)
 
+        if plot_show:
+            plt.show()
+        else:
+            plt.draw()
+            plt.pause(0.001)
 
     def save_files(self):
         time_vector = create_time_vector(self.dyn_optimizer.dynamicsSequence())
@@ -239,12 +253,13 @@ class MotionPlanner():
                              self.dynamics_feedback,
                              self.planner_setting.get(PlannerDoubleParam_RobotWeight))
 
-        create_lqr_files(time_vector,
-                             self.kin_optimizer.motion_eff,
-                             self.kin_optimizer.kinematics_sequence,
-                             self.dyn_optimizer.dynamicsSequence(),
-                             self.dynamics_feedback,
-                             self.planner_setting.get(PlannerDoubleParam_RobotWeight))
+        if self.with_lqr:
+            create_lqr_files(time_vector,
+                                self.kin_optimizer.motion_eff,
+                                self.kin_optimizer.kinematics_sequence,
+                                self.dyn_optimizer.dynamicsSequence(),
+                                self.dynamics_feedback,
+                                self.planner_setting.get(PlannerDoubleParam_RobotWeight))
 
     def time_vector(self):
         return create_time_vector(self.dyn_optimizer.dynamicsSequence())
@@ -259,13 +274,17 @@ class MotionPlanner():
             self.optimize_dynamics(kd_iter + 1)
             optimized_kin_plan = self.kin_optimizer.kinematics_sequence
             optimized_dyn_plan = self.dyn_optimizer.dynamicsSequence()
-            self.plot_com_motion(optimized_dyn_plan.dynamics_states, optimized_kin_plan.kinematics_states)
+            self.plot_com_motion(optimized_dyn_plan.dynamics_states,
+                    optimized_kin_plan.kinematics_states, plot_show=False,
+                    fig_suptitle='kd_iter={}'.format(kd_iter))
 
         optimized_kin_plan = kin_optimizer.kinematics_sequence
         optimized_dyn_plan = dyn_optimizer.dynamicsSequence()
 
         time_vector = create_time_vector(dyn_optimizer.dynamicsSequence())
-        self.optimize_dynamics_feedback()
+
+        if self.with_lqr:
+            self.optimize_dynamics_feedback()
         return optimized_kin_plan, kin_optimizer.motion_eff, \
                 optimized_dyn_plan, self.dynamics_feedback, \
                 self.planner_setting, time_vector

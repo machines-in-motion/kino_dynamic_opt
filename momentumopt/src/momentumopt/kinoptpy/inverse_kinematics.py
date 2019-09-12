@@ -95,7 +95,6 @@ class PointContactInverseKinematics(object):
         self.w = np.diag(np.hstack(w))
         #print "w:\n",self.w,"\n\n"
 
-
     def forward_robot(self, q, dq):
         # Update the pinocchio model.
         self.robot.forwardKinematics(q, dq)

@@ -67,7 +67,7 @@ namespace momentumopt {
   {
     weight_desired_com_tracking_ = this->getSetting().get(PlannerVectorParam_WeightCenterOfMass);
     this->getSetting().get(PlannerVectorParam_WeightLinearMomentum) = this->getSetting().get(PlannerVectorParam_WeightDynamicTrackingLinearMomentum);
-	this->getSetting().get(PlannerVectorParam_WeightAngularMomentum) = this->getSetting().get(PlannerVectorParam_WeightDynamicTrackingAngularMomentum);
+	  this->getSetting().get(PlannerVectorParam_WeightAngularMomentum) = this->getSetting().get(PlannerVectorParam_WeightDynamicTrackingAngularMomentum);
   }
 
   ExitCode DynamicsOptimizer::optimize(const DynamicsState& ini_state, ContactPlanInterface* contact_plan,
