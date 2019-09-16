@@ -69,7 +69,6 @@ class PinocchioKinematicsInterface(KinematicsInterface):
 
 'Main function for optimization demo'
 def main(argv):
-
     cfg_file = ''
     kinopt = KinematicsOptimizer
     try:

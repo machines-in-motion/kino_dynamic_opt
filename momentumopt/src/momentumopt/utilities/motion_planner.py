@@ -229,7 +229,7 @@ class MotionPlanner():
 
         axes[0, 2].legend()
 
-        if plot_suptitle:
+        if fig_suptitle:
             fig.suptitle(fig_suptitle)
 
         if plot_show:
