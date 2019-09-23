@@ -118,6 +118,7 @@ def main(argv):
     motion_planner.save_files()
     simulation = False
     motion_planner.plot_foot_traj()
+    motion_planner.plot_joint_trajecory()
     motion_planner.plot_com_motion(optimized_dyn_plan.dynamics_states, optimized_kin_plan.kinematics_states)
     #motion_planner.plot_base_trajecory()
 

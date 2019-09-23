@@ -30,6 +30,7 @@ def create_file(time_vector, optimized_sequence, optimized_dyn_plan, dynamics_fe
             np.hstack((i, scale * desired_fn(i / 1e3))) for i in range(num_points)
         ]), fmt='%.8e')
 
+
     if using_quadruped:
         dump_data("quadruped_positions.dat", desired_pos)
         dump_data("quadruped_velocities.dat", desired_vel)
@@ -54,6 +55,8 @@ def create_file(time_vector, optimized_sequence, optimized_dyn_plan, dynamics_fe
         np.savetxt("teststand_velocities.dat", des_velocities)
 
 def create_qp_files(time_vector, optimized_motion_eff, optimized_sequence, optimized_dyn_plan, dynamics_feedback, robot_weight):
+    desired_joint_pos = desired_state("POSITION", time_vector, optimized_sequence=optimized_sequence)
+    desired_joint_vel = desired_state("VELOCITY", time_vector, optimized_sequence=optimized_sequence)
     desired_pos = interpolate("POSITION", time_vector, optimized_motion_eff=optimized_motion_eff, optimized_sequence = optimized_sequence)
     desired_vel = interpolate("VELOCITY", time_vector, optimized_motion_eff=optimized_motion_eff, optimized_sequence = optimized_sequence)
     desired_com = interpolate("COM", time_vector, optimized_motion_eff=optimized_motion_eff, optimized_sequence = optimized_sequence)
@@ -84,6 +87,8 @@ def create_qp_files(time_vector, optimized_motion_eff, optimized_sequence, optim
         ]))
 
     if using_quadruped:
+        desired_joint_positions = np.zeros((num_points, 9))
+        desired_joint_velocities =np.zeros((num_points, 9))
         des_positions = np.zeros((num_points, 13))
         des_velocities = np.zeros((num_points, 13))
         des_com = np.zeros((num_points, 4))
@@ -107,6 +112,8 @@ def create_qp_files(time_vector, optimized_motion_eff, optimized_sequence, optim
             des_forces[i:, ] = np.hstack((i, desired_forces(i /1e3)))
             des_centroidal_forces[i:, ] = np.hstack((i, desired_centroidal_forces(i /1e3)))
             des_centroidal_moments[i:, ] = np.hstack((i, desired_centroidal_moments(i /1e3)))
+            desired_joint_positions[i, :] = np.hstack((i, desired_joint_pos(i / 1e3)))
+            desired_joint_velocities[i, :] = np.hstack((i, desired_joint_vel(i / 1e3)))
             des_positions[i, :] = np.hstack((i, desired_pos(i / 1e3)))
             des_velocities[i, :] = np.hstack((i, desired_vel(i / 1e3)))
             des_com[i, :] = np.hstack((i, desired_com(i / 1e3)))
@@ -119,11 +126,6 @@ def create_qp_files(time_vector, optimized_motion_eff, optimized_sequence, optim
             des_quaternion[i, :] = np.hstack((i, desired_quaternion(i / 1e3)))
             des_base_ang_velocities[i, :] = np.hstack((i, desired_base_ang_velocity(i / 1e3)))
             des_velocities_abs[i, :] = np.hstack((i, desired_vel_abs(i /1e3)))
-
-
-        ## hack for penalizing impact force
-        # for i in range(1490,num_points):
-        #     des_centroidal_forces[i, 3] = des_centroidal_forces[-1, 3]
 
         ## resequencing the eff sequence
 
@@ -175,8 +177,30 @@ def create_qp_files(time_vector, optimized_motion_eff, optimized_sequence, optim
         #print(des_lqr3[0])
         # print(np.shape(des_lqr1))
 
+        ## hack for removing impact force in landing part
+        # cut_start = 1690
+        # cut_end = 3000
+        # for i in range(cut_start,cut_end):
+        #     # des_centroidal_forces[i, 3] = (i-cut_start)/float(cut_end-cut_start) * des_centroidal_forces[cut_end, 3]
+        #     des_centroidal_forces[i, :] = des_centroidal_forces[cut_start, :]
+        #     des_centroidal_moments[i, :] = des_centroidal_moments[cut_start, :]
+        #     des_positions_final[i, :] = des_positions_final[cut_start, :]
+        #     des_velocities_final[i, :] = des_velocities_final[cut_start, :]
+        #     desired_joint_positions[i, :] = desired_joint_positions[cut_start, :]
+        #     desired_joint_velocities[i, :] = desired_joint_velocities[cut_start, :]
+        #     des_com[i, :] = des_com[cut_start, :]
+        #     des_com_vel[i, :] = des_com_vel[cut_start, :]
+        #     des_quaternion[i, :] = des_quaternion[cut_start, :]
+        #     des_base_ang_velocities[i, :] = des_base_ang_velocities[cut_start, :]
+        #     des_velocities_abs[i, :] = des_velocities_abs[cut_start, :]
+        #     des_contact_activation[i, :] = des_contact_activation[cut_start, :]
+        #     des_quaternion[i, :] = des_quaternion[cut_start, :]
+
+
 
         print("saving trajectories....")
+        np.savetxt("quadruped_positions.dat", desired_joint_positions)
+        np.savetxt("quadruped_velocities.dat", des_velocities_final)
         np.savetxt("quadruped_positions_eff.dat", des_positions_final)
         np.savetxt("quadruped_velocities_eff.dat", des_velocities_final)
         np.savetxt("quadruped_com.dat", des_com)

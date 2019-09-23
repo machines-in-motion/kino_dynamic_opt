@@ -25,7 +25,7 @@ class PinocchioKinematicsInterface(KinematicsInterface):
         self.robot.viewer.gui.applyConfiguration('world/floor',[0.0, 0.0, self.z_floor,  0.0, 0.0, 0.0, 1.0])
         self.robot.viewer.gui.refresh()
 
-        self.robot.q = self.robot.model.neutralConfiguration.copy()
+        self.robot.q = self.robot.model.referenceConfigurations.copy()
         self.robot.dq = zero(self.robot.model.nv)
         self.robot.q[7:] = np.transpose(np.matrix(planner_setting.get(PlannerVectorParam_KinematicDefaultJointPositions)))
         pin.forwardKinematics(self.robot.model, self.robot.data, self.robot.q)

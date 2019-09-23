@@ -23,7 +23,7 @@ from pysolverlqr import *
 
 import numpy as np
 
-from momentumopt.kinoptpy.momentum_kinematics_optimizer import MomentumKinematicsOptimizer, EndeffectorTrajectoryGenerator
+from momentumopt.kinoptpy.momentum_kinematics_optimizer import MomentumKinematicsOptimizer, EndeffectorTrajectoryGenerator, JointTrajectoryGenerator
 from momentumopt.kinoptpy.create_data_file import create_file, create_qp_files, create_lqr_files
 
 import matplotlib.pyplot as plt
@@ -170,6 +170,20 @@ class MotionPlanner():
             ax[i].plot(q_app[1:end,i], label = label[i])
             ax[i].set_ylabel("m")
             ax[i].set_xlabel("millisec")
+            ax[i].legend()
+            ax[i].grid(True)
+        plt.show()
+
+    def plot_joint_trajecory(self, start=0, end=None):
+        q_app = np.zeros([1,self.kin_optimizer.robot.model.nq])
+        for ks in self.kin_optimizer.kinematics_sequence.kinematics_states[start:end]:
+            q = ks.robot_posture.generalized_joint_positions
+            q_app = np.append(q_app,q.reshape(1,len(q)),axis=0)
+        fig, ax = plt.subplots(8,1)
+        for i in range(8):
+            ax[i].plot(q_app[1:end,i+7])
+            ax[i].plot(self.kin_optimizer.joint_des[i,:])
+            ax[i].set_ylabel("m")
             ax[i].legend()
             ax[i].grid(True)
         plt.show()

@@ -130,12 +130,46 @@ class EndeffectorTrajectoryGenerator(object):
         return endeff_pos_ref, endeff_vel_ref, endeff_contact
 
 
+class JointTrajectoryGenerator(object):
+    def __init__(self):
+        self.dt =.01
+        self.num_time_steps = None
+        self.q_init = None
+        self.poly_traj = None
+
+    def joint_traj(self, q_via):
+        self.poly_traj = []
+        for i in range(len(self.q_init)):
+            self.poly_traj = np.append(self.poly_traj, [PolynominalList()])
+        for j in range(len(self.q_init)):
+            for i in range (len(q_via[:,0])+1):
+                if i==0:
+                    t = [0, q_via[0,0]/self.dt]
+                    poly = poly_points(t, self.q_init[j], q_via[i,j+1])
+                    self.poly_traj[j].append(t, poly)
+                elif(i==len(q_via[:,0])):
+                    t = [q_via[i-1,0]/self.dt, self.num_time_steps]
+                    poly = poly_points(t, q_via[i-1,j+1], self.q_init[j])
+                    self.poly_traj[j].append(t, poly)
+                else:
+                    t = [q_via[i-1,0]/self.dt, q_via[i,0]/self.dt]
+                    poly = poly_points(t, q_via[i-1,j+1], q_via[i,j+1])
+                    self.poly_traj[j].append(t, poly)
+
+    def eval_traj(self,t):
+        q = np.zeros((1,len(self.q_init)),float)
+        for j in range(len(self.q_init)):
+            q[0,j] = self.poly_traj[j].eval(t)
+        return np.matrix(q)
+
+
 class MomentumKinematicsOptimizer(object):
     def __init__(self):
         self.q_init = None
         self.dq_init = None
         self.reg_orientation = 1e-2
         self.reg_joint_position = 2.
+        self.joint_des = None
 
     def reset(self):
         self.kinematics_sequence = KinematicsSequence()
@@ -268,10 +302,13 @@ class MomentumKinematicsOptimizer(object):
 
             if np.linalg.norm(res) < 1e-3:
                 print('Found initial configuration after {} iterations'.format(iters + 1))
+                print "initial_configuration:"
                 break
 
         if iters == self.max_iterations - 1:
             print('Failed to converge for initial setup.')
+
+        print "initial configuration: ", q
 
         self.q_init = q.copy()
         self.dq_init = dq.copy()
@@ -280,6 +317,7 @@ class MomentumKinematicsOptimizer(object):
         self.init_state = init_state
         self.contact_sequence = contact_sequence
         self.dynamic_sequence = dynamic_sequence
+        self.q_via = None
 
         # Create array with centroidal and endeffector informations.
         self.fill_data_from_dynamics()
@@ -289,14 +327,34 @@ class MomentumKinematicsOptimizer(object):
         if self.q_init is None:
             self.optimize_initial_position(init_state)
 
+        # Get the desired joint trajectory (this is for jump), should go to config file
+        # q_jump = [1., 0.1, -0.2 ,0.1, -0.2 ,-0.1, 0.2 ,-0.1, 0.2]
+        # q_via = np.matrix([.75, np.pi/2, -np.pi, np.pi/2, -np.pi, -np.pi/2, np.pi, -np.pi/2, np.pi]).T
+        # q_max = np.matrix([1.35, .7*np.pi/2, -.7*np.pi, .7*np.pi/2, -.7*np.pi, -.7*np.pi/2, .7*np.pi, -.7*np.pi/2, .7*np.pi]).T
+        # q_via0 = np.vstack((q_via.T, q_jump))
+        # self.q_via = np.vstack((q_via0, q_max.T))
+        joint_traj_gen = JointTrajectoryGenerator()
+        joint_traj_gen.num_time_steps = self.num_time_steps
+        joint_traj_gen.q_init = self.q_init[7:]
+        self.joint_des = np.zeros((len(self.q_init[7:]),self.num_time_steps), float)
+        if self.q_via is None:
+            for i in range (self.num_time_steps):
+                self.joint_des[:,i] = self.q_init[7 : ].T
+        else:
+            joint_traj_gen.joint_traj(self.q_via)
+            for it in range(self.num_time_steps):
+                self.joint_des[:,it] = joint_traj_gen.eval_traj(it)
+
         # Compute inverse kinematics over the full trajectory.
-        self.inv_kin.is_init_time=0
+        self.inv_kin.is_init_time = 0
         q, dq = self.q_init.copy(), self.dq_init.copy()
         for it in range(self.num_time_steps):
             quad_goal = se3.Quaternion(se3.rpy.rpyToMatrix(np.matrix([0.0, 0, 0.]).T))
             quad_q = se3.Quaternion(float(q[6]), float(q[3]), float(q[4]), float(q[5]))
             amom_ref = (self.reg_orientation * se3.log((quad_goal * quad_q.inverse()).matrix()).T + self.amom_dyn[it]).reshape(-1)
-            joint_regularization_ref = self.reg_joint_position * (self.q_init[7 : ] - q[7 : ])
+
+            joint_regularization_ref = self.reg_joint_position * (np.matrix(self.joint_des[:,it]).T - q[7 : ])
+            # joint_regularization_ref = self.reg_joint_position * (self.q_init[7 : ] - q[7 : ])
 
             # Fill the kinematics results for it.
             self.inv_kin.forward_robot(q, dq)
