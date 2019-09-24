@@ -31,6 +31,7 @@ void init_params(py::module &m)
   .value("PlannerIntParam_NumDofs", PlannerIntParam_NumDofs)
   .value("PlannerIntParam_NumTimesteps", PlannerIntParam_NumTimesteps)
   .value("PlannerIntParam_NumViapoints", PlannerIntParam_NumViapoints)
+  .value("PlannerIntParam_NumJointViapoints", PlannerIntParam_NumJointViapoints)
 	.value("PlannerIntParam_NumActiveDofs", PlannerIntParam_NumActiveDofs)
 	.value("PlannerIntParam_NumSubsamples", PlannerIntParam_NumSubsamples)
 	.value("PlannerIntParam_KinDynIterations", PlannerIntParam_KinDynIterations)
@@ -131,6 +132,10 @@ void init_params(py::module &m)
 	.value("PlannerVectorParam_WeightKinematicTrackingLinearMomentumRate", PlannerVectorParam_WeightKinematicTrackingLinearMomentumRate)
 	.value("PlannerVectorParam_WeightKinematicTrackingAngularMomentumRate", PlannerVectorParam_WeightKinematicTrackingAngularMomentumRate)
 	.value("PlannerVectorParam_WeightKinematicTrackingEndeffectorPosition", PlannerVectorParam_WeightKinematicTrackingEndeffectorPosition)
-
   .export_values();
-}
+
+  // binding c-vector variables used by the planner
+  py::enum_<PlannerCVectorParam>(m, "PlannerCVectorParam")
+    .value("PlannerCVectorParam_JointViapoints", PlannerCVectorParam_JointViapoints)
+    .export_values();
+  }

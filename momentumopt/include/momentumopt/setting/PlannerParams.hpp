@@ -25,6 +25,7 @@ namespace momentumopt {
     PlannerIntParam_NumDofs,
 	PlannerIntParam_NumTimesteps,
 	PlannerIntParam_NumViapoints,
+  PlannerIntParam_NumJointViapoints,
     PlannerIntParam_NumActiveDofs,
 	PlannerIntParam_MaxNumTimeIterations,
 	PlannerIntParam_NumExtendedActiveDofs,
@@ -167,6 +168,7 @@ namespace momentumopt {
   /*! Available c-vector variables used by the planner */
   enum PlannerCVectorParam {
     PlannerCVectorParam_Viapoints,
+    PlannerCVectorParam_JointViapoints,
   };
 
 }

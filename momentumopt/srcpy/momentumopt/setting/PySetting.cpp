@@ -34,11 +34,12 @@ void init_setting(py::module &m)
 
   // binding of dynamics state
   py::class_<PlannerSetting>(m, "PlannerSetting")
-    .def(py::init<>())
-    .def("initialize", &PlannerSetting::initialize, py::arg("cfg_file"), py::arg("planner_vars_yaml") = "planner_variables")
-    .def("get", (const int& (PlannerSetting::*)(PlannerIntParam) const) &PlannerSetting::get)
-    .def("get", (const bool& (PlannerSetting::*)(PlannerBoolParam) const) &PlannerSetting::get)
-    .def("get", (const double& (PlannerSetting::*)(PlannerDoubleParam) const) &PlannerSetting::get)
+  .def(py::init<>())
+  .def("initialize", &PlannerSetting::initialize, py::arg("cfg_file"), py::arg("planner_vars_yaml") = "planner_variables")
+  .def("get", (const int& (PlannerSetting::*)(PlannerIntParam) const) &PlannerSetting::get)
+  .def("get", (const bool& (PlannerSetting::*)(PlannerBoolParam) const) &PlannerSetting::get)
+  .def("get", (const double& (PlannerSetting::*)(PlannerDoubleParam) const) &PlannerSetting::get)
 	.def("get", (const std::string& (PlannerSetting::*)(PlannerStringParam) const) &PlannerSetting::get)
+  .def("get", (const std::vector<Eigen::VectorXd>& (PlannerSetting::*)(PlannerCVectorParam) const) &PlannerSetting::get)
 	.def("get", (const Eigen::Ref<const Eigen::VectorXd> (PlannerSetting::*)(PlannerVectorParam) const) &PlannerSetting::get);
 }

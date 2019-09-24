@@ -103,6 +103,15 @@ planner_variables:
   p_com_tracking: 3.
   w_joint_regularization: .07
   reg_orientation: 5.
+  num_joint_viapoints: 0
+  # via point definition, Not implemented yet the binding properly
+  #  [time,                      # activation time of the via point
+  # Front_left_hip, Front_left_knee,
+  # Front_right_hip, Front_right_knee,
+  # Back_left_hip, Back_left_knee,
+  # Back_right_hip, Back_right_knee ]        # desired joint position
+  joint_viapoints:
+    via0: [1., 0.1, -0.2 ,0.1, -0.2 ,-0.1, 0.2 ,-0.1, 0.2]
 
   #########################
   # Kinematics parameters #

@@ -302,13 +302,11 @@ class MomentumKinematicsOptimizer(object):
 
             if np.linalg.norm(res) < 1e-3:
                 print('Found initial configuration after {} iterations'.format(iters + 1))
-                print "initial_configuration:"
-                break
 
         if iters == self.max_iterations - 1:
             print('Failed to converge for initial setup.')
 
-        print "initial configuration: ", q
+        print "initial configuration:\n ", q
 
         self.q_init = q.copy()
         self.dq_init = dq.copy()
@@ -327,7 +325,11 @@ class MomentumKinematicsOptimizer(object):
         if self.q_init is None:
             self.optimize_initial_position(init_state)
 
-        # Get the desired joint trajectory (this is for jump), should go to config file
+        # Get the desired joint trajectory
+        # print "num_joint_via:",self.planner_setting.get(PlannerIntParam_NumJointViapoints)
+        # print "joint_via:",self.planner_setting.get(PlannerCVectorParam_JointViapoints)
+
+        # TODO: this is for jump, should go to config file
         # q_jump = [1., 0.1, -0.2 ,0.1, -0.2 ,-0.1, 0.2 ,-0.1, 0.2]
         # q_via = np.matrix([.75, np.pi/2, -np.pi, np.pi/2, -np.pi, -np.pi/2, np.pi, -np.pi/2, np.pi]).T
         # q_max = np.matrix([1.35, .7*np.pi/2, -.7*np.pi, .7*np.pi/2, -.7*np.pi, -.7*np.pi/2, .7*np.pi, -.7*np.pi/2, .7*np.pi]).T

@@ -25,7 +25,7 @@ namespace momentumopt {
   void PlannerSetting::initialize(const std::string& cfg_file, const std::string& planner_vars_yaml)
   {
     cfg_file_ = cfg_file;
-    save_dynamics_file_ = cfg_file.substr(0, cfg_file.size()-5) + "_dyn_results.yaml";
+    // save_dynamics_file_ = cfg_file.substr(0, cfg_file.size()-5) + "_dyn_results.yaml";
     save_kinematics_file_ = cfg_file.substr(0, cfg_file.size()-5) + "_kin_results.yaml";
     default_solver_setting_file_ = CFG_SRC_PATH + std::string("default_solver_setting.yaml");
 
@@ -151,6 +151,13 @@ namespace momentumopt {
       readParameter(planner_vars, "w_joint_regularization", w_joint_regularization_);
       readParameter(planner_vars, "reg_orientation", reg_orientation_);
 
+      readParameter(planner_vars, "num_joint_viapoints", num_joint_viapoints_);
+      joint_viapoints_.clear();
+      for (int via_id=0; via_id<num_joint_viapoints_; via_id++) {
+        joint_viapoints_.push_back(Eigen::Vector4d::Zero());
+        readParameter(planner_vars["joint_viapoints"], "via"+std::to_string(via_id), joint_viapoints_[via_id]);
+      }
+
       // Storage information
       readParameter(planner_vars, "store_data", store_data_);
 
@@ -186,6 +193,9 @@ namespace momentumopt {
       case PlannerIntParam_NumTimesteps : { return num_timesteps_; }
       case PlannerIntParam_NumViapoints : { return num_com_viapoints_; }
       case PlannerIntParam_NumActiveEndeffectors : { return num_act_eefs_; }
+
+      // Kinematic momentum user parameters
+      case PlannerIntParam_NumJointViapoints : { return num_joint_viapoints_; }
 
       // Time optimization parameters
       case PlannerIntParam_MaxNumTimeIterations : { return max_time_iterations_; }
@@ -370,6 +380,7 @@ namespace momentumopt {
 	{
     // Configuration parameters
     case PlannerCVectorParam_Viapoints : { return com_viapoints_; }
+    case PlannerCVectorParam_JointViapoints : { return joint_viapoints_; }
 
     // Not handled parameters
     default: { throw std::runtime_error("PlannerSetting::get PlannerCVectorParam invalid"); break; }
@@ -393,6 +404,9 @@ namespace momentumopt {
       case PlannerIntParam_NumTimesteps : { return num_timesteps_; }
       case PlannerIntParam_NumViapoints : { return num_com_viapoints_; }
       case PlannerIntParam_NumActiveEndeffectors : { return num_act_eefs_; }
+
+      // Kinematic momentum user parameters
+      case PlannerIntParam_NumJointViapoints : { return num_joint_viapoints_; }
 
       // Time optimization parameters
       case PlannerIntParam_MaxNumTimeIterations : { return max_time_iterations_; }
@@ -577,6 +591,7 @@ namespace momentumopt {
 	{
     // Configuration parameters
     case PlannerCVectorParam_Viapoints : { return com_viapoints_; }
+    case PlannerCVectorParam_JointViapoints : { return joint_viapoints_; }
 
     // Not handled parameters
     default: { throw std::runtime_error("PlannerSetting::get PlannerCVectorParam invalid"); break; }

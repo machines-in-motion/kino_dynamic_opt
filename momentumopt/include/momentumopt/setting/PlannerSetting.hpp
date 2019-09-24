@@ -65,7 +65,7 @@ namespace momentumopt {
 	  std::string cfg_file_, save_dynamics_file_, save_kinematics_file_, default_solver_setting_file_;
 
 	  /*! helper integer variables for the optimization problem */
-      int num_com_viapoints_, num_act_eefs_, num_timesteps_, max_time_iterations_, num_dofs_,
+      int num_com_viapoints_, num_joint_viapoints_, num_act_eefs_, num_timesteps_, max_time_iterations_, num_dofs_,
           num_act_dofs_, num_extended_act_dofs_, max_convergence_iters_, num_subsamples_,
 		  kd_iterations_, max_trajectory_iters_;
 
@@ -94,6 +94,9 @@ namespace momentumopt {
 
       /*! via points for center of mass motion */
       std::vector<Eigen::VectorXd> com_viapoints_;
+
+      /*! via points for joints */
+      std::vector<Eigen::VectorXd> joint_viapoints_;
 
       /*! region of support for end-effectors */
       std::array<Eigen::VectorXd, Problem::n_endeffs_> cop_range_;
