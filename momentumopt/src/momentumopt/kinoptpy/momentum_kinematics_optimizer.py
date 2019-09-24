@@ -302,11 +302,12 @@ class MomentumKinematicsOptimizer(object):
 
             if np.linalg.norm(res) < 1e-3:
                 print('Found initial configuration after {} iterations'.format(iters + 1))
+                break
 
         if iters == self.max_iterations - 1:
             print('Failed to converge for initial setup.')
 
-        print "initial configuration:\n ", q
+        print "initial configuration: \n", q
 
         self.q_init = q.copy()
         self.dq_init = dq.copy()
