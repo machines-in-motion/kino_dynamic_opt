@@ -32,13 +32,13 @@ namespace momentumopt {
   }
 
   ContactState::ContactState()
-    : time_ini_(0.),
-      time_end_(0.),
-      terrain_id_(-1),
-      optimization_id_(-1),
-      selected_as_active_(false),
+    : selected_as_active_(false),
       position_(Eigen::Vector3d::Zero()),
       contact_type_(ContactType::FreeContact),
+      time_ini_(0.),
+      time_end_(0.),
+      optimization_id_(-1),
+      terrain_id_(-1),
       orientation_(Eigen::Quaternion<double>::Identity())
   {
   }
@@ -105,9 +105,9 @@ namespace momentumopt {
 
   // ViapointState functions implementation
   ViapointState::ViapointState()
-    : viapoint_id_(-2),
+    : position_(Eigen::Vector3d::Zero()),
       optimization_id_(-1),
-      position_(Eigen::Vector3d::Zero()),
+      viapoint_id_(-2),      
       orientation_(Eigen::Quaternion<double>::Identity())
   {
   }

@@ -5,9 +5,17 @@ project(momentumopt)
 # flags #
 #########
 
-set(BUILD_DOCUMENTATION OFF)
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake )
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -Wall -pedantic -O3 -funroll-loops -fPIC -Wno-return-type -Wno-reorder")
+# required to use std::shared_ptr in code and to link the python bindings
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--no-as-needed")
+endif()
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -g -Wall -pedantic -O3 -funroll-loops -fPIC")
+
+# ensuring path to libraries are set during install
+set(CMAKE_SKIP_BUILD_RPATH  FALSE)
+set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
 
 #####################
 # required packages #
@@ -156,3 +164,8 @@ install(TARGETS pymomentum DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
 ################
 
 catkin_python_setup()
+
+##########################
+# building documentation #
+##########################
+build_doxygen_documentation()
