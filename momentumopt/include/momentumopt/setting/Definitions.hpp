@@ -60,13 +60,12 @@ namespace momentumopt {
   template <typename YamlType>
   static YamlType readParameter(const YAML::Node& node, const std::string& name) {
     try { return node[name.c_str()].as<YamlType>(); }
-    catch (...) { throw std::runtime_error(name); }
+    catch (...) { throw std::runtime_error("Error reading the yaml parameter [" + name + "]"); }
   }
 
   template <typename YamlType>
-  void readParameter(const YAML::Node& node, const std::string& name, YamlType& parameter) {
-    try { parameter = readParameter<YamlType>(node, name); }
-    catch (...) { throw std::runtime_error(name); }
+  static void readParameter(const YAML::Node& node, const std::string& name, YamlType& parameter) {
+    parameter = readParameter<YamlType>(node, name);
   }
 
 }

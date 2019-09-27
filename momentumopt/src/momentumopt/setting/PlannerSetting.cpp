@@ -31,8 +31,22 @@ namespace momentumopt {
 
     try
     {
-	  YAML::Node planner_cfg = YAML::LoadFile(cfg_file.c_str());
-	  YAML::Node planner_vars = planner_cfg[planner_vars_yaml.c_str()];
+      // Load the Paramter file and make sure the error is understandable
+      YAML::Node planner_cfg;
+      try { planner_cfg = YAML::LoadFile(cfg_file.c_str()); }
+      catch (std::runtime_error& e) {
+          throw std::runtime_error(
+            "Error loading the yaml file " + cfg_file + " with error: " +
+            e.what() );
+      }
+      // load the local node	  
+      YAML::Node planner_vars;
+      try { planner_vars = planner_cfg[planner_vars_yaml.c_str()]; }
+      catch (std::runtime_error& e) {
+          throw std::runtime_error(
+            "Error getting the planner_vars_yaml [" + planner_vars_yaml + 
+            "] with error: " + e.what());
+      }
 
 	  // Kinematics parameters
 	  readParameter(planner_vars, "load_kinematics", load_kinematics_);
@@ -172,7 +186,9 @@ namespace momentumopt {
     }
     catch (std::runtime_error& e)
     {
-      std::cout << "Error reading parameter ["<< e.what() << "] at file: [" << __FILE__ << "]" << std::endl << std::endl;
+      std::cout << "From ["<< __FILE__"]: "
+                << "Error while loading the YAML file [" + cfg_file + "]."
+                << "Error message is: " << e.what() << std::endl << std::endl;
     }
   }
 
