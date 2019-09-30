@@ -31,8 +31,8 @@ namespace solver {
   }
 
   bool LinExpr::isClean(const LinExpr& rhs) {
-    for (int i=1; i<rhs.size(); i++){
-	  for (int j=0; j<i; j++) {
+    for (size_t i=1; i<rhs.size(); i++){
+	  for (size_t j=0; j<i; j++) {
         if (rhs.vars_[i].var_storage_->col_no_ == rhs.vars_[j].var_storage_->col_no_)
 		  return false;
 	  }
@@ -46,9 +46,9 @@ namespace solver {
     LinExpr result;
     result.constant_ = rhs.constant_;
 
-    for (int i=0; i<rhs.size(); i++){
+    for (size_t i=0; i<rhs.size(); i++){
 	  bool set = false;
-	  for (int j=0; j<result.size(); j++) {
+	  for (size_t j=0; j<result.size(); j++) {
         if (rhs.vars_[i].var_storage_->col_no_ == result.vars_[j].var_storage_->col_no_) {
 		  result.coeffs_[j] += (rhs.coeffs_[i]);
 		  set = true;
@@ -66,7 +66,7 @@ namespace solver {
 	if (factor != 0.0) {
 	  LinExpr result = *this;
 	  result.getConstant() *= factor;
-	  for (int i=0; i<(int)result.size(); i++)
+	  for (size_t i=0; i<result.size(); i++)
         result.coeffs_[i] *= factor;
 	  return LinExpr::clean(result);
 	}
@@ -75,7 +75,7 @@ namespace solver {
 
   LinExpr& LinExpr::operator+=(const LinExpr& rhs) {
     this->getConstant() += rhs.getConstant();
-    for (int i=0; i<(int)rhs.size(); i++) {
+    for (size_t i=0; i<rhs.size(); i++) {
     	  this->vars_.push_back(rhs.vars_[i]);
       this->coeffs_.push_back(rhs.coeffs_[i]);
     }
@@ -85,7 +85,7 @@ namespace solver {
 
   std::ostream& operator<<(std::ostream &stream, LinExpr expr) {
     stream << expr.constant_;
-    for (unsigned int i=0; i<(unsigned int)expr.coeffs_.size(); i++)
+    for (size_t i=0; i<expr.coeffs_.size(); i++)
       stream << " + " << expr.coeffs_[i] << " var[" << expr.vars_[i].get(SolverIntParam_ColNum) << "]" ;
     return stream;
   }
@@ -93,7 +93,7 @@ namespace solver {
   // Class for Disciplined Convex Quadratic Expressions
   double DCPQuadExpr::getValue() const {
     double value = 0.0;
-    for (unsigned int i=0; i<coeffs_.size(); i++)
+    for (size_t i=0; i<coeffs_.size(); i++)
       value += coeffs_[i]*std::pow(qexpr_[i].getValue(), 2.0);
     return value;
   }

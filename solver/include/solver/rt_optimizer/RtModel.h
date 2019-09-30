@@ -246,9 +246,9 @@ namespace rt_solver {
   template<int Max_Ineq_Rows, int Max_Eq_Rows, int Num_OptVars>
   bool RtModel<Max_Ineq_Rows, Max_Eq_Rows, Num_OptVars>::checkIfHigherRanksLeft(const int rank)
   {
-    for (int leq_id=0; leq_id<leqcons_.size(); leq_id++)
+    for (size_t leq_id=0; leq_id<leqcons_.size(); leq_id++)
       if (std::get<0>(leqcons_[leq_id]) > rank) { return true; }
-    for (int lineq_id=0; lineq_id<lineqcons_.size(); lineq_id++)
+    for (size_t lineq_id=0; lineq_id<lineqcons_.size(); lineq_id++)
       if (std::get<0>(lineqcons_[lineq_id]) > rank) { return true; }
 
     return false;
@@ -260,7 +260,7 @@ namespace rt_solver {
     /*! appending linear equalities */
     // count how many rows we add in this rank
     int n_add_rows = 0;
-    for (int row_id=0; row_id<leqcons_.size(); row_id++)
+    for (size_t row_id=0; row_id<leqcons_.size(); row_id++)
       if (std::get<0>(leqcons_[row_id]) == rank_to_add) { n_add_rows++; }
 
     if (n_add_rows > 0) {
@@ -273,7 +273,7 @@ namespace rt_solver {
 
       // add the rows from mat that correspond with the requested rank
       int added_row = 0;
-      for (int row_id=0; row_id<leqcons_.size(); row_id++)
+      for (size_t row_id=0; row_id<leqcons_.size(); row_id++)
         if (std::get<0>(leqcons_[row_id]) == rank_to_add) {
           next_eq_cost_vec_(old_rows+added_row) = std::get<1>(leqcons_[row_id]).getConstant();
           for (int var_id=0; var_id<(int)std::get<1>(leqcons_[row_id]).size(); var_id++)
@@ -286,7 +286,7 @@ namespace rt_solver {
     /*! appending linear inequalities */
     // count how many rows we add in this rank
     n_add_rows = 0;
-    for (int row_id=0; row_id<lineqcons_.size(); row_id++)
+    for (size_t row_id=0; row_id<lineqcons_.size(); row_id++)
       if (std::get<0>(lineqcons_[row_id]) == rank_to_add) { n_add_rows++; }
 
     if (n_add_rows > 0) {
@@ -299,7 +299,7 @@ namespace rt_solver {
 
       // add the rows from mat that correspond with the requested rank
       int added_row = 0;
-      for (int row_id=0; row_id<lineqcons_.size(); row_id++)
+      for (size_t row_id=0; row_id<lineqcons_.size(); row_id++)
         if (std::get<0>(lineqcons_[row_id]) == rank_to_add) {
           next_ineq_cost_vec_(old_rows+added_row) = std::get<1>(lineqcons_[row_id]).getConstant();
           for (int var_id=0; var_id<(int)std::get<1>(lineqcons_[row_id]).size(); var_id++)
@@ -313,7 +313,7 @@ namespace rt_solver {
   template<int Max_Ineq_Rows, int Max_Eq_Rows, int Num_OptVars>
   void RtModel<Max_Ineq_Rows, Max_Eq_Rows, Num_OptVars>::checkSlacknessOfHierarchy(const int rank)
   {
-    for (int id=0; id<hierarchies_without_slacks_.size(); id ++)
+    for (size_t id=0; id<hierarchies_without_slacks_.size(); id ++)
       if (hierarchies_without_slacks_[id] == rank)
         hqp_solver_.applyIneqSlacks() = false;
     hqp_solver_.applyIneqSlacks() = true;
