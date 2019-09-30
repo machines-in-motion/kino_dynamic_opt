@@ -21,7 +21,7 @@
  */
 
 #include <gtest/gtest.h>
-#include <yaml_cpp_catkin/yaml_eigen.h>
+#include <yaml_cpp_catkin/yaml_cpp_fwd.hpp>
 #include <solver/interface/Solver.hpp>
 
 #define PRECISION 0.01
@@ -29,15 +29,15 @@
 
 using namespace solver;
 
-  class SolverTest : public ::testing::Test
-  {
+class SolverTest : public ::testing::Test
+{
     protected:
       virtual void SetUp() {}
       virtual void TearDown() {}
-  };
+};
 
-  class ProblemData
-  {
+class ProblemData
+{
 	public:
 	  ProblemData(){}
 	  ~ProblemData(){}
@@ -89,25 +89,25 @@ using namespace solver;
 	    try
 	    {
 	  	  YAML::Node yaml_file = YAML::LoadFile(cfg_file.c_str());
-	  	  nvars_   = yaml_file["problem_size"]["nvars"  ].as<int>();
-	  	  nleq_    = yaml_file["problem_size"]["nleq"   ].as<int>();
-	  	  ncone_   = yaml_file["problem_size"]["ncone"  ].as<int>();
-	  	  nlpc_    = yaml_file["problem_size"]["nlpc"   ].as<int>();
-	  	  nsoc_    = yaml_file["problem_size"]["nsoc"   ].as<int>();
-	  	  binprob_ = yaml_file["problem_size"]["binprob"].as<bool>();
-	  	  qvec_    = yaml_file["problem_size"]["qvec"   ].as<Eigen::VectorXi>();
-	  	  Acol_    = yaml_file["problem_data"]["Acol"   ].as<Eigen::VectorXi>();
-	  	  Arow_    = yaml_file["problem_data"]["Arow"   ].as<Eigen::VectorXi>();
-	  	  Aval_    = yaml_file["problem_data"]["Aval"   ].as<Eigen::VectorXd>();
-	  	  Gcol_    = yaml_file["problem_data"]["Gcol"   ].as<Eigen::VectorXi>();
-	  	  Grow_    = yaml_file["problem_data"]["Grow"   ].as<Eigen::VectorXi>();
-	  	  Gval_    = yaml_file["problem_data"]["Gval"   ].as<Eigen::VectorXd>();
-	  	  bvec_    = yaml_file["problem_data"]["bvec"   ].as<Eigen::VectorXd>();
-	  	  cvec_    = yaml_file["problem_data"]["cvec"   ].as<Eigen::VectorXd>();
-	  	  hvec_    = yaml_file["problem_data"]["hvec"   ].as<Eigen::VectorXd>();
+	  	  read_parameter(yaml_file["problem_size"], "nvars"  , nvars_  );
+	  	  read_parameter(yaml_file["problem_size"], "nleq"   , nleq_   );
+	  	  read_parameter(yaml_file["problem_size"], "ncone"  , ncone_  );
+	  	  read_parameter(yaml_file["problem_size"], "nlpc"   , nlpc_   );
+	  	  read_parameter(yaml_file["problem_size"], "nsoc"   , nsoc_   );
+	  	  read_parameter(yaml_file["problem_size"], "binprob", binprob_);
+	  	  read_parameter(yaml_file["problem_size"], "qvec"   , qvec_   );
+	  	  read_parameter(yaml_file["problem_data"], "Acol"   , Acol_   );
+	  	  read_parameter(yaml_file["problem_data"], "Arow"   , Arow_   );
+	  	  read_parameter(yaml_file["problem_data"], "Aval"   , Aval_   );
+	  	  read_parameter(yaml_file["problem_data"], "Gcol"   , Gcol_   );
+	  	  read_parameter(yaml_file["problem_data"], "Grow"   , Grow_   );
+	  	  read_parameter(yaml_file["problem_data"], "Gval"   , Gval_   );
+	  	  read_parameter(yaml_file["problem_data"], "bvec"   , bvec_   );
+	  	  read_parameter(yaml_file["problem_data"], "cvec"   , cvec_   );
+	  	  read_parameter(yaml_file["problem_data"], "hvec"   , hvec_   );
 	  	  if (binprob_) {
-	  	    xopt_  = yaml_file["problem_data"]["xopt"].as<Eigen::VectorXd>();
-	  	    vartype_  = yaml_file["problem_data"]["vartype"].as<Eigen::VectorXi>();
+	  	    read_parameter(yaml_file["problem_data"], "xopt", xopt_);
+	  	    read_parameter(yaml_file["problem_data"], "vartype", vartype_);
 	  	  } else {
 	  		xopt_.resize(nvars_);    xopt_.setZero();
 	  		vartype_.resize(nvars_); vartype_.setZero();
@@ -128,16 +128,16 @@ using namespace solver;
 	  Eigen::SparseMatrix<double> Amat_, Gmat_;
 	  Eigen::VectorXd Aval_, Gval_, cvec_, bvec_, hvec_, xopt_;
 	  Eigen::VectorXi Acol_, Arow_, Gcol_, Grow_, qvec_, vartype_;
-  };
+};
 
-  void buildProblemFromData(Model& model, const ProblemData& data, std::vector<Var>& vars)
-  {
-    // adding variables to problem
+void buildProblemFromData(Model& model, const ProblemData& data, std::vector<Var>& vars)
+{
+  // adding variables to problem
 	for (int var_id=0; var_id<data.numVars(); var_id++)
 	  if (data.vartype()[var_id] == 0) {
 	    vars.push_back(model.addVar(VarType::Continuous, 0.0, 1.0, 0.5));
 	  } else {
-		vars.push_back(model.addVar(VarType::Binary, 0.0, 1.0, 0.5));
+		  vars.push_back(model.addVar(VarType::Binary, 0.0, 1.0, 0.5));
 	  }
 
 	// adding linear equality constraints to problem
@@ -182,10 +182,10 @@ using namespace solver;
 	for (int k=0; k<data.numVars(); ++k)
 	  lexpr += LinExpr(vars[k])*data.c()[k];
 	model.setObjective(qexpr, lexpr);
-  }
+}
 
-  void testProblem(const std::string cfg_file, const ExitCode expected_code, bool sparseformat = false)
-  {
+void testProblem(const std::string cfg_file, const ExitCode expected_code, bool sparseformat = false)
+{
 	Model model;
 	std::vector<Var> vars;
 	ProblemData data(cfg_file, sparseformat);
@@ -200,39 +200,136 @@ using namespace solver;
 	    EXPECT_NEAR(data.xopt()[var_id], vars[var_id].get(SolverDoubleParam_X), PRECISION);
 	}
 	EXPECT_NEAR(static_cast<int>(expected_code), static_cast<int>(exit_code), PRECISION);
-  }
+}
 
-  // Testing Branch and Bound Solver
-  TEST_F(SolverTest, BnBSolverTest)
-  {
-	testProblem(TEST_PATH+std::string("test_BnB_01.yaml"), ExitCode::Optimal);
-	testProblem(TEST_PATH+std::string("test_BnB_02.yaml"), ExitCode::Optimal);
-	testProblem(TEST_PATH+std::string("test_BnB_03.yaml"), ExitCode::Optimal);
-	testProblem(TEST_PATH+std::string("test_BnB_04.yaml"), ExitCode::Optimal);
-	testProblem(TEST_PATH+std::string("test_BnB_05.yaml"), ExitCode::Optimal);
-	testProblem(TEST_PATH+std::string("test_BnB_06.yaml"), ExitCode::Optimal);
-	testProblem(TEST_PATH+std::string("test_BnB_07.yaml"), ExitCode::Optimal);
-  }
+// Testing Branch and Bound Solver
+TEST_F(SolverTest, BnBSolverTest01)
+{
+  testProblem(TEST_PATH+std::string("test_BnB_01.yaml"), ExitCode::Optimal);
+}
 
-  // Testing Interior Point Solver
-  TEST_F(SolverTest, InteriorPointSolverTest)
-  {
-	testProblem(TEST_PATH+std::string("test_01.yaml"), ExitCode::Optimal);
-	testProblem(TEST_PATH+std::string("test_02.yaml"), ExitCode::Optimal);
-	testProblem(TEST_PATH+std::string("test_03.yaml"), ExitCode::Optimal);
-	testProblem(TEST_PATH+std::string("test_04.yaml"), ExitCode::Optimal);
-	testProblem(TEST_PATH+std::string("test_05.yaml"), ExitCode::Optimal);
-	testProblem(TEST_PATH+std::string("test_06.yaml"), ExitCode::Optimal);
-	testProblem(TEST_PATH+std::string("test_07.yaml"), ExitCode::Optimal);
-	testProblem(TEST_PATH+std::string("test_08.yaml"), ExitCode::Optimal);
-	testProblem(TEST_PATH+std::string("test_09.yaml"), ExitCode::Optimal);
-	testProblem(TEST_PATH+std::string("test_10.yaml"), ExitCode::Optimal);
-	testProblem(TEST_PATH+std::string("test_11.yaml"), ExitCode::Optimal);
-	testProblem(TEST_PATH+std::string("test_12.yaml"), ExitCode::PrimalInf);
-	testProblem(TEST_PATH+std::string("test_13.yaml"), ExitCode::PrimalInf);
-	testProblem(TEST_PATH+std::string("test_14.yaml"), ExitCode::DualInf);
-	testProblem(TEST_PATH+std::string("test_15.yaml"), ExitCode::Optimal);
-	testProblem(TEST_PATH+std::string("test_16.yaml"), ExitCode::Optimal);
-	testProblem(TEST_PATH+std::string("test_17.yaml"), ExitCode::Optimal);
-	testProblem(TEST_PATH+std::string("test_18.yaml"), ExitCode::Optimal);
-  }
+TEST_F(SolverTest, BnBSolverTest02)
+{
+  testProblem(TEST_PATH+std::string("test_BnB_02.yaml"), ExitCode::Optimal);
+}
+
+
+TEST_F(SolverTest, BnBSolverTest03)
+{
+  testProblem(TEST_PATH+std::string("test_BnB_03.yaml"), ExitCode::Optimal);
+}
+
+
+TEST_F(SolverTest, BnBSolverTest04)
+{
+  testProblem(TEST_PATH+std::string("test_BnB_04.yaml"), ExitCode::Optimal);
+}
+
+
+TEST_F(SolverTest, BnBSolverTest05)
+{
+  testProblem(TEST_PATH+std::string("test_BnB_05.yaml"), ExitCode::Optimal);
+}
+
+TEST_F(SolverTest, BnBSolverTest06)
+{
+  testProblem(TEST_PATH+std::string("test_BnB_06.yaml"), ExitCode::Optimal);
+}
+
+TEST_F(SolverTest, BnBSolverTest07)
+{
+  testProblem(TEST_PATH+std::string("test_BnB_07.yaml"), ExitCode::Optimal);
+}
+
+
+// Testing Interior Point Solver
+TEST_F(SolverTest, InteriorPointSolverTest01)
+{
+  testProblem(TEST_PATH+std::string("test_01.yaml"), ExitCode::Optimal);
+}
+
+TEST_F(SolverTest, InteriorPointSolverTest02)
+{
+  testProblem(TEST_PATH+std::string("test_02.yaml"), ExitCode::Optimal);
+}
+
+TEST_F(SolverTest, InteriorPointSolverTest03)
+{
+  testProblem(TEST_PATH+std::string("test_03.yaml"), ExitCode::Optimal);
+}
+
+TEST_F(SolverTest, InteriorPointSolverTest04)
+{
+  testProblem(TEST_PATH+std::string("test_04.yaml"), ExitCode::Optimal);
+}
+
+TEST_F(SolverTest, InteriorPointSolverTest05)
+{
+  testProblem(TEST_PATH+std::string("test_05.yaml"), ExitCode::Optimal);
+}
+
+TEST_F(SolverTest, InteriorPointSolverTest06)
+{
+  testProblem(TEST_PATH+std::string("test_06.yaml"), ExitCode::Optimal);
+}
+
+TEST_F(SolverTest, InteriorPointSolverTest07)
+{
+  testProblem(TEST_PATH+std::string("test_07.yaml"), ExitCode::Optimal);
+}
+
+TEST_F(SolverTest, InteriorPointSolverTest08)
+{
+  testProblem(TEST_PATH+std::string("test_08.yaml"), ExitCode::Optimal);
+}
+
+TEST_F(SolverTest, InteriorPointSolverTest09)
+{
+  testProblem(TEST_PATH+std::string("test_09.yaml"), ExitCode::Optimal);
+}
+
+TEST_F(SolverTest, InteriorPointSolverTest10)
+{
+  testProblem(TEST_PATH+std::string("test_10.yaml"), ExitCode::Optimal);
+}
+
+TEST_F(SolverTest, InteriorPointSolverTest11)
+{
+  testProblem(TEST_PATH+std::string("test_11.yaml"), ExitCode::Optimal);
+}
+
+TEST_F(SolverTest, InteriorPointSolverTest12)
+{
+  testProblem(TEST_PATH+std::string("test_12.yaml"), ExitCode::PrimalInf);
+}
+
+TEST_F(SolverTest, InteriorPointSolverTest13)
+{
+  testProblem(TEST_PATH+std::string("test_13.yaml"), ExitCode::PrimalInf);
+}
+
+TEST_F(SolverTest, InteriorPointSolverTest14)
+{
+  testProblem(TEST_PATH+std::string("test_14.yaml"), ExitCode::DualInf);
+}
+
+TEST_F(SolverTest, InteriorPointSolverTest15)
+{
+  testProblem(TEST_PATH+std::string("test_15.yaml"), ExitCode::Optimal);
+}
+
+TEST_F(SolverTest, InteriorPointSolverTest16)
+{
+  testProblem(TEST_PATH+std::string("test_16.yaml"), ExitCode::Optimal);
+}
+
+TEST_F(SolverTest, InteriorPointSolverTest17)
+{
+  testProblem(TEST_PATH+std::string("test_17.yaml"), ExitCode::Optimal);
+}
+
+TEST_F(SolverTest, InteriorPointSolverTest18)
+{
+  testProblem(TEST_PATH+std::string("test_18.yaml"), ExitCode::Optimal);
+}
+
