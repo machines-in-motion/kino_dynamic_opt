@@ -94,6 +94,8 @@ planner_variables:
   cop_range_rh: [-0.03,  0.03, -0.03,  0.03]
   cop_range_lh: [-0.03,  0.03, -0.03,  0.03]
   max_eef_lengths: [0.82,  0.82,  0.60,  0.60]
+  min_rel_height: 0.1
+  floor_height: -0.92
 
   ####################
   # Dynamics weights #
@@ -115,6 +117,7 @@ planner_variables:
   w_frc_leg:       [ 0.001,  0.001,  0.001]
   w_dfrc_arm:      [ 0.000,  0.000,  0.000]
   w_dfrc_leg:      [ 0.000,  0.000,  0.000]
+  w_com_track:     [ 0.000,  0.000,  0.000]
   w_amom_track:    [ 1.000,  1.000,  1.000]
   w_lmom_track:    [ 0.100,  0.100,  0.100]
 

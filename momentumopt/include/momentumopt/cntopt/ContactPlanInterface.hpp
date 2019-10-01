@@ -47,7 +47,7 @@ namespace momentumopt {
     public:
       ContactPlanInterface(){}
       ~ContactPlanInterface() {
-          printf("planner_setting_=%p\n", (void*)planner_setting_);
+          // printf("planner_setting_=%p\n", (void*)planner_setting_);
       }
 
       void initialize(const PlannerSetting& planner_setting);

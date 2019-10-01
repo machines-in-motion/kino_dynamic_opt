@@ -133,43 +133,41 @@ namespace momentumopt {
         readParameter(planner_vars, "w_time_penalty", w_time_penalty_);
       }
 
-      // Kinematics weights
       if (load_kinematics_) {
-	    readParameter(planner_vars, "w_kin_com", w_kin_com_);
-	    readParameter(planner_vars, "w_kin_lmom", w_kin_lmom_);
-	    readParameter(planner_vars, "w_kin_amom", w_kin_amom_);
-	    readParameter(planner_vars, "w_kin_lmomd", w_kin_lmomd_);
-	    readParameter(planner_vars, "w_kin_amomd", w_kin_amomd_);
-	    readParameter(planner_vars, "w_kin_eff_pos", w_kin_eff_pos_);
-	    readParameter(planner_vars, "w_kin_base_ori", w_kin_base_ori_);
-	    readParameter(planner_vars, "w_kin_joint_vel", w_kin_joint_vel_);
-	    readParameter(planner_vars, "w_kin_joint_acc", w_kin_joint_acc_);
+        // Kinematics solver c++ paramters
+	      readParameter(planner_vars, "w_kin_com", w_kin_com_);
+	      readParameter(planner_vars, "w_kin_lmom", w_kin_lmom_);
+	      readParameter(planner_vars, "w_kin_amom", w_kin_amom_);
+	      readParameter(planner_vars, "w_kin_lmomd", w_kin_lmomd_);
+	      readParameter(planner_vars, "w_kin_amomd", w_kin_amomd_);
+	      readParameter(planner_vars, "w_kin_eff_pos", w_kin_eff_pos_);
+	      readParameter(planner_vars, "w_kin_base_ori", w_kin_base_ori_);
+	      readParameter(planner_vars, "w_kin_joint_vel", w_kin_joint_vel_);
+	      readParameter(planner_vars, "w_kin_joint_acc", w_kin_joint_acc_);
         readParameter(planner_vars, "slacks_penalty", kin_slacks_penalty_);
-	    readParameter(planner_vars, "integration_step", kin_integration_step_);
-	    readParameter(planner_vars, "w_kin_eff_pos_nonact", w_kin_eff_pos_nonact_);
-	    readParameter(planner_vars, "w_kin_default_joints", w_kin_default_joints_);
-	    readParameter(planner_vars, "max_trajectory_iters", max_trajectory_iters_);
-	    readParameter(planner_vars, "max_convergence_iters", max_convergence_iters_);
-	    readParameter(planner_vars, "convergence_tolerance", convergence_tolerance_);
+	      readParameter(planner_vars, "integration_step", kin_integration_step_);
+	      readParameter(planner_vars, "w_kin_eff_pos_nonact", w_kin_eff_pos_nonact_);
+	      readParameter(planner_vars, "w_kin_default_joints", w_kin_default_joints_);
+	      readParameter(planner_vars, "max_trajectory_iters", max_trajectory_iters_);
+	      readParameter(planner_vars, "max_convergence_iters", max_convergence_iters_);
+	      readParameter(planner_vars, "convergence_tolerance", convergence_tolerance_);
         readParameter(planner_vars, "lambda_regularization", lambda_regularization_);
-      }
-
-      //kinematic momentum optimization
-      readParameter(planner_vars, "swing_traj_via_z", swing_traj_via_z_);
-      readParameter(planner_vars, "w_lin_mom_tracking", w_lin_mom_tracking_);
-      readParameter(planner_vars, "w_ang_mom_tracking", w_ang_mom_tracking_);
-      readParameter(planner_vars, "w_endeff_contact", w_endeff_contact_);
-      readParameter(planner_vars, "w_endeff_tracking", w_endeff_tracking_);
-      readParameter(planner_vars, "p_endeff_tracking", p_endeff_tracking_);
-      readParameter(planner_vars, "p_com_tracking", p_com_tracking_);
-      readParameter(planner_vars, "w_joint_regularization", w_joint_regularization_);
-      readParameter(planner_vars, "reg_orientation", reg_orientation_);
-
-      readParameter(planner_vars, "num_joint_viapoints", num_joint_viapoints_);
-      joint_viapoints_.clear();
-      for (int via_id=0; via_id<num_joint_viapoints_; via_id++) {
-        joint_viapoints_.push_back(Eigen::Vector4d::Zero());
-        readParameter(planner_vars["joint_viapoints"], "via"+std::to_string(via_id), joint_viapoints_[via_id]);
+        // Kinematics solver python paramters
+        readParameter(planner_vars, "swing_traj_via_z", swing_traj_via_z_);
+        readParameter(planner_vars, "w_lin_mom_tracking", w_lin_mom_tracking_);
+        readParameter(planner_vars, "w_ang_mom_tracking", w_ang_mom_tracking_);
+        readParameter(planner_vars, "w_endeff_contact", w_endeff_contact_);
+        readParameter(planner_vars, "w_endeff_tracking", w_endeff_tracking_);
+        readParameter(planner_vars, "p_endeff_tracking", p_endeff_tracking_);
+        readParameter(planner_vars, "p_com_tracking", p_com_tracking_);
+        readParameter(planner_vars, "w_joint_regularization", w_joint_regularization_);
+        readParameter(planner_vars, "reg_orientation", reg_orientation_);
+        readParameter(planner_vars, "num_joint_viapoints", num_joint_viapoints_);
+        joint_viapoints_.clear();
+        for (int via_id=0; via_id<num_joint_viapoints_; via_id++) {
+          joint_viapoints_.push_back(Eigen::Vector4d::Zero());
+          readParameter(planner_vars["joint_viapoints"], "via"+std::to_string(via_id), joint_viapoints_[via_id]);
+        }
       }
 
       // Storage information
