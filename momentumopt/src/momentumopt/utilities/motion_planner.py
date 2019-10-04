@@ -274,7 +274,7 @@ class MotionPlanner():
     def time_vector(self):
         return create_time_vector(self.dyn_optimizer.dynamicsSequence())
 
-    def optimize_motion(self):
+    def optimize_motion(self, plot_com_motion=True):
         dyn_optimizer = self.dyn_optimizer
         kin_optimizer = self.kin_optimizer
 
@@ -284,9 +284,11 @@ class MotionPlanner():
             self.optimize_dynamics(kd_iter + 1)
             optimized_kin_plan = self.kin_optimizer.kinematics_sequence
             optimized_dyn_plan = self.dyn_optimizer.dynamicsSequence()
-            self.plot_com_motion(optimized_dyn_plan.dynamics_states,
-                    optimized_kin_plan.kinematics_states, plot_show=False,
-                    fig_suptitle='kd_iter={}'.format(kd_iter))
+
+            if plot_com_motion:
+                self.plot_com_motion(optimized_dyn_plan.dynamics_states,
+                        optimized_kin_plan.kinematics_states, plot_show=False,
+                        fig_suptitle='kd_iter={}'.format(kd_iter))
 
         optimized_kin_plan = kin_optimizer.kinematics_sequence
         optimized_dyn_plan = dyn_optimizer.dynamicsSequence()
