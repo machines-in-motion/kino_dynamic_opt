@@ -80,6 +80,7 @@ def create_qp_files(time_vector, optimized_motion_eff, optimized_sequence, optim
     num_points = max_time * sample_frequency
 
     using_quadruped = True
+    num_joints = len(optimized_sequence.kinematics_states[0].robot_posture.generalized_joint_positions) - 7
 
     def dump_data(output_file, desired_fn):
         np.savetxt(output_file, np.vstack([
@@ -87,8 +88,8 @@ def create_qp_files(time_vector, optimized_motion_eff, optimized_sequence, optim
         ]))
 
     if using_quadruped:
-        desired_joint_positions = np.zeros((num_points, 9))
-        desired_joint_velocities =np.zeros((num_points, 9))
+        desired_joint_positions = np.zeros((num_points, num_joints + 1))
+        desired_joint_velocities = np.zeros((num_points, num_joints + 1))
         des_positions = np.zeros((num_points, 13))
         des_velocities = np.zeros((num_points, 13))
         des_com = np.zeros((num_points, 4))
