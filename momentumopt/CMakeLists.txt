@@ -135,11 +135,14 @@ set_target_properties(momentumopt PROPERTIES
 
 catkin_add_gtest(momentumopt_tests
   tests/gtest_main.cpp
-  tests/TestMomentumopt.cpp
+  tests/test_momentumopt.cpp
+  tests/test_quadruped_problems.cpp
 )
 target_link_libraries(momentumopt_tests momentumopt)
-set_target_properties(momentumopt_tests PROPERTIES
-    COMPILE_DEFINITIONS TEST_PATH="${TEST_PATH}/yaml_config_files/")
+target_compile_definitions(momentumopt_tests PRIVATE
+  CFG_SRC_PATH="${CONFIG_PATH}/"
+  TEST_PATH="${TEST_PATH}/yaml_config_files/"
+)
 
 #########
 # demos #
