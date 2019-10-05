@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include <yaml_cpp_catkin/yaml_eigen.h>
+#include <yaml_cpp_catkin/yaml_cpp_fwd.hpp>
 
 namespace momentumopt {
 
@@ -55,17 +55,4 @@ namespace momentumopt {
     }
 
   };
-
-  /*! helper function to safely read a yaml parameter */
-  template <typename YamlType>
-  static YamlType readParameter(const YAML::Node& node, const std::string& name) {
-    try { return node[name.c_str()].as<YamlType>(); }
-    catch (...) { throw std::runtime_error("Error reading the yaml parameter [" + name + "]"); }
-  }
-
-  template <typename YamlType>
-  static void readParameter(const YAML::Node& node, const std::string& name, YamlType& parameter) {
-    parameter = readParameter<YamlType>(node, name);
-  }
-
 }

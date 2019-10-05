@@ -89,25 +89,25 @@ class ProblemData
 	    try
 	    {
 	  	  YAML::Node yaml_file = YAML::LoadFile(cfg_file.c_str());
-	  	  read_parameter(yaml_file["problem_size"], "nvars"  , nvars_  );
-	  	  read_parameter(yaml_file["problem_size"], "nleq"   , nleq_   );
-	  	  read_parameter(yaml_file["problem_size"], "ncone"  , ncone_  );
-	  	  read_parameter(yaml_file["problem_size"], "nlpc"   , nlpc_   );
-	  	  read_parameter(yaml_file["problem_size"], "nsoc"   , nsoc_   );
-	  	  read_parameter(yaml_file["problem_size"], "binprob", binprob_);
-	  	  read_parameter(yaml_file["problem_size"], "qvec"   , qvec_   );
-	  	  read_parameter(yaml_file["problem_data"], "Acol"   , Acol_   );
-	  	  read_parameter(yaml_file["problem_data"], "Arow"   , Arow_   );
-	  	  read_parameter(yaml_file["problem_data"], "Aval"   , Aval_   );
-	  	  read_parameter(yaml_file["problem_data"], "Gcol"   , Gcol_   );
-	  	  read_parameter(yaml_file["problem_data"], "Grow"   , Grow_   );
-	  	  read_parameter(yaml_file["problem_data"], "Gval"   , Gval_   );
-	  	  read_parameter(yaml_file["problem_data"], "bvec"   , bvec_   );
-	  	  read_parameter(yaml_file["problem_data"], "cvec"   , cvec_   );
-	  	  read_parameter(yaml_file["problem_data"], "hvec"   , hvec_   );
+	  	  YAML::ReadParameter(yaml_file["problem_size"], "nvars"  , nvars_  );
+	  	  YAML::ReadParameter(yaml_file["problem_size"], "nleq"   , nleq_   );
+	  	  YAML::ReadParameter(yaml_file["problem_size"], "ncone"  , ncone_  );
+	  	  YAML::ReadParameter(yaml_file["problem_size"], "nlpc"   , nlpc_   );
+	  	  YAML::ReadParameter(yaml_file["problem_size"], "nsoc"   , nsoc_   );
+	  	  YAML::ReadParameter(yaml_file["problem_size"], "binprob", binprob_);
+	  	  YAML::ReadParameter(yaml_file["problem_size"], "qvec"   , qvec_   );
+	  	  YAML::ReadParameter(yaml_file["problem_data"], "Acol"   , Acol_   );
+	  	  YAML::ReadParameter(yaml_file["problem_data"], "Arow"   , Arow_   );
+	  	  YAML::ReadParameter(yaml_file["problem_data"], "Aval"   , Aval_   );
+	  	  YAML::ReadParameter(yaml_file["problem_data"], "Gcol"   , Gcol_   );
+	  	  YAML::ReadParameter(yaml_file["problem_data"], "Grow"   , Grow_   );
+	  	  YAML::ReadParameter(yaml_file["problem_data"], "Gval"   , Gval_   );
+	  	  YAML::ReadParameter(yaml_file["problem_data"], "bvec"   , bvec_   );
+	  	  YAML::ReadParameter(yaml_file["problem_data"], "cvec"   , cvec_   );
+	  	  YAML::ReadParameter(yaml_file["problem_data"], "hvec"   , hvec_   );
 	  	  if (binprob_) {
-	  	    read_parameter(yaml_file["problem_data"], "xopt", xopt_);
-	  	    read_parameter(yaml_file["problem_data"], "vartype", vartype_);
+	  	    YAML::ReadParameter(yaml_file["problem_data"], "xopt", xopt_);
+	  	    YAML::ReadParameter(yaml_file["problem_data"], "vartype", vartype_);
 	  	  } else {
 	  		xopt_.resize(nvars_);    xopt_.setZero();
 	  		vartype_.resize(nvars_); vartype_.setZero();

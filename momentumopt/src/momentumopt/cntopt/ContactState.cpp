@@ -79,7 +79,7 @@ namespace momentumopt {
       std::vector<Eigen::VectorXd> contacts;
       for (int eff_id=0; eff_id<Problem::n_endeffs_; eff_id++) {
         contacts.clear();
-        readParameter(contact_plan, ("effcnt_" + Problem::idToEndeffectorString(eff_id)).c_str(), contacts);
+        YAML::ReadParameter(contact_plan, ("effcnt_" + Problem::idToEndeffectorString(eff_id)).c_str(), contacts);
 
         this->endeffectorContacts(eff_id).clear();
         for (unsigned int cnt_id=0; cnt_id<contacts.size(); cnt_id++)
@@ -153,7 +153,7 @@ namespace momentumopt {
       std::vector<Eigen::VectorXd> viapoints;
       for (int eff_id=0; eff_id<Problem::n_endeffs_; eff_id++) {
         viapoints.clear();
-        readParameter(contact_plan, ("effvia_" + Problem::idToEndeffectorString(eff_id)).c_str(), viapoints);
+        YAML::ReadParameter(contact_plan, ("effvia_" + Problem::idToEndeffectorString(eff_id)).c_str(), viapoints);
 
         this->endeffectorViapoints(eff_id).clear();
         for (unsigned int via_id=0; via_id<viapoints.size(); via_id++)
@@ -161,7 +161,7 @@ namespace momentumopt {
       }
     } catch (std::runtime_error& e) {
       std::cout << "From ["<< __FILE__"]: "
-                << "Error while loading the YAML file [" + cfg_file + "]."
+                << "Error while loading the YAML file [" + cfg_file + "]. "
                 << "Error message is: " << e.what() << std::endl << std::endl;
     }
   }

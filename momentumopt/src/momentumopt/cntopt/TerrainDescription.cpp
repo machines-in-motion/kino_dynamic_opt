@@ -99,7 +99,7 @@ namespace momentumopt {
       YAML::Node terrain_description = terrain_cfg[terrain_description_name.c_str()];
 
       std::vector<Eigen::Matrix<double, Eigen::Dynamic,3>> regions;
-      readParameter(terrain_description, "regions", regions);
+      YAML::ReadParameter(terrain_description, "regions", regions);
 
       for (unsigned int reg_id=0; reg_id<regions.size(); reg_id++)
         this->addTerrainRegion(regions[reg_id]);

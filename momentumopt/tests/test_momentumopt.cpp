@@ -21,10 +21,12 @@
 
 #define PRECISION 0.01
 #define REDUCED_PRECISION 0.06
-static const bool display_time_info = true;
+static const bool display_time_info = false;
 
 using namespace solver;
 using namespace momentumopt;
+
+  class DISABLED_MomentumOptTest : public ::testing::Test {};
 
   class MomentumOptTest : public ::testing::Test
   {
@@ -35,14 +37,14 @@ using namespace momentumopt;
 
   void testProblem(const std::string cfg_file, const std::string ref_name, const ExitCode expected_code, const bool& tinfo)
   {
-	// load reference data
-	std::string data_file = TEST_PATH + std::string("momentumopt_data.yaml");
-	Eigen::MatrixXd ref_com, ref_lmom, ref_amom;
+    // load reference data
+    std::string data_file = TEST_PATH + std::string("momentumopt_data.yaml");
+    Eigen::MatrixXd ref_com, ref_lmom, ref_amom;
     try {
 	  YAML::Node ref_cfg = YAML::LoadFile(data_file.c_str());
-	  readParameter(ref_cfg["solutions"], "com"+ref_name, ref_com);
-	  readParameter(ref_cfg["solutions"], "lmom"+ref_name, ref_lmom);
-	  readParameter(ref_cfg["solutions"], "amom"+ref_name, ref_amom);
+      YAML::ReadParameter(ref_cfg["solutions"], "com"+ref_name, ref_com);
+      YAML::ReadParameter(ref_cfg["solutions"], "lmom"+ref_name, ref_lmom);
+      YAML::ReadParameter(ref_cfg["solutions"], "amom"+ref_name, ref_amom);
     } catch (std::runtime_error& e) {
       	std::cout << "Error reading parameter ["<< e.what() << "] at file: [" << __FILE__ << "]" << std::endl << std::endl;
     }
@@ -89,22 +91,40 @@ using namespace momentumopt;
   }
 
   // Testing SoftConstraints Momentum Optimizer with Parallel Interior Point Solver
-  TEST_F(MomentumOptTest, test_SoftConstraints_MomentumOptimizer_IPSolver) {
+  TEST_F(MomentumOptTest, test_SoftConstraints_MomentumOptimizer_IPSolver01) {
     testProblem(TEST_PATH+std::string("momopt_demos/cfg_momSc_demo01.yaml"), "MomSc01", ExitCode::Optimal, display_time_info);
+  }
+
+  TEST_F(MomentumOptTest, test_SoftConstraints_MomentumOptimizer_IPSolver02) {
     testProblem(TEST_PATH+std::string("momopt_demos/cfg_momSc_demo02.yaml"), "MomSc02", ExitCode::Optimal, display_time_info);
+  }
+
+  TEST_F(MomentumOptTest, test_SoftConstraints_MomentumOptimizer_IPSolver03) {
     testProblem(TEST_PATH+std::string("momopt_demos/cfg_momSc_demo03.yaml"), "MomSc03", ExitCode::Optimal, display_time_info);
   }
 
   // Testing TrustRegion Momentum Optimizer with Interior Point Solver
-  TEST_F(MomentumOptTest, test_TrustRegion_MomentumOptimizer_IPSolver) {
+  TEST_F(MomentumOptTest, test_TrustRegion_MomentumOptimizer_IPSolver01) {
     testProblem(TEST_PATH+std::string("momopt_demos/cfg_momTr_demo01.yaml"), "MomTr01", ExitCode::Optimal, display_time_info);
+  }
+
+  TEST_F(DISABLED_MomentumOptTest, test_TrustRegion_MomentumOptimizer_IPSolver02) {
     testProblem(TEST_PATH+std::string("momopt_demos/cfg_momTr_demo02.yaml"), "MomTr02", ExitCode::Optimal, display_time_info);
+  }
+
+  TEST_F(MomentumOptTest, test_TrustRegion_MomentumOptimizer_IPSolver03) {
     testProblem(TEST_PATH+std::string("momopt_demos/cfg_momTr_demo03.yaml"), "MomTr03", ExitCode::Optimal, display_time_info);
   }
 
   // Testing Time Optimizer with Interior Point Solver
-  TEST_F(MomentumOptTest, test_TimeMomentumOptimizer_IPSolver) {
+  TEST_F(MomentumOptTest, test_TimeMomentumOptimizer_IPSolver01) {
     testProblem(TEST_PATH+std::string("timeopt_demos/cfg_timeopt_demo01.yaml"), "Time01", ExitCode::Optimal, display_time_info);
-    testProblem(TEST_PATH+std::string("timeopt_demos/cfg_timeopt_demo02.yaml"), "Time02", ExitCode::Optimal, display_time_info);
-    testProblem(TEST_PATH+std::string("timeopt_demos/cfg_timeopt_demo03.yaml"), "Time03", ExitCode::Optimal, display_time_info);
+  }
+
+  TEST_F(MomentumOptTest, test_TimeMomentumOptimizer_IPSolver02) {
+  	testProblem(TEST_PATH+std::string("timeopt_demos/cfg_timeopt_demo02.yaml"), "Time02", ExitCode::Optimal, display_time_info);
+  }
+
+  TEST_F(MomentumOptTest, test_TimeMomentumOptimizer_IPSolver03) {
+  	testProblem(TEST_PATH+std::string("timeopt_demos/cfg_timeopt_demo03.yaml"), "Time03", ExitCode::Optimal, display_time_info);
   }

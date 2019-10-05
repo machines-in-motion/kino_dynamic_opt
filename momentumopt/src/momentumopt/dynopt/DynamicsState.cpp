@@ -79,16 +79,16 @@ namespace momentumopt {
 	try {
 	  YAML::Node robot_cfg = YAML::LoadFile(cfg_file.c_str());
 	  YAML::Node ini_robo_cfg = robot_cfg[robot_state.c_str()];
-	  readParameter(ini_robo_cfg, "com", this->centerOfMass());
-	  readParameter(ini_robo_cfg, "lmom", this->linearMomentum());
-	  readParameter(ini_robo_cfg, "amom", this->angularMomentum());
+	  YAML::ReadParameter(ini_robo_cfg, "com", this->centerOfMass());
+	  YAML::ReadParameter(ini_robo_cfg, "lmom", this->linearMomentum());
+	  YAML::ReadParameter(ini_robo_cfg, "amom", this->angularMomentum());
 
 	  for (int eff_id=0; eff_id<Problem::n_endeffs_; eff_id++) {
-		Eigen::VectorXd eef_cfg = readParameter<Eigen::VectorXd>(ini_robo_cfg["eef_pose"], "eef_"+Problem::idToEndeffectorString(eff_id));
+		Eigen::VectorXd eef_cfg = YAML::ReadParameter<Eigen::VectorXd>(ini_robo_cfg["eef_pose"], "eef_"+Problem::idToEndeffectorString(eff_id));
 		this->endeffectorActivation(eff_id) = int(eef_cfg(0));
 		this->endeffectorPosition(eff_id) = eef_cfg.segment<3>(1);
 		this->endeffectorOrientation(eff_id) = Eigen::Quaternion<double>(eef_cfg[4],eef_cfg[5],eef_cfg[6],eef_cfg[7]);
-		readParameter(ini_robo_cfg["eef_ctrl"], "eef_frc_"+Problem::idToEndeffectorString(eff_id), this->endeffectorForce(eff_id));
+		YAML::ReadParameter(ini_robo_cfg["eef_ctrl"], "eef_frc_"+Problem::idToEndeffectorString(eff_id), this->endeffectorForce(eff_id));
 	  }
 	} catch (std::runtime_error& e) {
 	  std::cout << "Error reading parameter ["<< e.what() << "] at file: [" << __FILE__ << "]" << std::endl << std::endl;
