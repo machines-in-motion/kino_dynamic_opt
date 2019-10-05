@@ -114,7 +114,7 @@ def main(argv):
     try:
         motion_planner.replay_kinematics()
     except:
-        "gepeto not initialized..."
+        "gepetto not initialized..."
     motion_planner.save_files()
     simulation = False
     motion_planner.plot_foot_traj()
