@@ -65,12 +65,8 @@ class PinocchioKinematicsInterface(KinematicsInterface):
         for eff_id in range(0, len(self.eff_names)):
             kin_state.endeffector_positions[eff_id] = self.robot.data.oMf[self.robot.model.getFrameId(self.eff_names[eff_id])].translation
 
-
-'Main function for optimization demo'
-def main(argv, display=True):
-
+def parse_arguments(argv):
     cfg_file = ''
-    kinopt = KinematicsOptimizer
     try:
         opts, args = getopt.getopt(argv,"hi:m",["ifile="])
     except getopt.GetoptError:
@@ -83,53 +79,87 @@ def main(argv, display=True):
             sys.exit()
         elif opt in ("-i", "--ifile"):
             cfg_file = arg
-
+    
     print(opts)
     print(cfg_file)
 
+    if not os.path.exists(cfg_file):
+        raise RuntimeError("The config file " + cfg_file + " does not exist.")
+    
+    return cfg_file
+
+def optimize_the_motion(cfg_file):
+    """
+    Optimize the motion using the kino-dyn optimizer.
+    For the dynamics we use the centroidal dynamics solver from this package.
+    Fro the Kinematics we use a python written kinematics solver.
+    """
+    # create the planner
     motion_planner = MotionPlanner(cfg_file)
 
-    kin_optimizer = motion_planner.kin_optimizer
-    inv_kin = kin_optimizer.inv_kin
-    etg = kin_optimizer.endeff_traj_generator
+    # load all the parameters of the planner
+    etg = motion_planner.kin_optimizer.endeff_traj_generator
     etg.z_offset = motion_planner.planner_setting.get(PlannerDoubleParam_SwingTrajViaZ)
+    motion_planner.kin_optimizer.inv_kin.w_lin_mom_tracking = motion_planner.planner_setting.get(PlannerDoubleParam_WeightLinMomentumTracking)
+    motion_planner.kin_optimizer.inv_kin.w_ang_mom_tracking = motion_planner.planner_setting.get(PlannerDoubleParam_WeightAngMomentumTracking)
+    motion_planner.kin_optimizer.inv_kin.w_endeff_contact = motion_planner.planner_setting.get(PlannerDoubleParam_WeightEndEffContact)
+    motion_planner.kin_optimizer.inv_kin.w_endeff_tracking = motion_planner.planner_setting.get(PlannerDoubleParam_WeightEndEffTracking)
+    motion_planner.kin_optimizer.inv_kin.p_endeff_tracking = motion_planner.planner_setting.get(PlannerDoubleParam_PGainEndEffTracking)
+    motion_planner.kin_optimizer.inv_kin.p_com_tracking = motion_planner.planner_setting.get(PlannerDoubleParam_PGainComTracking)
+    motion_planner.kin_optimizer.inv_kin.w_joint_regularization = motion_planner.planner_setting.get(PlannerDoubleParam_WeightJointReg)
+    motion_planner.kin_optimizer.reg_orientation = motion_planner.planner_setting.get(PlannerDoubleParam_PGainOrientationTracking)
 
-    inv_kin.w_lin_mom_tracking = motion_planner.planner_setting.get(PlannerDoubleParam_WeightLinMomentumTracking)
-    inv_kin.w_ang_mom_tracking = motion_planner.planner_setting.get(PlannerDoubleParam_WeightAngMomentumTracking)
-    inv_kin.w_endeff_contact = motion_planner.planner_setting.get(PlannerDoubleParam_WeightEndEffContact)
-    inv_kin.w_endeff_tracking = motion_planner.planner_setting.get(PlannerDoubleParam_WeightEndEffTracking)
-    inv_kin.p_endeff_tracking = motion_planner.planner_setting.get(PlannerDoubleParam_PGainEndEffTracking)
-    inv_kin.p_com_tracking = motion_planner.planner_setting.get(PlannerDoubleParam_PGainComTracking)
-    inv_kin.w_joint_regularization = motion_planner.planner_setting.get(PlannerDoubleParam_WeightJointReg)
-    kin_optimizer.reg_orientation = motion_planner.planner_setting.get(PlannerDoubleParam_PGainOrientationTracking)
-
+    optimized_kin_plan, optimized_motion_eff, optimized_dyn_plan, \
+      dynamics_feedback, planner_setting, time_vector = \
+      motion_planner.optimize_motion()
 
     # Optimize the dynamic and kinematic motion.
-    optimized_kin_plan, optimized_motion_eff, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector = motion_planner.optimize_motion()
-    if(display):
+    return optimized_kin_plan, optimized_motion_eff, optimized_dyn_plan, \
+           dynamics_feedback, planner_setting, time_vector, motion_planner
+
+
+def main(argv):
+    """
+    Main function for optimization demo
+    """
+    cfg_file = parse_arguments(argv)
+    
+    (optimized_kin_plan,
+     optimized_motion_eff,
+     optimized_dyn_plan,
+     dynamics_feedback,
+     planner_setting,
+     time_vector,
+     motion_planner) = optimize_the_motion(cfg_file)
+    
+    display = True
+    if(display): # Display the Center of mass motion
         motion_planner.plot_com_motion(optimized_dyn_plan.dynamics_states, optimized_kin_plan.kinematics_states)
-    #for i in range(len(time_vector)):
-    #    print "\n t:",time_vector[i],"\n"
-    #    print dynamics_feedback.forceGain(i)
+        # for i in range(len(time_vector)):
+        #     print "\n t:",time_vector[i],"\n"
+        #     print dynamics_feedback.forceGain(i)
         # motion_planner.plot_centroidal()
-    if(display):
-        # Create configuration and velocity file from motion plan for dynamic graph
-        try:
-            motion_planner.replay_kinematics()
-        except:
-            "gepetto not initialized..."
+
+    # Create configuration and velocity file from motion plan for dynamic graph
+    try:
+        motion_planner.replay_kinematics()
+    except:
+        "gepetto not initialized..."
+
+    # Dump the computed trajectory in a files (should follow the dynamic graph format)
     motion_planner.save_files()
-    simulation = False
-    if(display):
+
+    if(display): # plot trajectories
         motion_planner.plot_foot_traj()
         motion_planner.plot_joint_trajecory()
         motion_planner.plot_com_motion(optimized_dyn_plan.dynamics_states, optimized_kin_plan.kinematics_states)
         #motion_planner.plot_base_trajecory()
 
+    # Potentially simulate the motion
+    simulation = False
     if simulation:
         motion_executor = MotionExecutor(optimized_kin_plan, optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector)
         motion_executor.execute_motion(plotting=False, tune_online=False)
-
 
     print('Done...')
 
