@@ -8,7 +8,7 @@ import pinocchio as se3
 from pinocchio.utils import zero
 from pymomentum import *
 
-from quadruped.quadruped_wrapper import QuadrupedWrapper
+from momentumopt.quadruped.quadruped_wrapper import QuadrupedWrapper
 from momentumopt.kinoptpy.min_jerk_traj import *
 
 from pymomentum import \

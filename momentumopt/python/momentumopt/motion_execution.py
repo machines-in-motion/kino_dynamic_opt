@@ -222,8 +222,8 @@ class MotionSimulator(object):
         else:
             physicsClient = p.connect(p.GUI)
 
-        urdf_base_string = str(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        planeId = p.loadURDF(urdf_base_string + "/urdf/plane_with_restitution.urdf")
+        urdf_base_string = str(os.path.dirname(os.path.abspath(__file__)))
+        planeId = p.loadURDF(os.path.joint(urdf_base_string, "urdf", "plane_with_restitution.urdf"))
         cubeStartPos = [0, 0, floor_height]
         cubeStartOrientation = p.getQuaternionFromEuler([0,0,0])
         self.robotId = p.loadURDF(urdf_base_string + "/urdf/quadruped.urdf",cubeStartPos, cubeStartOrientation, flags=p.URDF_USE_INERTIA_FROM_FILE)

@@ -25,10 +25,10 @@ from pinocchio.robot_wrapper import RobotWrapper
 import os, sys, getopt, numpy as np, pinocchio as pin
 
 from momentumopt.kinoptpy.momentum_kinematics_optimizer import MomentumKinematicsOptimizer
-from momentumexe.motion_execution import MotionExecutor
+from momentumopt.motion_execution import MotionExecutor
 from momentumopt.kinoptpy.create_data_file import create_file, create_qp_files, create_lqr_files
 
-from momentumopt.utilities.motion_planner import MotionPlanner
+from momentumopt.motion_planner import MotionPlanner
 
 import matplotlib.pyplot as plt
 
