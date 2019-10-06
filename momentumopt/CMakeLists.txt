@@ -164,10 +164,6 @@ if(CATKIN_ENABLE_TESTING)
   CATKIN_ADD_NOSETESTS(tests)
 endif()
 
-if (CATKIN_ENABLE_TESTING)
-  catkin_add_nosetests(tests/test_solo_generation.py)
-endif()
-
 #########
 # demos #
 #########
