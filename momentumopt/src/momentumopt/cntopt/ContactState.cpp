@@ -137,7 +137,7 @@ namespace momentumopt {
       try { planner_cfg = YAML::LoadFile(cfg_file.c_str()); }
       catch (std::runtime_error& e) {
           throw std::runtime_error(
-            "Error loading the yaml file " + cfg_file + " with error: " +
+            "Error opening the yaml file " + cfg_file + " with error:\n" +
             e.what() );
       }
       // load the local node	  
@@ -146,7 +146,7 @@ namespace momentumopt {
       catch (std::runtime_error& e) {
           throw std::runtime_error(
             "Error getting the contact_plan [" + contact_plan_name + 
-            "] with error: " + e.what());
+            "] with error:\n" + e.what());
       }
 
       num_optimization_viapoints_ = 0;
@@ -160,9 +160,10 @@ namespace momentumopt {
           this->endeffectorViapoints(eff_id).push_back(ViapointState(viapoints[via_id], num_optimization_viapoints_++));
       }
     } catch (std::runtime_error& e) {
-      std::cout << "From ["<< __FILE__"]: "
-                << "Error while loading the YAML file [" + cfg_file + "]. "
-                << "Error message is: " << e.what() << std::endl << std::endl;
+      std::cout << "From ["<< __FILE__"]:" << std::endl
+                << "Error while loading the YAML file [" + cfg_file + "]."<< std::endl
+                << "Error message is:" << std::endl
+                << e.what() << std::endl << std::endl;
     }
   }
 

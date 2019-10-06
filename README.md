@@ -40,12 +40,11 @@ git clone git@github.com:machines-in-motion/treep_machines_in_motion.git
 treep --clone KINO_DYN_PLANNER
 ```
 This operation should have cloned pacakges in `workspace/src/` which will be
-refered as the <work_folder>
-
+refered as the <work_folder>\
 Compile the code, by running the following commands in the <work_folder>
 ```
 cd workspace
-catkin_make
+catkin_make -DCMAKE_BUILD_TYPE=RELEASE
 ```
 
 Once the code has been compiled, you can source the setup.bash file in
@@ -103,6 +102,12 @@ automatically saves the `quadruped_positions.dat` and the `quadruped_velocities.
 
 Copyright (c) 2019, New York University and Max Planck Gesellschaft.
 
-## Author
+## Authors
 
-Brahayam Ponton (bponton@tue.mpg.de), Max Planck Institute for Intelligent System, Tubingen, Germany
+- Brahayam Ponton (<bponton@tue.mpg.de>) (1)
+- Majid Khadiv (<mkhadiv@tuebingen.mpg.de>) (1)
+- Julian Viereck (<jviereck@tuebingen.mpg.de>) (1)
+- Avadesh Meduri (<am9789@nyu.edu>) (1-2)
+
+(1): Max Planck Institute for Intelligent System, Tubingen, Germany \
+(2): New York University, New York, USA
