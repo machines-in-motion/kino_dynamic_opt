@@ -1,8 +1,9 @@
 import os
 
-import pinocchio as se3
+import numpy as np
+import pinocchio
 from pinocchio.robot_wrapper import RobotWrapper
-from pinocchio.utils import *
+from pinocchio.utils import zero
 from robot_properties_solo.config import SoloConfig, Solo12Config
 
 class BasicRobotWrapper(object):
@@ -11,10 +12,11 @@ class BasicRobotWrapper(object):
         self.model = None
         self.data = None
         self.q = None
+        self.q = pinocchio.neutral(self.robot.model)
 
     def set_configuration(self, q):
         self.q = q
-        se3.forwardKinematics(self.model, self.data, self.q)
+        pinocchio.forwardKinematics(self.model, self.data, self.q)
 
     def set_velocity(self, dq):
         self.dq = dq
@@ -23,17 +25,19 @@ class BasicRobotWrapper(object):
         self.ddq = ddq
 
     def update_configuration(self, delta_q):
-        self.q = se3.integrate(self.model, self.q, delta_q)
+        self.q = pinocchio.integrate(self.model, self.q, delta_q)
 
+        # pinocchio.forwardKinematics(self.model, self.data, self.q)
+        # pinocchio.framesKinematics(self.model, self.data)
     def get_difference(self, q_1, q_2):
-        return se3.difference(self.model, q_1, q_2)
+        return pinocchio.difference(self.model, q_1, q_2)
 
     def get_world_oriented_frame_jacobian(self, index):
         self.robot.forwardKinematics(self.q, self.dq)
         self.robot.computeJointJacobians(self.q)
         self.robot.framesForwardKinematics(self.q)
-        jac = se3.getFrameJacobian(self.model, self.data, index, se3.ReferenceFrame.LOCAL)
-        world_R_joint = se3.SE3(self.data.oMf[index].rotation, zero(3))
+        jac = pinocchio.getFrameJacobian(self.model, self.data, index, pinocchio.ReferenceFrame.LOCAL)
+        world_R_joint = pinocchio.SE3(self.data.oMf[index].rotation, zero(3))
         return world_R_joint.action.dot(jac)
 
     def get_jacobian(self, name, dofs=None, internal=True):
@@ -61,7 +65,7 @@ class BasicRobotWrapper(object):
                 index = self.model.getFrameId(name)
                 def eval_jac_internal():
                     return self.get_world_oriented_frame_jacobian(index)[range_, :]
-                    # return se3.frameJacobian(self.model, self.data, self.q, index, se3.ReferenceFrame.LOCAL)[range_, :]
+                    # return pinocchio.frameJacobian(self.model, self.data, self.q, index, pinocchio.ReferenceFrame.LOCAL)[range_, :]
                 return eval_jac_internal
         else:
             if name == "COM":
@@ -70,7 +74,7 @@ class BasicRobotWrapper(object):
                 index = self.model.getFrameId(name)
                 def eval_jac_at_q(q):
                     return self.get_world_oriented_frame_jacobian(index)[range_, :]
-                    # return se3.frameJacobian(self.model, self.data, q, index, se3.ReferenceFrame.LOCAL)[range_, :]
+                    # return pinocchio.frameJacobian(self.model, self.data, q, index, pinocchio.ReferenceFrame.LOCAL)[range_, :]
                 return eval_jac_at_q
 
     def get_centroidal_momentum(self):
@@ -120,7 +124,7 @@ class BasicRobotWrapper(object):
                 #print("delta_t:" , delta_t)
                 return (goal - transformation_func()) / delta_t
             elif dofs is None:
-                return se3.log(transformation_func().inverse() * goal).vector / delta_t
+                return pinocchio.log(transformation_func().inverse() * goal).vector / delta_t
             else:
                 raise ValueError("Implementation for %s not available" %dofs)
 
@@ -140,7 +144,7 @@ class BasicRobotWrapper(object):
     def display(self,q):
         #RobotWrapper.display(self,q)
         self.robot.display(q)
-        se3.updateFramePlacements(self.model,self.data)
+        pinocchio.updateFramePlacements(self.model,self.data)
         self.robot.viewer.gui.refresh()
 
 

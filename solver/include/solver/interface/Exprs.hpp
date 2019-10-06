@@ -34,7 +34,7 @@ namespace solver {
       double getValue() const;
       static bool isClean(const LinExpr& rhs);
       static LinExpr clean(const LinExpr& rhs);
-      int size() const { return vars_.size(); }
+      size_t size() const { return vars_.size(); }
       double& getConstant() { return constant_; }
       const Var& getVar(int i) const { return vars_[i]; }
       double getCoeff(int i) const { return coeffs_[i]; }

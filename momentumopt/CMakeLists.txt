@@ -5,9 +5,17 @@ project(momentumopt)
 # flags #
 #########
 
-set(BUILD_DOCUMENTATION OFF)
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake )
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -Wall -pedantic -O3 -funroll-loops -fPIC -Wno-return-type -Wno-reorder")
+# required to use std::shared_ptr in code and to link the python bindings
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--no-as-needed")
+endif()
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -g -Wall -pedantic -O3 -funroll-loops -fPIC")
+
+# ensuring path to libraries are set during install
+set(CMAKE_SKIP_BUILD_RPATH  FALSE)
+set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
 
 #####################
 # required packages #
@@ -142,13 +150,19 @@ catkin_python_setup()
 # tests #
 #########
 
-catkin_add_gtest(momentumopt_tests
+catkin_add_gtest(test_momentumopt
   tests/gtest_main.cpp
-  tests/TestMomentumopt.cpp
+  tests/test_momentumopt.cpp
 )
-target_link_libraries(momentumopt_tests momentumopt)
-set_target_properties(momentumopt_tests PROPERTIES
-    COMPILE_DEFINITIONS TEST_PATH="${TEST_PATH}/yaml_config_files/")
+target_link_libraries(test_momentumopt momentumopt)
+target_compile_definitions(test_momentumopt PRIVATE
+  CFG_SRC_PATH="${CONFIG_PATH}/"
+  TEST_PATH="${TEST_PATH}/yaml_config_files/"
+)
+
+if(CATKIN_ENABLE_TESTING)
+  CATKIN_ADD_NOSETESTS(tests)
+endif()
 
 if (CATKIN_ENABLE_TESTING)
   catkin_add_nosetests(tests/test_solo_generation.py)
@@ -161,3 +175,7 @@ add_executable(demo_momentumopt demos/DemoMomentumopt.cpp)
 target_link_libraries(demo_momentumopt momentumopt ${catkin_LIBRARIES})
 set_target_properties(demo_momentumopt PROPERTIES
     COMPILE_DEFINITIONS CFG_SRC_PATH="${CONFIG_PATH}/")
+##########################
+# building documentation #
+##########################
+build_doxygen_documentation()

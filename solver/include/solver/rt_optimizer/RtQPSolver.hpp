@@ -263,12 +263,12 @@ namespace rt_solver {
         RtVectorUtils::resize(A_old, p+m);
         RtVectorUtils::resize(iai, p+m);
         RtVectorUtils::resize(iaexcl, p+m);
-        int q;
+        // int q; // warning unusued
         int iq, iter = 0;
 
           me = p; /* number of equality constraints */
           mi = m; /* number of inequality constraints */
-          q = 0;  /* size of the active set A (containing the indices of the active constraints) */
+          // q = 0;  /* size of the active set A (containing the indices of the active constraints) */
 
           /*
            * Preprocessing phase
@@ -379,7 +379,7 @@ namespace rt_solver {
           if (std::abs(psi) <= mi * std::numeric_limits<double>::epsilon() * c1 * c2* 100.0)
           {
             /* numerically there are not infeasibilities anymore */
-            q = iq;
+            // q = iq;
             return f_value;
           }
 
@@ -399,7 +399,7 @@ namespace rt_solver {
           }
           if (ss >= 0.0)
           {
-            q = iq;
+            // q = iq;
             return f_value;
           }
 
@@ -456,7 +456,7 @@ namespace rt_solver {
           {
             /* QPP is infeasible */
             // FIXME: unbounded to raise
-            q = iq;
+            // q = iq;
             return inf;
           }
           /* case (ii): step in dual space */

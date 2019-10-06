@@ -32,13 +32,13 @@ namespace momentumopt {
   }
 
   ContactState::ContactState()
-    : time_ini_(0.),
-      time_end_(0.),
-      terrain_id_(-1),
-      optimization_id_(-1),
-      selected_as_active_(false),
+    : selected_as_active_(false),
       position_(Eigen::Vector3d::Zero()),
       contact_type_(ContactType::FreeContact),
+      time_ini_(0.),
+      time_end_(0.),
+      optimization_id_(-1),
+      terrain_id_(-1),
       orientation_(Eigen::Quaternion<double>::Identity())
   {
   }
@@ -79,7 +79,7 @@ namespace momentumopt {
       std::vector<Eigen::VectorXd> contacts;
       for (int eff_id=0; eff_id<Problem::n_endeffs_; eff_id++) {
         contacts.clear();
-        readParameter(contact_plan, ("effcnt_" + Problem::idToEndeffectorString(eff_id)).c_str(), contacts);
+        YAML::ReadParameter(contact_plan, ("effcnt_" + Problem::idToEndeffectorString(eff_id)).c_str(), contacts);
 
         this->endeffectorContacts(eff_id).clear();
         for (unsigned int cnt_id=0; cnt_id<contacts.size(); cnt_id++)
@@ -105,9 +105,9 @@ namespace momentumopt {
 
   // ViapointState functions implementation
   ViapointState::ViapointState()
-    : viapoint_id_(-2),
+    : position_(Eigen::Vector3d::Zero()),
       optimization_id_(-1),
-      position_(Eigen::Vector3d::Zero()),
+      viapoint_id_(-2),      
       orientation_(Eigen::Quaternion<double>::Identity())
   {
   }
@@ -132,21 +132,38 @@ namespace momentumopt {
   void ViapointSequence::loadFromFile(const std::string cfg_file, const std::string contact_plan_name)
   {
     try {
-      YAML::Node contact_cfg = YAML::LoadFile(cfg_file.c_str());
-      YAML::Node contact_plan = contact_cfg[contact_plan_name.c_str()];
+      // Load the Paramter file and make sure the error is understandable
+      YAML::Node planner_cfg;
+      try { planner_cfg = YAML::LoadFile(cfg_file.c_str()); }
+      catch (std::runtime_error& e) {
+          throw std::runtime_error(
+            "Error opening the yaml file " + cfg_file + " with error:\n" +
+            e.what() );
+      }
+      // load the local node	  
+      YAML::Node contact_plan;
+      try { contact_plan = planner_cfg[contact_plan_name.c_str()]; }
+      catch (std::runtime_error& e) {
+          throw std::runtime_error(
+            "Error getting the contact_plan [" + contact_plan_name + 
+            "] with error:\n" + e.what());
+      }
 
       num_optimization_viapoints_ = 0;
       std::vector<Eigen::VectorXd> viapoints;
       for (int eff_id=0; eff_id<Problem::n_endeffs_; eff_id++) {
         viapoints.clear();
-        readParameter(contact_plan, ("effvia_" + Problem::idToEndeffectorString(eff_id)).c_str(), viapoints);
+        YAML::ReadParameter(contact_plan, ("effvia_" + Problem::idToEndeffectorString(eff_id)).c_str(), viapoints);
 
         this->endeffectorViapoints(eff_id).clear();
         for (unsigned int via_id=0; via_id<viapoints.size(); via_id++)
           this->endeffectorViapoints(eff_id).push_back(ViapointState(viapoints[via_id], num_optimization_viapoints_++));
       }
     } catch (std::runtime_error& e) {
-      std::cout << "Error reading parameter ["<< e.what() << "] at file: [" << __FILE__ << "]" << std::endl << std::endl;
+      std::cout << "From ["<< __FILE__"]:" << std::endl
+                << "Error while loading the YAML file [" + cfg_file + "]."<< std::endl
+                << "Error message is:" << std::endl
+                << e.what() << std::endl << std::endl;
     }
   }
 

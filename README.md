@@ -6,36 +6,56 @@ This software provides methods for kino-dynamic optimization for multiped robots
 
 Please make sure to install the following packages:
 
+- the qp solver quadprog and the code manager
 ```
-pip install quadprog
+pip install quadprog treep
+```
+
+And catkin: https://docs.ros.org/api/catkin/html/
+- Ubuntu
+```
+sudo apt-get install [ros-distro]-catkin
+```
+- From source
+```
+mkdir devel
+cd devel
+git clone https://github.com/ros/catkin.git
+cd catkin
+mkdir _build
+cd _build
+cmake ..
+make
+sudo make install
 ```
 
 ## Getting started
+
 Clone the repository in the desired work folder <work_folder>
 ```
-git clone …
+mkdir devel
+cd devel
+git clone git@git-amd.tuebingen.mpg.de:amd-clmc/treep_amd_clmc.git
+git clone git@github.com:machines-in-motion/treep_machines_in_motion.git
+treep --clone KINO_DYN_PLANNER
 ```
-
+This operation should have cloned pacakges in `workspace/src/` which will be
+refered as the <work_folder>\
 Compile the code, by running the following commands in the <work_folder>
 ```
-cd kino-dynamic-opt
-./src/catkin/third_party/catkin/bin/catkin_make
+cd workspace
+catkin_make -DCMAKE_BUILD_TYPE=RELEASE
 ```
 
-Once the code has been compiled, you can source the setup.bash file
+Once the code has been compiled, you can source the setup.bash file in
+`devel/workspace/devel/setub.bash`
 ```
 source ./devel/setup.bash
 ```
 
-Also, make sure put the `devel/lib` folder in your PYTHONPATH
-
-```
-export PYTHONPATH=<you_current_kino-dynamic-op_dir>/devel/lib:$PYTHONPATH
-```
-
 ## Running a demo 
 ```
-cd <work_folder>/kino-dynamic-opt/src/catkin/motion_planning/momentumopt/demos
+cd <work_folder>/catkin/control/momentumopt/demos
 python3 ./PyDemoMomentumopt.py -i <path_to_config_file>
 ```
 For example plan and execute a jumping motion with
@@ -76,4 +96,18 @@ Executing
 ```
 python3 ./PyDemoMomentumopt.py -i <path_to_config_file>
 ```
-automatically saves the `quadruped_positions.dat` and the `quadruped_velocities.dat` files in the `<work_folder>/kino-dynamic-opt/src/catkin/motion_planning/momentumopt/demos` directory. These files can then be supplied to dynamic graph and for example executed on the real robot.  
+automatically saves the `quadruped_positions.dat` and the `quadruped_velocities.dat` files in the `<work_folder>/kino-dynamic-opt/src/catkin/motion_planning/momentumopt/demos` directory. These files can then be supplied to dynamic graph and for example executed on the real robot.
+
+## License
+
+Copyright (c) 2019, New York University and Max Planck Gesellschaft.
+
+## Authors
+
+- Brahayam Ponton (<bponton@tue.mpg.de>) (1)
+- Majid Khadiv (<mkhadiv@tuebingen.mpg.de>) (1)
+- Julian Viereck (<jviereck@tuebingen.mpg.de>) (1)
+- Avadesh Meduri (<am9789@nyu.edu>) (1-2)
+
+(1): Max Planck Institute for Intelligent System, Tubingen, Germany \
+(2): New York University, New York, USA

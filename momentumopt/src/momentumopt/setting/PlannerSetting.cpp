@@ -31,21 +31,35 @@ namespace momentumopt {
 
     try
     {
-	  YAML::Node planner_cfg = YAML::LoadFile(cfg_file.c_str());
-	  YAML::Node planner_vars = planner_cfg[planner_vars_yaml.c_str()];
+      // Load the Paramter file and make sure the error is understandable
+      YAML::Node planner_cfg;
+      try { planner_cfg = YAML::LoadFile(cfg_file.c_str()); }
+      catch (std::runtime_error& e) {
+          throw std::runtime_error(
+            "Error loading the yaml file " + cfg_file + " with error: " +
+            e.what() );
+      }
+      // load the local node	  
+      YAML::Node planner_vars;
+      try { planner_vars = planner_cfg[planner_vars_yaml.c_str()]; }
+      catch (std::runtime_error& e) {
+          throw std::runtime_error(
+            "Error getting the planner_vars_yaml [" + planner_vars_yaml + 
+            "] with error: " + e.what());
+      }
 
 	  // Kinematics parameters
-	  readParameter(planner_vars, "load_kinematics", load_kinematics_);
+	  YAML::ReadParameter(planner_vars, "load_kinematics", load_kinematics_);
       if (load_kinematics_) {
-	    readParameter(planner_vars, "num_dofs", num_dofs_);
-	    readParameter(planner_vars, "kd_iterations", kd_iterations_);
-	    readParameter(planner_vars, "num_subsamples", num_subsamples_);
-        readParameter(planner_vars, "display_motion", display_motion_);
-	    readParameter(planner_vars, "min_joint_limits", min_joint_limits_);
-        readParameter(planner_vars, "max_joint_limits", max_joint_limits_);
-        readParameter(planner_vars, "default_joint_positions", default_joint_positions_);
+	    YAML::ReadParameter(planner_vars, "num_dofs", num_dofs_);
+	    YAML::ReadParameter(planner_vars, "kd_iterations", kd_iterations_);
+	    YAML::ReadParameter(planner_vars, "num_subsamples", num_subsamples_);
+        YAML::ReadParameter(planner_vars, "display_motion", display_motion_);
+	    YAML::ReadParameter(planner_vars, "min_joint_limits", min_joint_limits_);
+        YAML::ReadParameter(planner_vars, "max_joint_limits", max_joint_limits_);
+        YAML::ReadParameter(planner_vars, "default_joint_positions", default_joint_positions_);
 
-        readParameter(planner_vars, "active_dofs", active_dofs_);
+        YAML::ReadParameter(planner_vars, "active_dofs", active_dofs_);
         extended_active_dofs_ = Eigen::VectorXi(active_dofs_.size()+6).setZero();
         for (int dof_id=0; dof_id<6; dof_id++) { extended_active_dofs_[dof_id] = dof_id; }
         for (int dof_id=0; dof_id<active_dofs_.size(); dof_id++) { extended_active_dofs_[6+dof_id] = 6+active_dofs_[dof_id]; }
@@ -54,115 +68,113 @@ namespace momentumopt {
     //
 
 	  // Dynamics parameters
-	  readParameter(planner_vars, "num_com_viapoints", num_com_viapoints_);
+	  YAML::ReadParameter(planner_vars, "num_com_viapoints", num_com_viapoints_);
 	  com_viapoints_.clear();
 	  for (int via_id=0; via_id<num_com_viapoints_; via_id++) {
 	    com_viapoints_.push_back(Eigen::Vector4d::Zero());
-	    readParameter(planner_vars["com_viapoints"], "via"+std::to_string(via_id), com_viapoints_[via_id]);
+	    YAML::ReadParameter(planner_vars["com_viapoints"], "via"+std::to_string(via_id), com_viapoints_[via_id]);
 	  }
-	  readParameter(planner_vars, "time_step", time_step_);
-	  readParameter(planner_vars, "n_act_eefs", num_act_eefs_);
-	  readParameter(planner_vars, "time_horizon", time_horizon_);
-      readParameter(planner_vars, "min_rel_height", min_rel_height_);
-	  readParameter(planner_vars, "external_force", external_force_);
-      readParameter(planner_vars, "com_displacement", com_displacement_);
-      if (readParameter<std::string>(planner_vars, "heuristic").compare("TrustRegion")==0) { heuristic_ = Heuristic::TrustRegion; }
-      else if (readParameter<std::string>(planner_vars, "heuristic").compare("SoftConstraint")==0) { heuristic_ = Heuristic::SoftConstraint; }
-      else if (readParameter<std::string>(planner_vars, "heuristic").compare("TimeOptimization")==0) { heuristic_ = Heuristic::TimeOptimization; }
+	  YAML::ReadParameter(planner_vars, "time_step", time_step_);
+	  YAML::ReadParameter(planner_vars, "n_act_eefs", num_act_eefs_);
+	  YAML::ReadParameter(planner_vars, "time_horizon", time_horizon_);
+      YAML::ReadParameter(planner_vars, "min_rel_height", min_rel_height_);
+	  YAML::ReadParameter(planner_vars, "external_force", external_force_);
+      YAML::ReadParameter(planner_vars, "com_displacement", com_displacement_);
+      if (YAML::ReadParameter<std::string>(planner_vars, "heuristic").compare("TrustRegion")==0) { heuristic_ = Heuristic::TrustRegion; }
+      else if (YAML::ReadParameter<std::string>(planner_vars, "heuristic").compare("SoftConstraint")==0) { heuristic_ = Heuristic::SoftConstraint; }
+      else if (YAML::ReadParameter<std::string>(planner_vars, "heuristic").compare("TimeOptimization")==0) { heuristic_ = Heuristic::TimeOptimization; }
       else { heuristic_ = Heuristic::SoftConstraint; }
 
       // Time optimization parameters
       if (heuristic_ == Heuristic::TimeOptimization) {
-        readParameter(planner_vars, "max_time_iterations", max_time_iterations_);
-        readParameter(planner_vars, "max_time_residual_tolerance", max_time_residual_tolerance_);
-        readParameter(planner_vars, "min_time_residual_improvement", min_time_residual_improvement_);
+        YAML::ReadParameter(planner_vars, "max_time_iterations", max_time_iterations_);
+        YAML::ReadParameter(planner_vars, "max_time_residual_tolerance", max_time_residual_tolerance_);
+        YAML::ReadParameter(planner_vars, "min_time_residual_improvement", min_time_residual_improvement_);
       }
 
       // Configuration parameters
-      readParameter(planner_vars, "gravity", gravity_);
-      readParameter(planner_vars, "robot_mass", robot_mass_);
-      readParameter(planner_vars, "floor_height", floor_height_);
-      readParameter(planner_vars, "torque_range", torque_range_);
-      readParameter(planner_vars, "friction_coeff", friction_coeff_);
-      readParameter(planner_vars, "max_eef_lengths", max_eef_lengths_);
+      YAML::ReadParameter(planner_vars, "gravity", gravity_);
+      YAML::ReadParameter(planner_vars, "robot_mass", robot_mass_);
+      YAML::ReadParameter(planner_vars, "floor_height", floor_height_);
+      YAML::ReadParameter(planner_vars, "torque_range", torque_range_);
+      YAML::ReadParameter(planner_vars, "friction_coeff", friction_coeff_);
+      YAML::ReadParameter(planner_vars, "max_eef_lengths", max_eef_lengths_);
       if (heuristic_ == Heuristic::TimeOptimization) {
-        readParameter(planner_vars, "time_range", time_range_);
-        readParameter(planner_vars, "is_time_horizon_fixed", is_time_horizon_fixed_);
+        YAML::ReadParameter(planner_vars, "time_range", time_range_);
+        YAML::ReadParameter(planner_vars, "is_time_horizon_fixed", is_time_horizon_fixed_);
       }
       for (int eff_id=0; eff_id<Problem::n_endeffs_; eff_id++) {
-    	    readParameter(planner_vars, "cop_range_"+Problem::idToEndeffectorString(eff_id), cop_range_[eff_id]);
-    	    readParameter(planner_vars, "eff_offset_"+Problem::idToEndeffectorString(eff_id), eff_offset_[eff_id]);
+    	    YAML::ReadParameter(planner_vars, "cop_range_"+Problem::idToEndeffectorString(eff_id), cop_range_[eff_id]);
+    	    YAML::ReadParameter(planner_vars, "eff_offset_"+Problem::idToEndeffectorString(eff_id), eff_offset_[eff_id]);
       }
-      is_friction_cone_linear_= (readParameter<std::string>(planner_vars, "friction_cone").compare("LinearCone")==0);
+      is_friction_cone_linear_= (YAML::ReadParameter<std::string>(planner_vars, "friction_cone").compare("LinearCone")==0);
 
       // Dynamics weights
-      readParameter(planner_vars, "w_com", w_com_);
-      readParameter(planner_vars, "w_amom", w_amom_);
-      readParameter(planner_vars, "w_lmom", w_lmom_);
-      readParameter(planner_vars, "w_amomd", w_amomd_);
-      readParameter(planner_vars, "w_lmomd", w_lmomd_);
-      readParameter(planner_vars, "w_com_via", w_com_via_);
-      readParameter(planner_vars, "w_trq_arm", w_trq_arm_);
-      readParameter(planner_vars, "w_trq_leg", w_trq_leg_);
-      readParameter(planner_vars, "w_frc_arm", w_frc_arm_);
-      readParameter(planner_vars, "w_frc_leg", w_frc_leg_);
-      readParameter(planner_vars, "w_dfrc_arm", w_dfrc_arm_);
-      readParameter(planner_vars, "w_dfrc_leg", w_dfrc_leg_);
-      readParameter(planner_vars, "w_amom_final", w_amom_final_);
-      readParameter(planner_vars, "w_lmom_final", w_lmom_final_);
-      readParameter(planner_vars, "w_com_track" , w_com_track_ );
-      readParameter(planner_vars, "w_lmom_track", w_lmom_track_);
-      readParameter(planner_vars, "w_amom_track", w_amom_track_);
+      YAML::ReadParameter(planner_vars, "w_com", w_com_);
+      YAML::ReadParameter(planner_vars, "w_amom", w_amom_);
+      YAML::ReadParameter(planner_vars, "w_lmom", w_lmom_);
+      YAML::ReadParameter(planner_vars, "w_amomd", w_amomd_);
+      YAML::ReadParameter(planner_vars, "w_lmomd", w_lmomd_);
+      YAML::ReadParameter(planner_vars, "w_com_via", w_com_via_);
+      YAML::ReadParameter(planner_vars, "w_trq_arm", w_trq_arm_);
+      YAML::ReadParameter(planner_vars, "w_trq_leg", w_trq_leg_);
+      YAML::ReadParameter(planner_vars, "w_frc_arm", w_frc_arm_);
+      YAML::ReadParameter(planner_vars, "w_frc_leg", w_frc_leg_);
+      YAML::ReadParameter(planner_vars, "w_dfrc_arm", w_dfrc_arm_);
+      YAML::ReadParameter(planner_vars, "w_dfrc_leg", w_dfrc_leg_);
+      YAML::ReadParameter(planner_vars, "w_amom_final", w_amom_final_);
+      YAML::ReadParameter(planner_vars, "w_lmom_final", w_lmom_final_);
+      YAML::ReadParameter(planner_vars, "w_com_track" , w_com_track_ );
+      YAML::ReadParameter(planner_vars, "w_lmom_track", w_lmom_track_);
+      YAML::ReadParameter(planner_vars, "w_amom_track", w_amom_track_);
 
       if (heuristic_ == Heuristic::TimeOptimization) {
-        readParameter(planner_vars, "w_time", w_time_);
-        readParameter(planner_vars, "w_time_penalty", w_time_penalty_);
+        YAML::ReadParameter(planner_vars, "w_time", w_time_);
+        YAML::ReadParameter(planner_vars, "w_time_penalty", w_time_penalty_);
       }
 
-      // Kinematics weights
       if (load_kinematics_) {
-	    readParameter(planner_vars, "w_kin_com", w_kin_com_);
-	    readParameter(planner_vars, "w_kin_lmom", w_kin_lmom_);
-	    readParameter(planner_vars, "w_kin_amom", w_kin_amom_);
-	    readParameter(planner_vars, "w_kin_lmomd", w_kin_lmomd_);
-	    readParameter(planner_vars, "w_kin_amomd", w_kin_amomd_);
-	    readParameter(planner_vars, "w_kin_eff_pos", w_kin_eff_pos_);
-	    readParameter(planner_vars, "w_kin_base_ori", w_kin_base_ori_);
-	    readParameter(planner_vars, "w_kin_joint_vel", w_kin_joint_vel_);
-	    readParameter(planner_vars, "w_kin_joint_acc", w_kin_joint_acc_);
-        readParameter(planner_vars, "slacks_penalty", kin_slacks_penalty_);
-	    readParameter(planner_vars, "integration_step", kin_integration_step_);
-	    readParameter(planner_vars, "w_kin_eff_pos_nonact", w_kin_eff_pos_nonact_);
-	    readParameter(planner_vars, "w_kin_default_joints", w_kin_default_joints_);
-	    readParameter(planner_vars, "max_trajectory_iters", max_trajectory_iters_);
-	    readParameter(planner_vars, "max_convergence_iters", max_convergence_iters_);
-	    readParameter(planner_vars, "convergence_tolerance", convergence_tolerance_);
-        readParameter(planner_vars, "lambda_regularization", lambda_regularization_);
-      }
-
-      //kinematic momentum optimization
-      readParameter(planner_vars, "swing_traj_via_z", swing_traj_via_z_);
-      readParameter(planner_vars, "w_lin_mom_tracking", w_lin_mom_tracking_);
-      readParameter(planner_vars, "w_ang_mom_tracking", w_ang_mom_tracking_);
-      readParameter(planner_vars, "w_endeff_contact", w_endeff_contact_);
-      readParameter(planner_vars, "w_endeff_tracking", w_endeff_tracking_);
-      readParameter(planner_vars, "p_endeff_tracking", p_endeff_tracking_);
-      readParameter(planner_vars, "p_com_tracking", p_com_tracking_);
-      readParameter(planner_vars, "w_joint_regularization", w_joint_regularization_);
-      readParameter(planner_vars, "reg_orientation", reg_orientation_);
-
-      readParameter(planner_vars, "num_joint_viapoints", num_joint_viapoints_);
-      joint_viapoints_.clear();
-      for (int via_id=0; via_id<num_joint_viapoints_; via_id++) {
-        joint_viapoints_.push_back(Eigen::Vector4d::Zero());
-        readParameter(planner_vars["joint_viapoints"], "via"+std::to_string(via_id), joint_viapoints_[via_id]);
+        // Kinematics solver c++ paramters
+	      YAML::ReadParameter(planner_vars, "w_kin_com", w_kin_com_);
+	      YAML::ReadParameter(planner_vars, "w_kin_lmom", w_kin_lmom_);
+	      YAML::ReadParameter(planner_vars, "w_kin_amom", w_kin_amom_);
+	      YAML::ReadParameter(planner_vars, "w_kin_lmomd", w_kin_lmomd_);
+	      YAML::ReadParameter(planner_vars, "w_kin_amomd", w_kin_amomd_);
+	      YAML::ReadParameter(planner_vars, "w_kin_eff_pos", w_kin_eff_pos_);
+	      YAML::ReadParameter(planner_vars, "w_kin_base_ori", w_kin_base_ori_);
+	      YAML::ReadParameter(planner_vars, "w_kin_joint_vel", w_kin_joint_vel_);
+	      YAML::ReadParameter(planner_vars, "w_kin_joint_acc", w_kin_joint_acc_);
+        YAML::ReadParameter(planner_vars, "slacks_penalty", kin_slacks_penalty_);
+	      YAML::ReadParameter(planner_vars, "integration_step", kin_integration_step_);
+	      YAML::ReadParameter(planner_vars, "w_kin_eff_pos_nonact", w_kin_eff_pos_nonact_);
+	      YAML::ReadParameter(planner_vars, "w_kin_default_joints", w_kin_default_joints_);
+	      YAML::ReadParameter(planner_vars, "max_trajectory_iters", max_trajectory_iters_);
+	      YAML::ReadParameter(planner_vars, "max_convergence_iters", max_convergence_iters_);
+	      YAML::ReadParameter(planner_vars, "convergence_tolerance", convergence_tolerance_);
+        YAML::ReadParameter(planner_vars, "lambda_regularization", lambda_regularization_);
+        // Kinematics solver python paramters
+        YAML::ReadParameter(planner_vars, "swing_traj_via_z", swing_traj_via_z_);
+        YAML::ReadParameter(planner_vars, "w_lin_mom_tracking", w_lin_mom_tracking_);
+        YAML::ReadParameter(planner_vars, "w_ang_mom_tracking", w_ang_mom_tracking_);
+        YAML::ReadParameter(planner_vars, "w_endeff_contact", w_endeff_contact_);
+        YAML::ReadParameter(planner_vars, "w_endeff_tracking", w_endeff_tracking_);
+        YAML::ReadParameter(planner_vars, "p_endeff_tracking", p_endeff_tracking_);
+        YAML::ReadParameter(planner_vars, "p_com_tracking", p_com_tracking_);
+        YAML::ReadParameter(planner_vars, "w_joint_regularization", w_joint_regularization_);
+        YAML::ReadParameter(planner_vars, "reg_orientation", reg_orientation_);
+        YAML::ReadParameter(planner_vars, "num_joint_viapoints", num_joint_viapoints_);
+        joint_viapoints_.clear();
+        for (int via_id=0; via_id<num_joint_viapoints_; via_id++) {
+          joint_viapoints_.push_back(Eigen::Vector4d::Zero());
+          YAML::ReadParameter(planner_vars["joint_viapoints"], "via"+std::to_string(via_id), joint_viapoints_[via_id]);
+        }
       }
 
       // Storage information
-      readParameter(planner_vars, "store_data", store_data_);
+      YAML::ReadParameter(planner_vars, "store_data", store_data_);
 
       // Solver setting
-      readParameter(planner_vars, "use_default_solver_setting", use_default_solver_setting_);
+      YAML::ReadParameter(planner_vars, "use_default_solver_setting", use_default_solver_setting_);
 
       num_act_dofs_ = active_dofs_.size();
       mass_times_gravity_ = robot_mass_ * gravity_;
@@ -172,7 +184,9 @@ namespace momentumopt {
     }
     catch (std::runtime_error& e)
     {
-      std::cout << "Error reading parameter ["<< e.what() << "] at file: [" << __FILE__ << "]" << std::endl << std::endl;
+      std::cout << "From ["<< __FILE__"]: "
+                << "Error while loading the YAML file [" + cfg_file + "]."
+                << "Error message is: " << e.what() << std::endl << std::endl;
     }
   }
 
