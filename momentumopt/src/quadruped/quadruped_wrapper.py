@@ -12,7 +12,6 @@ class BasicRobotWrapper(object):
         self.model = None
         self.data = None
         self.q = None
-        self.q = pinocchio.neutral(self.robot.model)
 
     def set_configuration(self, q):
         self.q = q
@@ -165,6 +164,7 @@ class QuadrupedWrapper(BasicRobotWrapper):
         # Create data again after setting frames
         self.model = self.robot.model
         self.data = self.robot.data
+        q = pinocchio.neutral(self.robot.model)
         if not q is None:
             self.set_configuration(q)
         else:
@@ -211,6 +211,7 @@ class Quadruped12Wrapper(BasicRobotWrapper):
         # Create data again after setting frames
         self.model = self.robot.model
         self.data = self.robot.data
+        q = pinocchio.neutral(self.robot.model)
         if not q is None:
             self.set_configuration(q)
         else:

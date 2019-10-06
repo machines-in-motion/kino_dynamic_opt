@@ -56,12 +56,12 @@ class TestQuadrupedMotions(unittest.TestCase):
         """
         Optimize and test the solver
         """
-        if yaml_file = "":
+        if yaml_file == "":
             return
 
         optimized_kin_plan, optimized_motion_eff, optimized_dyn_plan, \
           dynamics_feedback, planner_setting, time_vector, motion_planner = \
-          optimize_the_motion(yaml_file)
+          optimize_the_motion(yaml_file, , plot_com_motion=False)
 
         self.display_motion(motion_planner)
          

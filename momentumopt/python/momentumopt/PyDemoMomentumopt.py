@@ -88,7 +88,7 @@ def parse_arguments(argv):
     
     return cfg_file
 
-def optimize_the_motion(cfg_file):
+def optimize_the_motion(cfg_file, plot_com_motion=True):
     """
     Optimize the motion using the kino-dyn optimizer.
     For the dynamics we use the centroidal dynamics solver from this package.
@@ -111,7 +111,7 @@ def optimize_the_motion(cfg_file):
 
     optimized_kin_plan, optimized_motion_eff, optimized_dyn_plan, \
       dynamics_feedback, planner_setting, time_vector = \
-      motion_planner.optimize_motion()
+      motion_planner.optimize_motion(plot_com_motion)
 
     # Optimize the dynamic and kinematic motion.
     return optimized_kin_plan, optimized_motion_eff, optimized_dyn_plan, \
