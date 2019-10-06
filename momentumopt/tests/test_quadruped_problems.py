@@ -33,9 +33,12 @@ class TestQuadrupedMotions(unittest.TestCase):
         assert(path.exists(yaml_config_dir))
 
         # Load the robot from URDF-model
-        self.robot = QuadrupedWrapper("")
-        self.robot.initDisplay()
-        self.robot.display(self.robot.q)
+        try:
+            self.robot = QuadrupedWrapper("")
+            self.robot.initDisplay()
+            self.robot.display(self.robot.q)
+        except:
+            "gepetto not initialized..."
 
         # Start the recording of the video
         super(TestQuadrupedMotions, self).setUp()
@@ -61,7 +64,7 @@ class TestQuadrupedMotions(unittest.TestCase):
 
         optimized_kin_plan, optimized_motion_eff, optimized_dyn_plan, \
           dynamics_feedback, planner_setting, time_vector, motion_planner = \
-          optimize_the_motion(yaml_file, , plot_com_motion=False)
+          optimize_the_motion(yaml_file, plot_com_motion=False)
 
         self.display_motion(motion_planner)
          
