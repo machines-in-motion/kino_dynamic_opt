@@ -243,8 +243,7 @@ class MotionSimulator(object):
         print(p.getPhysicsEngineParameters())
 
         # Create the pinocchio robot.
-        urdf = str(os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/urdf/quadruped.urdf')
-        self.robot = QuadrupedWrapper(urdf)
+        self.robot = QuadrupedWrapper()
 
         self.controlled_joints = ['BL_HFE', 'BL_KFE', 'BR_HFE', 'BR_KFE', 'FL_HFE', 'FL_KFE', 'FR_HFE', 'FR_KFE']
 

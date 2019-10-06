@@ -176,7 +176,8 @@ class MomentumKinematicsOptimizer(object):
         self.kinematics_sequence.resize(self.planner_setting.get(PlannerIntParam_NumTimesteps),
                                         self.planner_setting.get(PlannerIntParam_NumDofs))
 
-    def initialize(self, planner_setting, max_iterations=50, eps=0.001, endeff_traj_generator=None):
+    def initialize(self, planner_setting, max_iterations=50, eps=0.001, endeff_traj_generator=None,
+                   RobotWrapper=QuadrupedWrapper):
         self.planner_setting = planner_setting
 
         if endeff_traj_generator is None:
@@ -189,10 +190,7 @@ class MomentumKinematicsOptimizer(object):
         self.max_iterations = max_iterations
         self.eps = eps
 
-        # Load the robot from URDF-model
-        urdf = str(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + '/urdf/quadruped.urdf')
-        # print("urdf_path:", urdf)
-        self.robot = QuadrupedWrapper(urdf)
+        self.robot = RobotWrapper()
 
         self.reset()
 
@@ -276,8 +274,16 @@ class MomentumKinematicsOptimizer(object):
     def optimize_initial_position(self, init_state):
         # Optimize the initial configuration
         q = self.robot.model.neutralConfiguration.copy()
-        q[7:] = np.matrix(
-            self.planner_setting.get(PlannerVectorParam_KinematicDefaultJointPositions)).T
+
+        plan_joint_init_pos = self.planner_setting.get(
+            PlannerVectorParam_KinematicDefaultJointPositions)
+        if len(plan_joint_init_pos) != self.robot.num_ctrl_joints:
+            raise ValueError(
+                'Number of joints in config file not same as required for robot\n' +
+                'Got %d joints but robot expects %d joints.' % (
+                    len(plan_joint_init_pos), self.robot.num_ctrl_joints))
+
+        q[7:] = np.matrix(plan_joint_init_pos).T
         q[2] = self.robot.floor_height + 0.32
         dq = np.matrix(np.zeros(self.robot.robot.nv)).T
 
@@ -294,7 +300,7 @@ class MomentumKinematicsOptimizer(object):
             # Adding small P controller for the base orientation to always start with flat
             # oriented base.
             quad_q = se3.Quaternion(float(q[6]), float(q[3]), float(q[4]), float(q[5]))
-            amom_ref = 1e-2 * se3.log((quad_goal * quad_q.inverse()).matrix())
+            amom_ref = 1e-1 * se3.log((quad_goal * quad_q.inverse()).matrix())
 
             res = self.inv_kin.compute(q, dq, com_ref, lmom_ref, amom_ref,
                                       endeff_pos_ref, endeff_vel_ref, endeff_contact, None)

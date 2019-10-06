@@ -4,63 +4,15 @@ import numpy as np
 import pinocchio
 from pinocchio.robot_wrapper import RobotWrapper
 from pinocchio.utils import zero
-from robot_properties_solo.config import SoloConfig
+from robot_properties_solo.config import SoloConfig, Solo12Config
 
-class QuadrupedWrapper():
+class BasicRobotWrapper(object):
 
-    def __init__(self, urdf, dt=0.01, q=None):
-        self.effs = ["FR", "FL", "HR", "HL"]  # order is important
-        self.colors = {"HL": "r", "HR": "y", "FL": "b", "FR": "g"}
-        self.joints_list = ["HFE", "KFE", "ANKLE"]
-        self.floor_height = 0.
-
-        self.robot = SoloConfig.buildRobotWrapper()
-
-        # Create data again after setting frames
-        self.model = self.robot.model
-        self.data = self.robot.data
-        if not q is None:
-            self.set_configuration(q)
-        else:
-            self.q = None
-        self.M_com = None
-        self.dt = 0.01
-        self.mass = sum([i.mass for i in self.model.inertias[1:]])
-
-        self.set_init_config()
-        self.init_jacobians_and_trafos()
-
-    def set_init_config(self):
-        model = self.model
-        data = self.data
-        NQ = model.nq
-        NV = model.nv
-        self.q, self.dq, self.ddq, tau = zero(NQ), zero(NV), zero(NV), zero(NV)
-
+    def __init__(self):
+        self.model = None
+        self.data = None
+        self.q = None
         self.q = pinocchio.neutral(self.robot.model)
-        self.q[2] = self.floor_height
-
-        self.num_ctrl_joints = 8
-
-        # Set initial configuration
-        angle = np.deg2rad(60.0)
-        q_dummy = np.zeros(self.num_ctrl_joints)
-        q_dummy[:int(self.num_ctrl_joints / 2)] = - angle
-        q_dummy[:int(self.num_ctrl_joints / 2):2] = 0.5 * angle
-        q_dummy[int(self.num_ctrl_joints / 2):] = angle
-        q_dummy[int(self.num_ctrl_joints / 2)::2] = - 0.5 * angle
-
-        q_reshape = np.reshape(q_dummy, (self.num_ctrl_joints, 1))
-
-        q_reshape[0, 0] = - angle / 2
-        q_reshape[1, 0] = angle
-        q_reshape[2, 0] = - angle / 2
-        q_reshape[3, 0] = angle
-
-        self.q[7:] = q_reshape
-
-        # print(self.q)
-        self.set_configuration(self.q)
 
     def set_configuration(self, q):
         self.q = q
@@ -75,10 +27,8 @@ class QuadrupedWrapper():
     def update_configuration(self, delta_q):
         self.q = pinocchio.integrate(self.model, self.q, delta_q)
 
-        # Compute joint and frame placements
         # pinocchio.forwardKinematics(self.model, self.data, self.q)
         # pinocchio.framesKinematics(self.model, self.data)
-
     def get_difference(self, q_1, q_2):
         return pinocchio.difference(self.model, q_1, q_2)
 
@@ -180,33 +130,6 @@ class QuadrupedWrapper():
 
         return eval_vel
 
-    def init_jacobians_and_trafos(self):
-        # Create dictionary for jacobians
-        self.jacobians_dict = {}
-        # Create jacobian for COM
-        self.jacobians_dict["COM"] = self.get_jacobian("COM")
-        self.jacobians_dict["base_link"] = self.get_jacobian("base_link")
-        # Create dictionary for transformations
-        self.transformations_dict = {}
-        # Create transformation for COM
-        self.transformations_dict["COM"] = self.get_transformation("COM")
-        self.transformations_dict["COM_GOAL"] = self.transformations_dict["COM"]().copy()
-        self.transformations_dict["base_link"] = self.get_transformation("base_link")
-        self.transformations_dict["base_link_GOAL"] = self.transformations_dict["base_link"]().copy()
-
-        # Hip, knee and end effector jacobians and transformations
-        for eff in self.effs:
-            for joint in self.joints_list:
-                joint_identifier = eff + "_" + joint
-                self.jacobians_dict[joint_identifier] = self.get_jacobian(joint_identifier, "TRANSLATION")
-                self.transformations_dict[joint_identifier] = self.get_transformation(joint_identifier, "TRANSLATION")
-
-            # Create transformations for goal states
-            self.transformations_dict[eff + "_END_GOAL"] = self.transformations_dict[eff + "_" + self.joints_list[-1]]().copy()
-
-        self.centroidal_momentum = self.get_centroidal_momentum()
-        self.d_centroidal_momentum = self.get_d_centroidal_momentum()
-
     def initDisplay(self, loadModel=True):
         self.robot.initDisplay(loadModel=loadModel)
         self.robot.viewer.gui.addFloor('world/floor')
@@ -224,8 +147,100 @@ class QuadrupedWrapper():
         pinocchio.updateFramePlacements(self.model,self.data)
         self.robot.viewer.gui.refresh()
 
+
+class QuadrupedWrapper(BasicRobotWrapper):
+
+    def __init__(self, q=None):
+        super(QuadrupedWrapper, self).__init__()
+
+        self.effs = ["FR", "FL", "HR", "HL"]  # order is important
+        self.colors = {"HL": "r", "HR": "y", "FL": "b", "FR": "g"}
+        self.joints_list = ["HFE", "KFE", "ANKLE"]
+        self.floor_height = 0.
+
+        self.robot = SoloConfig.buildRobotWrapper()
+
+        self.num_ctrl_joints = 8
+
+        # Create data again after setting frames
+        self.model = self.robot.model
+        self.data = self.robot.data
+        if not q is None:
+            self.set_configuration(q)
+        else:
+            self.q = None
+        self.M_com = None
+        self.mass = sum([i.mass for i in self.model.inertias[1:]])
+        self.set_init_config()
+
+    def set_init_config(self):
+        model = self.model
+        data = self.data
+        NQ = model.nq
+        NV = model.nv
+        self.q, self.dq, self.ddq, tau = zero(NQ), zero(NV), zero(NV), zero(NV)
+
+        self.q = self.robot.model.neutralConfiguration.copy()
+        self.q[2] = self.floor_height
+
+        # Set initial configuration
+        angle = np.deg2rad(60.0)
+        q_dummy = np.zeros(self.num_ctrl_joints)
+        q_dummy[:] = angle
+        q_dummy[::2] = -0.5 * angle
+        self.q[7:] = q_dummy.reshape([self.num_ctrl_joints, 1])
+
+        # print(self.q)
+        self.set_configuration(self.q)
+
+
+class Quadruped12Wrapper(BasicRobotWrapper):
+
+    def __init__(self, q=None):
+        super(Quadruped12Wrapper, self).__init__()
+
+        self.effs = ["FR", "FL", "HR", "HL"]  # order is important
+        self.colors = {"HL": "r", "HR": "y", "FL": "b", "FR": "g"}
+        self.joints_list = ["HAA", "HFE", "KFE", "ANKLE"]
+        self.floor_height = 0.
+
+        self.robot = Solo12Config.buildRobotWrapper()
+
+        self.num_ctrl_joints = 12
+
+        # Create data again after setting frames
+        self.model = self.robot.model
+        self.data = self.robot.data
+        if not q is None:
+            self.set_configuration(q)
+        else:
+            self.q = None
+        self.M_com = None
+        self.mass = sum([i.mass for i in self.model.inertias[1:]])
+        self.set_init_config()
+
+    def set_init_config(self):
+        model = self.model
+        data = self.data
+        NQ = model.nq
+        NV = model.nv
+        self.q, self.dq, self.ddq, tau = zero(NQ), zero(NV), zero(NV), zero(NV)
+
+        self.q = self.robot.model.neutralConfiguration.copy()
+        self.q[2] = self.floor_height
+
+        # Set initial configuration
+        angle = np.deg2rad(60.0)
+        q_dummy = np.zeros(self.num_ctrl_joints)
+        q_dummy[2::3] = angle
+        q_dummy[1:3] = -0.5 * angle
+
+        self.q[7:] = np.reshape(q_dummy, (self.num_ctrl_joints, 1))
+
+        # print(self.q)
+        self.set_configuration(self.q)
+
+
 ############################ For debugging ##########################################
 
-# urdf = str(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + '/src/urdf/quadruped.urdf')
-# # # print("urdf_path:", urdf)
-# robot = QuadrupedWrapper(urdf)
+# robot = QuadrupedWrapper()

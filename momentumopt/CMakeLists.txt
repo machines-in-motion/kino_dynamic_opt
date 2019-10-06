@@ -129,6 +129,23 @@ target_link_libraries(momentumopt ${momentumopt_LIBS})
 set_target_properties(momentumopt PROPERTIES
     COMPILE_DEFINITIONS CFG_SRC_PATH="${CONFIG_PATH}/")
 
+###################
+# python bindings #
+###################
+
+pybind11_add_module(pymomentum ${pymomentumopt_SRC_FILES})
+target_link_libraries(pymomentum PRIVATE momentumopt)
+set_target_properties(pymomentum PROPERTIES
+         LIBRARY_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_PYTHON_DESTINATION})
+install(TARGETS pymomentum DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
+
+################
+# python setup #
+################
+
+catkin_python_setup()
+
+
 #########
 # tests #
 #########
@@ -147,6 +164,10 @@ if(CATKIN_ENABLE_TESTING)
   CATKIN_ADD_NOSETESTS(tests)
 endif()
 
+if (CATKIN_ENABLE_TESTING)
+  catkin_add_nosetests(tests/test_solo_generation.py)
+endif()
+
 #########
 # demos #
 #########
@@ -154,23 +175,6 @@ add_executable(demo_momentumopt demos/DemoMomentumopt.cpp)
 target_link_libraries(demo_momentumopt momentumopt ${catkin_LIBRARIES})
 set_target_properties(demo_momentumopt PROPERTIES
     COMPILE_DEFINITIONS CFG_SRC_PATH="${CONFIG_PATH}/")
-
-###################
-# python bindings #
-###################
-
-pybind11_add_module(pymomentum ${pymomentumopt_SRC_FILES})
-target_link_libraries(pymomentum PRIVATE momentumopt)
-set_target_properties(pymomentum PROPERTIES
-         LIBRARY_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_PYTHON_DESTINATION})
-install(TARGETS pymomentum DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
-
-################
-# python setup #
-################
-
-catkin_python_setup()
-
 ##########################
 # building documentation #
 ##########################
