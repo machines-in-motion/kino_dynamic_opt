@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#! /usr/bin/python
 
 '''
  Copyright [2017] Max Planck Society. All rights reserved.
@@ -142,6 +142,7 @@ def main(argv):
 
     # Create configuration and velocity file from motion plan for dynamic graph
     try:
+        print("Replay the kinematics.")
         motion_planner.replay_kinematics()
     except:
         "gepetto not initialized..."
@@ -164,4 +165,4 @@ def main(argv):
     print('Done...')
 
 if __name__ == "__main__":
-   main(sys.argv[1:])
+    main(sys.argv[1:])
