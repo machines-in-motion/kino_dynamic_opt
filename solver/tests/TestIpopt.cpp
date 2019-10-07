@@ -1,10 +1,12 @@
-// Copyright (C) 2004, 2009 International Business Machines and others.
-// All Rights Reserved.
-// This code is published under the Eclipse Public License.
-//
-// $Id: cpp_example.cpp 2005 2011-06-06 12:55:16Z stefan $
-//
-// Authors:  Carl Laird, Andreas Waechter     IBM    2004-11-05
+/**
+ * @file TestIpopt.cpp
+ * @author Carl Laird, Andreas Waechter     IBM    2004-11-05
+ * @license This code is published under the Eclipse Public License.
+ * @copyright Copyright (C) 2004, 2009 International Business Machines and others. All Rights Reserved.
+ * @date 2019-10-07
+ * 
+ * @brief $Id: cpp_example.cpp 2005 2011-06-06 12:55:16Z stefan $
+ */
 
 #include <iostream>
 #include <gtest/gtest.h>

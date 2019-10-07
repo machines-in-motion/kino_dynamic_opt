@@ -1,16 +1,23 @@
-/* Copyright 2018, Gurobi Optimization, LLC */
-
-/* This example formulates and solves the following simple QP model:
-
-     minimize    x + y + x^2 + x*y + y^2 + y*z + z^2
-     subject to  x + 2 y + 3 z >= 4
-                 x +   y       >= 1
-
-   The example illustrates the use of dense matrices to store A and Q
-   (and dense vectors for the other relevant data).  We don't recommend
-   that you use dense matrices, but this example may be helpful if you
-   already have your data in this format.
-*/
+/**
+ * @file TestGurobi.cpp
+ * @author Brahayam Ponton (brahayam.ponton@tuebingen.mpg.de)
+ * @license License BSD-3-Clause
+ * @copyright Copyright 2018, Gurobi Optimization, LLC
+ * @date 2019-10-07
+ * 
+ * @brief Formulate a classic optimization problem
+ * 
+ * This example formulates and solves the following simple QP model:
+ *
+ *    minimize    x + y + x^2 + x*y + y^2 + y*z + z^2
+ *    subject to  x + 2 y + 3 z >= 4
+ *                x +   y       >= 1
+ *
+ *  The example illustrates the use of dense matrices to store A and Q
+ *  (and dense vectors for the other relevant data).  We don't recommend
+ *  that you use dense matrices, but this example may be helpful if you
+ *  already have your data in this format.
+ */
 
 #include <iostream>
 #include <gurobi_c++.h>

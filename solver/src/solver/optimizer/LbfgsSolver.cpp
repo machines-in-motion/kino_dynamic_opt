@@ -1,8 +1,12 @@
-/*
- *      Limited memory BFGS (L-BFGS).
- *
- * Copyright (c) 1990, Jorge Nocedal
- * Copyright (c) 2007-2010 Naoaki Okazaki
+/**
+ * @file LbfgsSolver.cpp
+ * @author Jorge Nocedal
+ * @license License BSD-3-Clause
+ * @copyright 1990, Jorge Nocedal
+ * @copyright 2007-2010 Naoaki Okazaki
+ * @date 2019-10-06
+ * @brief C library of Limited memory BFGS (L-BFGS).
+ * 
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,6 +26,7 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
+ * 
  */
 
 /*

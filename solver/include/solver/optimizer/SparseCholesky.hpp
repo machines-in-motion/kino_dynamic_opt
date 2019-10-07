@@ -1,6 +1,9 @@
-/*
- *
- * LDL Copyright (c) 2005-2012 by Timothy A. Davis. http://www.suitesparse.com
+/**
+ * @file SparseCholesky.hpp
+ * @license License BSD-3-Clause
+ * @date 2019-10-06
+ * @author Timothy A. Davis
+ * @copyright LDL Copyright (c) 2005-2012 by Timothy A. Davis. http://www.suitesparse.com
  *
  * LDL License:
  *
@@ -37,8 +40,8 @@
  *    http://www.suitesparse.com
  *
  * Stripped down by Alexander Domahidi, 2012.
- * Modified to c++ code by Max Planck Society, 2017.
- *
+ * Modified to c++ code by New York University and Max Planck Gesellschaft, 2017 
+ * 
  */
 
 #pragma once

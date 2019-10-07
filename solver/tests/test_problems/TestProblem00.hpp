@@ -1,10 +1,12 @@
-// Copyright (C) 2004, 2006 International Business Machines and others.
-// All Rights Reserved.
-// This code is published under the Eclipse Public License.
-//
-// $Id: MyNLP.hpp 1861 2010-12-21 21:34:47Z andreasw $
-//
-// Authors:  Carl Laird, Andreas Waechter     IBM    2004-11-05
+/**
+ * @file TestProblem00.hpp
+ * @author Carl Laird, Andreas Waechter
+ * @license Eclipse Public License
+ * @copyright 2004, 2006 International Business Machines and others. All Rights Reserved.
+ * @date 2004
+ * 
+ * $Id: MyNLP.hpp 1861 2010-12-21 21:34:47Z andreasw $
+ */
 
 #pragma once
 
