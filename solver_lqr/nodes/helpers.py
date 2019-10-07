@@ -1,3 +1,15 @@
+#!/usr/bin/python
+
+'''
+@package helper
+@author Brahayam Ponton (brahayam.ponton@tuebingen.mpg.de)
+@license License BSD-3-Clause
+@copyright Copyright (c) 2019, New York University and Max Planck Gesellschaft.
+@date 2019-10-07
+
+Use example: ipython ../../../scripts/display.py -- -i ./cfg_demo01_lqr_results.yaml
+'''
+
 import numpy as np
 import yaml, math, matplotlib
 import matplotlib.pyplot as plt
@@ -52,7 +64,7 @@ class Graphics:
                 self.data.ctrl_ff = np.matrix(cfg_pars['solverlqr_variables']['control_ff'])
                 for id in range(0, self.data.tdim):
                     self.data.ctrl_fb.insert(id, np.matrix(cfg_pars['solverlqr_variables']['control_fb_'+str(id)]))
-                if (self.data.name == "PointMassForce"): 
+                if (self.data.name == "PointMassForce"):
                     self.data.extravar = np.matrix(cfg_pars['forces'])
                     self.frc_plot = True
                 if (self.data.name == "TwoDofArmForce"): 

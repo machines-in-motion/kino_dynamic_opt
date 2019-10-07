@@ -1,6 +1,12 @@
 #!/usr/bin/python
 
 '''
+@package display
+@author Brahayam Ponton (brahayam.ponton@tuebingen.mpg.de)
+@license License BSD-3-Clause
+@copyright Copyright (c) 2019, New York University and Max Planck Gesellschaft.
+@date 2019-10-07
+
 Use example: ipython ../../../scripts/display.py -- -i ./cfg_demo01_lqr_results.yaml
 '''
 
