@@ -1,7 +1,15 @@
-### computes gains using lqr in the centroidal space for solo (assumes legs are weightless)
-### Performs a backward pass to compute gains using a trajectory
-### Author: Bilal Hammoud 
-### Date:6/5/2019
+'''
+@file lqr_gain_manifold.py
+@package momentumopt
+@author Bilal Abdelnasser Hammoud (bah436@nyu.edu)
+@license License BSD-3-Clause
+@copyright Copyright (c) 2019, New York University and Max Planck Gesellschaft.
+@date 2019-06-05
+
+Computes gains using lqr in the end_effector space for solo
+(assumes legs are weightless) and performs a backward pass to compute gains
+using a trajectory
+'''
 
 
 import numpy as np
@@ -126,7 +134,7 @@ class CentroidalLqr:
         return qexp
 
     def log_quaternion(self, q):
-        """ lives on the tangent space of SO(3) """
+        ''' lives on the tangent space of SO(3) '''
         v = q[:3]
         w = q[3]
         vnorm = np.linalg.norm(v)
@@ -136,22 +144,22 @@ class CentroidalLqr:
             return 2*np.arctan2(vnorm, w) * v / vnorm  
 
     def quaternion_product(self, q1, q2):
-        """ computes quaternion product of q1 x q2 """
+        ''' computes quaternion product of q1 x q2 '''
         p = np.zeros(4)
         p[:3] = np.cross(q1[:3], q2[:3]) + q2[3]*q1[:3] + q1[3]*q2[:3]
         p[3] = q1[3]*q2[3] - q1[:3].dot(q2[:3])
         return p
 
     def integrate_quaternion(self, q, w):
-        """ updates quaternion with tangent vector w """
+        ''' updates quaternion with tangent vector w '''
         dq = self.exp_quaternion(.5*w)
         return self.quaternion_product(dq,q)
 
     def quaternion_difference(self, q1, q2):
-        """computes the tangent vector from q1 to q2 at Identity
+        '''computes the tangent vector from q1 to q2 at Identity
         returns vecotr w  
         s.t. q2 = exp(.5 * w)*q1  
-         """
+         '''
         # first compute dq s.t.  q2 = q1*dq
         q1conjugate = np.array([-q1[0],-q1[1],-q1[2],q1[3]])
         # order of multiplication is very essential here 
@@ -177,12 +185,12 @@ class CentroidalLqr:
 
 
     def integrate_step(self, t, x, u):
-        """ state vector x is given by x = [c, v, q, w] where
+        ''' state vector x is given by x = [c, v, q, w] where
         c: center of mass cartesian position
         v: center of mass linear velocity
         q: base orientation represented as a quaternion
         w: base angular velocity
-         """
+         '''
         cnext = x[:3] + self.dt * x[3:6]
         vnext = x[3:6] + (self.dt/self.mass) * (self.active_contacts[t]*u[:3] - self.weight) 
         qnext = self.integrate_quaternion(x[6:10], self.dt * x[10:13])
@@ -193,7 +201,7 @@ class CentroidalLqr:
         return np.hstack([cnext, vnext, qnext, wnext])
 
     def increment_x(self, x, dx):
-        """ perturbs x with dx """
+        ''' perturbs x with dx '''
         # com pos
         dc = x[:3] + dx[:3]
         # com vel 
@@ -205,15 +213,15 @@ class CentroidalLqr:
         return np.hstack([dc, dv, dq, dw])
 
     def diff_x(self, x1, x2):
-        """ return the difference between x2 and x1 as x2 (-) x1 on the manifold 
-        """
+        ''' return the difference between x2 and x1 as x2 (-) x1 on the manifold 
+        '''
         dcv = x2[:6] - x1[:6]
         dq = self.quaternion_difference(x1[6:10], x2[6:10])  
         dw = x2[10:] - x1[10:]
         return np.hstack([dcv, dq, dw])
 
     def dynamics_derivatives(self, t, x, u):
-        """ computes df/dx and df/du using finite differentiation """
+        ''' computes df/dx and df/du using finite differentiation '''
         fx = np.zeros((self.nx, self.nx))
         fu = np.zeros((self.nx, self.m))
         dx = np.zeros(self.nx)
@@ -234,8 +242,8 @@ class CentroidalLqr:
         return fx, fu  
 
     def cost(self, t, x, u):
-        """ a tracking cost for state and controls 
-            here we assume x0 to be the reference trajectory """
+        ''' a tracking cost for state and controls 
+            here we assume x0 to be the reference trajectory '''
         dx = self.diff_x(self.x0[t], x)
         if t == self.N:
             return  dx.T.dot(self.Q[t]).dot(dx)
@@ -245,7 +253,7 @@ class CentroidalLqr:
         #     raise BaseException, 'time index is greater than the horizon'
 
     def cost_derivatives(self, t, x, u):
-        """ compute cx, cxx, cu, cuu, cxu using finite differences """
+        ''' compute cx, cxx, cu, cuu, cxu using finite differences '''
         c0 = self.cost(t, x, u)
         cx = np.zeros(self.nx)
         cu = np.zeros(self.m)
@@ -367,7 +375,7 @@ class CentroidalLqr:
         
     @staticmethod
     def _smooth_inv(m):
-        """ adds positive value to eigen values before inverting """
+        ''' adds positive value to eigen values before inverting '''
         w, v = np.linalg.eigh(m)
         w_inv = w / (w ** 2 + 1e-2)
         return v.dot(np.diag(w_inv)).dot(v.transpose())
@@ -395,8 +403,8 @@ class CentroidalLqr:
 
 
     def compute_gains(self):
-        """ performs a backward pass to compute the lqr gain for the 
-        reference trajectories """
+        ''' performs a backward pass to compute the lqr gain for the 
+        reference trajectories '''
 
         N = self.N
         self.value[N] = self.cost(N, self.x0[N], np.zeros(self.m))

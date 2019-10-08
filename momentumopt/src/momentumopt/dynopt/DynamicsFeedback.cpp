@@ -1,3 +1,11 @@
+/**
+ * @file DynamicsFeedback.cpp
+ * @author Brahayam Ponton (brahayam.ponton@tuebingen.mpg.de)
+ * @license License BSD-3-Clause
+ * @copyright Copyright (c) 2019, New York University and Max Planck Gesellschaft.
+ * @date 2019-10-08
+ */
+
 #include <yaml_cpp_catkin/yaml_eigen.h>
 #include <momentumopt/dynopt/DynamicsFeedback.hpp>
 

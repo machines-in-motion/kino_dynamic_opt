@@ -1,4 +1,13 @@
-""" here we test all the functionalities of lqr_gain__manifold """
+'''
+@file test_lqr.py
+@package momentumopt
+@author Brahayam Ponton (brahayam.ponton@tuebingen.mpg.de)
+@license License BSD-3-Clause
+@copyright Copyright (c) 2019, New York University and Max Planck Gesellschaft.
+@date 2019-10-08
+
+here we test all the functionalities of lqr_gain__manifold
+'''
 
 # TODO: test dynamics integration if it matches with trajectory generated from planner
 # TODO: test dynamics derivatives derivatives

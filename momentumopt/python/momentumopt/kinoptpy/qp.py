@@ -1,3 +1,12 @@
+'''
+@file qp.py
+@package momentumopt
+@author Brahayam Ponton (brahayam.ponton@tuebingen.mpg.de)
+@license License BSD-3-Clause
+@copyright Copyright (c) 2019, New York University and Max Planck Gesellschaft.
+@date 2019-10-08
+'''
+
 from numpy import *
 # from cvxopt import matrix, spmatrix
 # from cvxopt.solvers import options, qp
@@ -7,7 +16,7 @@ from quadprog import solve_qp
 
 class QpSolver():
     def quadprog_solve_qp(self, P, q, G=None, h=None, A=None, b=None, initvals=None):
-        """
+        '''
         Solve a Quadratic Program defined as:
 
             minimize
@@ -45,7 +54,7 @@ class QpSolver():
         ----
         The quadprog solver only considers the lower entries of `P`, therefore it
         will use a wrong cost function if a non-symmetric matrix is provided.
-        """
+        '''
         if initvals is not None:
             print("quadprog: note that warm-start values ignored by wrapper")
         qp_G = P

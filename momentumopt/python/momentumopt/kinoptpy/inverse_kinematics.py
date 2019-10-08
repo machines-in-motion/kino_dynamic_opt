@@ -1,3 +1,12 @@
+'''
+@file inverse_kinematics.py
+@package momentumopt
+@author Brahayam Ponton (brahayam.ponton@tuebingen.mpg.de)
+@license License BSD-3-Clause
+@copyright Copyright (c) 2019, New York University and Max Planck Gesellschaft.
+@date 2019-10-08
+'''
+
 import numpy as np
 from momentumopt.kinoptpy.qp import QpSolver
 from pinocchio import RobotWrapper
@@ -106,7 +115,7 @@ class PointContactInverseKinematics(object):
         self.last_dq = dq.copy()
 
     def compute(self, q, dq, com_ref, lmom_ref, amom_ref, endeff_pos_ref, endeff_vel_ref, endeff_contact, joint_regularization_ref):
-        """
+        '''
         Arguments:
             q: Current robot state
             dq: Current robot velocity
@@ -115,7 +124,7 @@ class PointContactInverseKinematics(object):
             amom_ref: Reference angular momentum in global coordinates
             endeff_pos_ref: [N_endeff x 3] Reference endeffectors position in global coordinates
             endeff_vel_ref: [N_endeff x 3] Reference endeffectors velocity in global coordinates
-        """
+        '''
         if not np.all(np.equal(self.last_q, q)) or np.all(np.equal(self.last_dq, dq)):
             self.forward_robot(q, dq)
 

@@ -1,5 +1,18 @@
-### computes gains using lqr in the end_effector space for solo (assumes legs are weightless)
-### Performs a backward pass to compute gains using a trajectory
+'''
+@file end_eff_lqr_gain_computation.py
+@package momentumopt
+@author Avadesh Meduri (am9789@nyu.edu)
+@license License BSD-3-Clause
+@copyright Copyright (c) 2019, New York University and Max Planck Gesellschaft.
+@date 2019-06-05
+
+Computes gains using lqr in the end_effector space for solo
+(assumes legs are weightless) and performs a backward pass to compute gains
+using a trajectory
+'''
+
+### 
+### 
 ### Author: Avadesh meduri
 ### Date:6/5/2019
 

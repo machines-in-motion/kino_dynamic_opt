@@ -4,7 +4,7 @@
   <version>1.0.0</version>
   <description>Optimization Routine for Centroidal Momentum Dynamics</description>
   <maintainer email="bponton@tue.mpg.de">Autonomous Motion Lab - MPI-IS</maintainer>
-  <license>TODO</license>
+  <license>BSD 3-Clause</license>
   
   <buildtool_depend>catkin</buildtool_depend>
   

@@ -1,3 +1,12 @@
+'''
+@file momentum_kinematics_optimizer.py
+@package momentumopt
+@author Brahayam Ponton (brahayam.ponton@tuebingen.mpg.de)
+@license License BSD-3-Clause
+@copyright Copyright (c) 2019, New York University and Max Planck Gesellschaft.
+@date 2019-10-08
+'''
+
 import os
 import numpy as np
 
@@ -93,13 +102,13 @@ class EndeffectorTrajectoryGenerator(object):
         return z_max, z_min
 
     def __call__(self, mom_kin_optimizer):
-        """
+        '''
         Computes the endeffector positions and velocities.
 
         Returns endeff_pos_ref, endeff_vel_ref
             [0]: endeff_pos_ref: np.array, shape=[num_time_steps, num_eff, 3={x, y, z}]
             [1]: endeff_vel_ref: np.array, shape=[num_time_steps, num_eff, 3={x, y, z}]
-        """
+        '''
         dt = mom_kin_optimizer.dt
         num_eff = len(mom_kin_optimizer.eff_names)
         num_time_steps = mom_kin_optimizer.num_time_steps

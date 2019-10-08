@@ -1,3 +1,12 @@
+'''
+@file min_jerk_traj.py
+@package momentumopt
+@author Brahayam Ponton (brahayam.ponton@tuebingen.mpg.de)
+@license License BSD-3-Clause
+@copyright Copyright (c) 2019, New York University and Max Planck Gesellschaft.
+@date 2019-10-08
+'''
+
 import numpy as np
 import pdb
 
@@ -147,10 +156,10 @@ def poly_points(t, y_from, y_to, via=None):
 
 
 class PolynominalList(object):
-    """
+    '''
     This class holds a list of polynominals over different time windows
     and for a given time evaluates the corresponding polynominal.
-    """
+    '''
     def __init__(self):
         self.polynominals = []
         self.times = []
