@@ -10,18 +10,16 @@
 '''
 
 import time
-from pysolver import *
-from pymomentum import *
-from pysolverlqr import *
-
 import numpy as np
 import matplotlib.pyplot as plt
 
+from quadruped.quadruped_wrapper import QuadrupedWrapper
+from pysolver import *
+from pysolverlqr import *
+
+from pymomentum import *
 from momentumopt.kinoptpy.momentum_kinematics_optimizer import MomentumKinematicsOptimizer, EndeffectorTrajectoryGenerator, JointTrajectoryGenerator
 from momentumopt.kinoptpy.create_data_file import create_file, create_qp_files, create_lqr_files
-
-from quadruped.quadruped_wrapper import QuadrupedWrapper
-
 
 def create_time_vector(dynamics_sequence):
     num_time_steps = len(dynamics_sequence.dynamics_states)

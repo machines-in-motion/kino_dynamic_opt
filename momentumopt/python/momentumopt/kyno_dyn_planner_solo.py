@@ -22,49 +22,20 @@ from momentumopt.motion_execution import MotionExecutor
 from momentumopt.kinoptpy.create_data_file import create_file, create_qp_files, create_lqr_files
 
 from momentumopt.motion_planner import MotionPlanner
+from quadruped.quadruped_wrapper import QuadrupedWrapper, Quadruped12Wrapper
 
 import matplotlib.pyplot as plt
-
-'Kinematics Interface using Pinocchio'
-class PinocchioKinematicsInterface(KinematicsInterface):
-    def __init__(self):
-        KinematicsInterface.__init__(self)
-
-    def initialize(self, planner_setting):
-        urdf = str(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + '/urdf/quadruped.urdf')
-        #print("urdf_path:", urdf)
-        self.robot = RobotWrapper(urdf, root_joint=pin.JointModelFreeFlyer())
-        self.eff_names = {0: "BL_END", 1: "FL_END", 2: "BR_END", 3: "FR_END"}
-
-    def updateJacobians(self, kin_state):
-        'Generalized joint positions and velocities'
-        self.q = np.matrix(np.squeeze(np.asarray(kin_state.robot_posture.generalized_joint_positions()))).transpose()
-        self.dq = np.matrix(np.squeeze(np.asarray(kin_state.robot_velocity.generalized_joint_velocities))).transpose()
-
-        'Update of jacobians'
-        self.robot.computeJointJacobians(self.q);
-        self.robot.framesForwardKinematics(self.q)
-        for eff_id in range(0, len(self.eff_names)):
-            self.endeffector_jacobians[eff_id] = self.robot.getFrameJacobian(self.robot.model.getFrameId(self.eff_names[eff_id]), pin.ReferenceFrame.WORLD)
-
-        self.robot.centroidalMomentum(self.q, self.dq)
-        self.centroidal_momentum_matrix = self.robot.data.Ag
-
-        'Update of kinematics state'
-        kin_state.com = self.robot.com(self.q)
-        kin_state.lmom = self.robot.data.hg.vector[:3]
-        kin_state.amom = self.robot.data.hg.vector[3:]
-
-        for eff_id in range(0, len(self.eff_names)):
-            kin_state.endeffector_positions[eff_id] = self.robot.data.oMf[self.robot.model.getFrameId(self.eff_names[eff_id])].translation
 
 def parse_arguments(argv):
     cfg_file = ''
     try:
-        opts, args = getopt.getopt(argv,"hi:m",["ifile="])
+        opts, args = getopt.getopt(argv,"hi:m",["ifile=", "solo12", "disable_lqr"])
     except getopt.GetoptError:
         print ('PyDemoMomentumopt.py -i <path_to_datafile>')
         sys.exit(2)
+
+    RobotWrapper = QuadrupedWrapper
+    with_lqr = True
 
     for opt, arg in opts:
         if opt == '-h':
@@ -72,23 +43,25 @@ def parse_arguments(argv):
             sys.exit()
         elif opt in ("-i", "--ifile"):
             cfg_file = arg
-    
+        elif opt in ("--solo12"):
+            RobotWrapper = Quadruped12Wrapper
+        elif opt in ("--disable_lqr"):
+            with_lqr = False
+
     print(opts)
     print(cfg_file)
 
     if not os.path.exists(cfg_file):
         raise RuntimeError("The config file " + cfg_file + " does not exist.")
     
-    return cfg_file
+    return cfg_file, RobotWrapper, with_lqr
 
-def optimize_the_motion(cfg_file, plot_com_motion=True):
+def build_optimization(cfg_file, RobotWrapper, with_lqr):
     """
-    Optimize the motion using the kino-dyn optimizer.
-    For the dynamics we use the centroidal dynamics solver from this package.
-    Fro the Kinematics we use a python written kinematics solver.
+    Build the optimization problem
     """
     # create the planner
-    motion_planner = MotionPlanner(cfg_file)
+    motion_planner = MotionPlanner(cfg_file, MomentumKinematicsOptimizer, RobotWrapper, with_lqr)
 
     # load all the parameters of the planner
     etg = motion_planner.kin_optimizer.endeff_traj_generator
@@ -102,28 +75,38 @@ def optimize_the_motion(cfg_file, plot_com_motion=True):
     motion_planner.kin_optimizer.inv_kin.w_joint_regularization = motion_planner.planner_setting.get(PlannerDoubleParam_WeightJointReg)
     motion_planner.kin_optimizer.reg_orientation = motion_planner.planner_setting.get(PlannerDoubleParam_PGainOrientationTracking)
 
+    return motion_planner
+
+def optimize_the_motion(motion_planner, plot_com_motion=True):
+    """
+    Optimize the motion using the kino-dyn optimizer.
+    For the dynamics we use the centroidal dynamics solver from this package.
+    Fro the Kinematics we use a python written kinematics solver.
+    """
+
     optimized_kin_plan, optimized_motion_eff, optimized_dyn_plan, \
       dynamics_feedback, planner_setting, time_vector = \
       motion_planner.optimize_motion(plot_com_motion)
 
     # Optimize the dynamic and kinematic motion.
     return optimized_kin_plan, optimized_motion_eff, optimized_dyn_plan, \
-           dynamics_feedback, planner_setting, time_vector, motion_planner
+           dynamics_feedback, planner_setting, time_vector
 
 
 def main(argv):
     """
     Main function for optimization demo
     """
-    cfg_file = parse_arguments(argv)
-    
+    cfg_file, RobotWrapper, with_lqr = parse_arguments(argv)
+
+    motion_planner = build_optimization(cfg_file, RobotWrapper, with_lqr)
+
     (optimized_kin_plan,
      optimized_motion_eff,
      optimized_dyn_plan,
      dynamics_feedback,
      planner_setting,
-     time_vector,
-     motion_planner) = optimize_the_motion(cfg_file)
+     time_vector) = optimize_the_motion(motion_planner)
     
     display = True
     if(display): # Display the Center of mass motion
