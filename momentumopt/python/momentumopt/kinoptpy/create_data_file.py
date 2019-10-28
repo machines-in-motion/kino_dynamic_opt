@@ -22,6 +22,7 @@ def create_file(time_vector, optimized_sequence, optimized_dyn_plan, dynamics_fe
     desired_gen_vel = desired_state("GENERALIZED_VELOCITY", time_vector, optimized_sequence=optimized_sequence)
     desired_gen_acc = desired_state("GENERALIZED_ACCELERATION", time_vector, optimized_sequence=optimized_sequence)
     desired_com = desired_state("COM", time_vector, optimized_sequence=optimized_sequence)
+    desired_com = desired_state("COM_VEL", time_vector, optimized_sequence=optimized_sequence)
     desired_lmom = desired_state("LMOM", time_vector, optimized_sequence=optimized_sequence)
     desired_amom = desired_state("AMOM", time_vector, optimized_sequence=optimized_sequence)
 
@@ -344,7 +345,7 @@ def create_lqr_files(time_vector, optimized_motion_eff, optimized_sequence, opti
         # np.savetxt("quadruped_lmom_with_horizon.dat", des_lmom)
         # np.savetxt("quadruped_forces_with_horizon_part1.dat", des_forces[:,0:37])
         # np.savetxt("quadruped_forces_with_horizon_part2.dat", des_forces[:,37:])
-        # np.savetxt("quadruped_quaternio_with_horizon.dat", des_quaternion)
+        # np.savetxt("quadruped_quaternion_with_horizon.dat", des_quaternion)
         # np.savetxt("quadruped_base_ang_velocities_with_horizon.dat", des_base_ang_velocities)
         np.savetxt("quadruped_positions_abs_with_horizon_part.dat", des_positions_abs)
         # np.savetxt("quadruped_positions_abs_with_horizon_part2.dat", des_positions_abs[:,37:])

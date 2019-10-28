@@ -14,7 +14,6 @@ from pysolver import *
 from pymomentum import *
 from pysolverlqr import *
 from pinocchio.utils import *
-from pinocchio.robot_wrapper import RobotWrapper
 import os, sys, getopt, numpy as np, pinocchio as pin
 
 from momentumopt.kinoptpy.momentum_kinematics_optimizer import MomentumKinematicsOptimizer

@@ -17,14 +17,58 @@ here we test all the functionalities of lqr_gain__manifold
 
 
 import unittest
+import tempfile
+import os
+from os import path
 import numpy as np
-import lqr_gain_manifold
-import pinocchio as se3
 import matplotlib.pyplot as plt
+import eigenpy
+eigenpy.switchToNumpyMatrix()
+import pinocchio as se3
+
+from momentumopt.quadruped.quadruped_wrapper import QuadrupedWrapper
+from momentumopt.kyno_dyn_planner_solo import optimize_the_motion, build_optimization
+from momentumopt.kinoptpy import lqr_gain_manifold
+
+
+class cd:
+    """Context manager for changing the current working directory"""
+    def __init__(self, newPath):
+        self.newPath = os.path.expanduser(newPath)
+
+    def __enter__(self):
+        self.savedPath = os.getcwd()
+        os.chdir(self.newPath)
+
+    def __exit__(self, etype, value, traceback):
+        os.chdir(self.savedPath)
+
+
 class TestDifferentialDynamicProgramming(unittest.TestCase):
+    """Test class for the lqr on a specific test case (quadruped jump)"""
+
+    def setUp(self):
+        # create an empty directory
+        self.data_dir = tempfile.mkdtemp()
+
+        # compute and plan some trajectories using the lqr solver
+        yaml_config_dir = path.dirname(path.abspath(path.curdir))
+        yaml_config_dir = path.join(yaml_config_dir, "config")
+        yaml_config = path.join(yaml_config_dir, "cfg_quadruped_jump.yaml")
+        with_lqr = True
+        motion_planner = build_optimization(yaml_config, QuadrupedWrapper, with_lqr)
+        optimize_the_motion(motion_planner, plot_com_motion=False)
+        with cd(self.data_dir):
+            motion_planner.save_qp_files()
+
+        super(TestDifferentialDynamicProgramming, self).setUp()
+    
+    def tearDown(self):
+        super(TestDifferentialDynamicProgramming, self).tearDown()
+
     def test_initialization(self):
         """ check dimensions upon initialization """
-        lqr_solver = lqr_gain_manifold.CentroidalLqr("../../../../momentumopt/demos")
+        lqr_solver = lqr_gain_manifold.CentroidalLqr(self.data_dir)
         assert lqr_solver.com_pos.shape[1]+lqr_solver.com_vel.shape[1]\
             +lqr_solver.com_ori.shape[1]+lqr_solver.com_ang_vel.shape[1] == lqr_solver.n
         assert lqr_solver.com_pos.shape[0] == lqr_solver.N+1
@@ -38,8 +82,7 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
 
     def test_quaternion_to_rotation(self):
         '''check if rotation matrix from quaternion satisfies all group conditions '''
-        lqr_solver = lqr_gain_manifold.CentroidalLqr(
-            "../../../../momentumopt/demos")
+        lqr_solver = lqr_gain_manifold.CentroidalLqr(self.data_dir)
         for t in range(lqr_solver.N+1):
             rotation = lqr_solver.quaternion_to_rotation(lqr_solver.com_ori[t])
             np.testing.assert_array_almost_equal(rotation.dot(rotation.T), np.eye(3))
@@ -48,8 +91,7 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
     def test_quaternion_integration(self):
         """ test if integrating quaternion with angular
         velocity matches obtained quaternion trajectory """
-        lqr_solver = lqr_gain_manifold.CentroidalLqr(
-            "../../../../momentumopt/demos")
+        lqr_solver = lqr_gain_manifold.CentroidalLqr(self.data_dir)
         quat_trajectory = np.zeros((lqr_solver.N+1,4))
         quat_trajectory[0] = lqr_solver.com_ori[0].copy()
         for t in range(lqr_solver.N):
@@ -70,8 +112,7 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
 
     def test_explog_quaternion(self): 
         """ test if q = exp(log(quat)) """
-        lqr_solver = lqr_gain_manifold.CentroidalLqr(
-            "../../../../momentumopt/demos")
+        lqr_solver = lqr_gain_manifold.CentroidalLqr(self.data_dir)
         quat_trajectory = lqr_solver.com_ori.copy()
         for i in range(quat_trajectory.shape[0]):
             qnew = lqr_solver.exp_quaternion(.5 * lqr_solver.log_quaternion(quat_trajectory[i]))
@@ -79,8 +120,7 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
 
     def test_quaternion_difference(self): 
         ''' check if computed quaternion differences equal scaled angular velocities '''
-        lqr_solver = lqr_gain_manifold.CentroidalLqr(
-            "../../../../momentumopt/demos")
+        lqr_solver = lqr_gain_manifold.CentroidalLqr(self.data_dir)
         quat_trajectory = lqr_solver.com_ori.copy()
         for i in range(10):
             w = np.random.rand(3)
@@ -91,8 +131,7 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
 
     
     def test_dynamics_derivatives(self): 
-        lqr_solver = lqr_gain_manifold.CentroidalLqr(
-            "../../../../momentumopt/demos")
+        lqr_solver = lqr_gain_manifold.CentroidalLqr(self.data_dir)
 
         fx, fu = lqr_solver.dynamics_derivatives(0, lqr_solver.x0[0], lqr_solver.u0[0])
         # can test smaller blocks individually, will do that later but seems ok for now 
@@ -103,8 +142,7 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
 
     def test_cost_along_trajectory(self):
         '''tests computation of cost residuals along a reference trajectory '''
-        lqr_solver = lqr_gain_manifold.CentroidalLqr(
-            "../../../../momentumopt/demos")
+        lqr_solver = lqr_gain_manifold.CentroidalLqr(self.data_dir)
         c = 0. 
         # here we compute cost of planner trajectory compared to integrated trajectory 
         for t in range(lqr_solver.N): 
@@ -116,8 +154,7 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
         print 'cost along trajectory = ', c
 
     def test_cost_derivatives(self): 
-        lqr_solver = lqr_gain_manifold.CentroidalLqr(
-            "../../../../momentumopt/demos")
+        lqr_solver = lqr_gain_manifold.CentroidalLqr(self.data_dir)
 
         cx, cu, cxx, cuu, cxu = lqr_solver.cost_derivatives(0, lqr_solver.x0[0], lqr_solver.u0[0])
         # print cx 
@@ -131,8 +168,7 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
         # # print cxu
     
     def test_compute_gains(self):
-        lqr_solver = lqr_gain_manifold.CentroidalLqr(
-            "../../../../momentumopt/demos")
+        lqr_solver = lqr_gain_manifold.CentroidalLqr(self.data_dir)
         lqr_solver.compute_gains()
         
         feedback = lqr_solver.kfb.copy()
@@ -141,10 +177,10 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
         for t in range(feedback.shape[0]):
             norms+= [np.linalg.norm(feedback[t])]
 
-        plt.figure('gains')
-        plt.plot(time, norms)
-        plt.grid()
-        plt.show()
+        # plt.figure('gains')
+        # plt.plot(time, norms)
+        # plt.grid()
+        # plt.show()
 
 
 
