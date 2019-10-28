@@ -48,18 +48,23 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
     """Test class for the lqr on a specific test case (quadruped jump)"""
 
     def setUp(self):
-        # create an empty directory
-        self.data_dir = tempfile.mkdtemp()
 
-        # compute and plan some trajectories using the lqr solver
-        yaml_config_dir = path.dirname(path.abspath(path.curdir))
-        yaml_config_dir = path.join(yaml_config_dir, "config")
-        yaml_config = path.join(yaml_config_dir, "cfg_quadruped_jump.yaml")
-        with_lqr = True
-        motion_planner = build_optimization(yaml_config, QuadrupedWrapper, with_lqr)
-        optimize_the_motion(motion_planner, plot_com_motion=False)
-        with cd(self.data_dir):
-            motion_planner.save_qp_files()
+        if not hasattr(self, 'initialized'):
+            # create an empty directory
+            self.data_dir = tempfile.mkdtemp()
+
+            # compute and plan some trajectories using the lqr solver
+            yaml_config_dir = path.dirname(path.abspath(path.curdir))
+            yaml_config_dir = path.join(yaml_config_dir, "config")
+            yaml_config = path.join(yaml_config_dir, "cfg_quadruped_jump.yaml")
+            with_lqr = True
+            motion_planner = build_optimization(yaml_config, QuadrupedWrapper, with_lqr)
+            optimize_the_motion(motion_planner, plot_com_motion=False)
+            with cd(self.data_dir):
+                motion_planner.save_qp_files()
+            
+            print ("TestDifferentialDynamicProgramming.setUp: solved cfg_quadruped_jump")
+            self.initialized = True
 
         super(TestDifferentialDynamicProgramming, self).setUp()
     

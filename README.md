@@ -56,19 +56,19 @@ source ./devel/setup.bash
 ## Running a demo 
 ```
 cd <work_folder>/catkin/control/momentumopt/demos
-python3 ../nodes/kyno_dyn_planner_solo -i <path_to_config_file>
+python3 ../nodes/kino_dyn_planner_solo -i <path_to_config_file>
 ```
 For example plan and execute a jumping motion with
 ```
-python3 ../nodes/kyno_dyn_planner_solo -i ../config/cfg_quadruped_jump.yaml
+python3 ../nodes/kino_dyn_planner_solo -i ../config/cfg_quadruped_jump.yaml
 ```
 alternatives:
 
 ```
-python2 ../nodes/kyno_dyn_planner_solo -i ../config/cfg_quadruped_jump.yaml
+python2 ../nodes/kino_dyn_planner_solo -i ../config/cfg_quadruped_jump.yaml
 ```
 ```
-rosrun momentumopt kyno_dyn_planner_solo -i ../config/cfg_quadruped_jump.yaml
+rosrun momentumopt kino_dyn_planner_solo -i ../config/cfg_quadruped_jump.yaml
 ```
 
 #### Configuration overview
@@ -100,9 +100,9 @@ The available motions are:
 
 ## Saving .dat file for dynamic graph
 
-Executing 
+Executing
 ```
-python3 ../nodes/kyno_dyn_planner_solo -i <path_to_config_file>
+python3 ../nodes/kino_dyn_planner_solo -i <path_to_config_file>
 ```
 automatically saves the `quadruped_positions.dat` and the `quadruped_velocities.dat` files in the `<work_folder>/kino-dynamic-opt/src/catkin/motion_planning/momentumopt/demos` directory. These files can then be supplied to dynamic graph and for example executed on the real robot.
 
