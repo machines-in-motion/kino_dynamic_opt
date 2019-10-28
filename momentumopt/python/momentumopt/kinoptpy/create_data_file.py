@@ -344,7 +344,7 @@ def create_lqr_files(time_vector, optimized_motion_eff, optimized_sequence, opti
         # np.savetxt("quadruped_lmom_with_horizon.dat", des_lmom)
         # np.savetxt("quadruped_forces_with_horizon_part1.dat", des_forces[:,0:37])
         # np.savetxt("quadruped_forces_with_horizon_part2.dat", des_forces[:,37:])
-        # np.savetxt("quadruped_quaternio_with_horizon.dat", des_quaternion)
+        # np.savetxt("quadruped_quaternion_with_horizon.dat", des_quaternion)
         # np.savetxt("quadruped_base_ang_velocities_with_horizon.dat", des_base_ang_velocities)
         np.savetxt("quadruped_positions_abs_with_horizon_part.dat", des_positions_abs)
         # np.savetxt("quadruped_positions_abs_with_horizon_part2.dat", des_positions_abs[:,37:])

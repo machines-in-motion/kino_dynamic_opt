@@ -14,16 +14,18 @@ from os import path
 import pkg_resources
 import eigenpy
 eigenpy.switchToNumpyMatrix()
-from quadruped.quadruped_wrapper import QuadrupedWrapper
-import momentumopt
-from momentumopt.PyDemoMomentumopt import optimize_the_motion
+
+from momentumopt.quadruped.quadruped_wrapper import QuadrupedWrapper
+from momentumopt.kyno_dyn_planner_solo import optimize_the_motion, build_optimization
 
 class TestQuadrupedMotions(unittest.TestCase):
 
     def setUp(self):
-        yaml_config_dir = path.dirname((path.dirname(path.dirname(momentumopt.__file__))))
+        yaml_config_dir = path.dirname(path.abspath(path.curdir))
         yaml_config_dir = path.join(yaml_config_dir, "config")
         self.yaml_config_dir = yaml_config_dir
+
+        print (yaml_config_dir)
         assert(path.exists(yaml_config_dir))
 
         # Load the robot from URDF-model
@@ -55,10 +57,16 @@ class TestQuadrupedMotions(unittest.TestCase):
         '''
         if yaml_file == "":
             return
+        
+        with_lqr = True
+        motion_planner = build_optimization(yaml_file, QuadrupedWrapper, with_lqr)
 
-        optimized_kin_plan, optimized_motion_eff, optimized_dyn_plan, \
-          dynamics_feedback, planner_setting, time_vector, motion_planner = \
-          optimize_the_motion(yaml_file, plot_com_motion=False)
+        # (optimized_kin_plan,
+        #  optimized_motion_eff,
+        #  optimized_dyn_plan,
+        #  dynamics_feedback,
+        #  planner_setting,
+        #  time_vector) = optimize_the_motion(motion_planner, plot_com_motion=False)
 
         self.display_motion(motion_planner)
          

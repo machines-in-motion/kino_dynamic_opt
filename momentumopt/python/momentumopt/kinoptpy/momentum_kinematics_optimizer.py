@@ -282,6 +282,7 @@ class MomentumKinematicsOptimizer(object):
 
     def optimize_initial_position(self, init_state):
         # Optimize the initial configuration
+        # q = se3.neutral(self.robot.model)
         q = self.robot.model.neutralConfiguration.copy()
 
         plan_joint_init_pos = self.planner_setting.get(
