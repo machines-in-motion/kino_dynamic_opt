@@ -22,7 +22,6 @@ def create_file(time_vector, optimized_sequence, optimized_dyn_plan, dynamics_fe
     desired_gen_vel = desired_state("GENERALIZED_VELOCITY", time_vector, optimized_sequence=optimized_sequence)
     desired_gen_acc = desired_state("GENERALIZED_ACCELERATION", time_vector, optimized_sequence=optimized_sequence)
     desired_com = desired_state("COM", time_vector, optimized_sequence=optimized_sequence)
-    desired_com = desired_state("COM_VEL", time_vector, optimized_sequence=optimized_sequence)
     desired_lmom = desired_state("LMOM", time_vector, optimized_sequence=optimized_sequence)
     desired_amom = desired_state("AMOM", time_vector, optimized_sequence=optimized_sequence)
 
