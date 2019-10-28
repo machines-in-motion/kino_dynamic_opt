@@ -15,11 +15,11 @@ here we test all the functionalities of lqr_gain__manifold
 # TODO: test cost derivatives
 # TODO: test initialization and dimensions
 
-
+from shutil import copy
 import unittest
 import tempfile
 import os
-from os import path
+from os import path, walk
 import numpy as np
 import matplotlib.pyplot as plt
 import eigenpy
@@ -27,11 +27,11 @@ eigenpy.switchToNumpyMatrix()
 import pinocchio as se3
 
 from momentumopt.quadruped.quadruped_wrapper import QuadrupedWrapper
-from momentumopt.kyno_dyn_planner_solo import optimize_the_motion, build_optimization
+from momentumopt.kino_dyn_planner_solo import build_and_optimize_motion
 from momentumopt.kinoptpy import lqr_gain_manifold
 
 
-class cd:
+class CD:
     """Context manager for changing the current working directory"""
     def __init__(self, newPath):
         self.newPath = os.path.expanduser(newPath)
@@ -48,23 +48,18 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
     """Test class for the lqr on a specific test case (quadruped jump)"""
 
     def setUp(self):
-
-        if not hasattr(self, 'initialized'):
-            # create an empty directory
-            self.data_dir = tempfile.mkdtemp()
-
-            # compute and plan some trajectories using the lqr solver
-            yaml_config_dir = path.dirname(path.abspath(path.curdir))
-            yaml_config_dir = path.join(yaml_config_dir, "config")
-            yaml_config = path.join(yaml_config_dir, "cfg_quadruped_jump.yaml")
-            with_lqr = True
-            motion_planner = build_optimization(yaml_config, QuadrupedWrapper, with_lqr)
-            optimize_the_motion(motion_planner, plot_com_motion=False)
-            with cd(self.data_dir):
-                motion_planner.save_qp_files()
-            
-            print ("TestDifferentialDynamicProgramming.setUp: solved cfg_quadruped_jump")
-            self.initialized = True
+        # get the path this package
+        self.pkg_path = path.dirname(path.abspath(path.curdir))
+        # get the path to the reference trajectories
+        self.data_ref_dir = path.join(self.pkg_path, "tests", "jump_trajectories", "solo_jump_with_lqr")
+        # check that the reference path exists
+        self.assertTrue(path.exists(self.data_ref_dir))
+        # create a temporary empty directory
+        self.data_dir = tempfile.mkdtemp()
+        # copy the reference trajectory inside
+        for (dirpath, _, filenames) in walk(self.data_ref_dir):
+            for filename in filenames:
+                copy(path.join(dirpath,filename), self.data_dir)
 
         super(TestDifferentialDynamicProgramming, self).setUp()
     

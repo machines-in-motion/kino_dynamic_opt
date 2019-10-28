@@ -10,7 +10,7 @@
 '''
 
 import sys
-from momentumopt.kyno_dyn_planner_solo import main
+from momentumopt.kino_dyn_planner_solo import main
 
 if __name__ == "__main__":
     main(sys.argv[1:])

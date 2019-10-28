@@ -60,15 +60,15 @@ python3 ../nodes/kino_dyn_planner_solo -i <path_to_config_file>
 ```
 For example plan and execute a jumping motion with
 ```
-python3 ../nodes/kino_dyn_planner_solo -i ../config/cfg_quadruped_jump.yaml
+python3 ../nodes/kino_dyn_planner_solo -i ../config/cfg_solo_jump.yaml
 ```
 alternatives:
 
 ```
-python2 ../nodes/kino_dyn_planner_solo -i ../config/cfg_quadruped_jump.yaml
+python2 ../nodes/kino_dyn_planner_solo -i ../config/cfg_solo_jump.yaml
 ```
 ```
-rosrun momentumopt kino_dyn_planner_solo -i ../config/cfg_quadruped_jump.yaml
+rosrun momentumopt kino_dyn_planner_solo -i ../config/cfg_solo_jump.yaml
 ```
 
 #### Configuration overview
@@ -80,9 +80,9 @@ The available motions are:
 * Squatting: cfg_quadruped_squatting.yaml
 * Lifting one leg: cfg_quadruped_lift_leg.yaml
 * Lifting rear legs: cfg_quadruped_lift_rear.yaml
-* Jump: cfg_quadruped_jump.yaml
+* Jump: cfg_solo_jump.yaml
 
-For an explanation of the different settings in the configuration files, refer to [cfg_quadruped_jump.yaml](/src/catkin/motion_planning/momentumopt/config/cfg_quadruped_jump.yaml).
+For an explanation of the different settings in the configuration files, refer to [cfg_solo_jump.yaml](/src/catkin/motion_planning/momentumopt/config/cfg_solo_jump.yaml).
 
 ## Experimental Section
 Furthermore, there is a kinematic optimization over a horizon available, which allows for smoother trajectories, by running
