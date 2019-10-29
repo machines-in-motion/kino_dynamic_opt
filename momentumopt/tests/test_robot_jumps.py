@@ -9,15 +9,16 @@
 here we test all the functionalities of lqr_gain__manifold
 '''
 
-from utils import assert_all_close, CD
-from momentumopt.kino_dyn_planner_solo import build_and_optimize_motion
-from momentumopt.quadruped.quadruped_wrapper import QuadrupedWrapper
+import eigenpy
+eigenpy.switchToNumpyMatrix()
 import numpy as np
 import unittest
 import tempfile
 from os import walk, path
-import eigenpy
-eigenpy.switchToNumpyMatrix()
+
+from utils import assert_all_close, CD
+from momentumopt.kino_dyn_planner_solo import build_and_optimize_motion
+from momentumopt.quadruped.quadruped_wrapper import QuadrupedWrapper
 
 
 class TestRobotJumps(unittest.TestCase):
@@ -54,7 +55,7 @@ class TestRobotJumps(unittest.TestCase):
         old_data = self.load_data_from_files(old_data_dir)
         new_data = self.load_data_from_files(self.data_dir)
 
-        self.assertEqual(old_data.keys(), new_data.keys())
+        self.assertEqual(sorted(old_data), sorted(new_data))
 
         for key in old_data:
             assert_all_close(old_data[key], new_data[key], 1e-05)
