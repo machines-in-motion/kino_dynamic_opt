@@ -9,29 +9,15 @@
 here we test all the functionalities of lqr_gain__manifold
 '''
 
-from utils import assert_all_close
+from utils import assert_all_close, CD
 from momentumopt.kino_dyn_planner_solo import build_and_optimize_motion
 from momentumopt.quadruped.quadruped_wrapper import QuadrupedWrapper
 import numpy as np
 import unittest
 import tempfile
-from os import path, chdir, getcwd, walk
+from os import walk, path
 import eigenpy
 eigenpy.switchToNumpyMatrix()
-
-
-class CD:
-    """Context manager for changing the current working directory"""
-
-    def __init__(self, newPath):
-        self.newPath = path.expanduser(newPath)
-
-    def __enter__(self):
-        self.savedPath = getcwd()
-        chdir(self.newPath)
-
-    def __exit__(self, etype, value, traceback):
-        chdir(self.savedPath)
 
 
 class TestRobotJumps(unittest.TestCase):
@@ -45,14 +31,11 @@ class TestRobotJumps(unittest.TestCase):
     def optimize_the_jumping_motion(self, config_file_name, with_lqr):
         """ Build the optmization problem, optimize it and dump the data"""
 
-        # get the config file
-        yaml_file = path.join(self.yaml_config_dir, config_file_name)
-
         # Build the optmization problem
         motion_planner, optimized_kin_plan, optimized_motion_eff, \
             optimized_dyn_plan, dynamics_feedback, planner_setting, \
             time_vector = build_and_optimize_motion(
-                yaml_file, QuadrupedWrapper,
+                config_file_name, QuadrupedWrapper,
                 with_lqr=True, plot_com_motion=False)
 
         # Save the data files in a temporary folder
@@ -86,8 +69,13 @@ class TestRobotJumps(unittest.TestCase):
 
     def test_cfg_solo_jump_with_lqr(self):
         # Setup
+        # get the package path
         pkg_path = path.dirname(path.abspath(path.curdir))
+        # get the config folder path
         yaml_config_dir = path.join(pkg_path, "config")
+        # get the config file
+        yaml_file = path.join(yaml_config_dir, "cfg_solo_jump.yaml")
+        # get the path to the precomputed trajectories
         precomputed_data_folder = path.join(
             pkg_path, "tests", "jump_trajectories", "solo_jump_with_lqr")
         # create an empty directory to store the data
@@ -98,18 +86,22 @@ class TestRobotJumps(unittest.TestCase):
 
         # compute the motion for the jump
         self.optimize_the_jumping_motion(
-            config_file_name="cfg_solo_jump.yaml", with_lqr=True)
+            config_file_name=yaml_file, with_lqr=True)
 
         # load and check the data
         self.check_generated_data(precomputed_data_folder)
 
     def test_cfg_solo_jump_without_lqr(self):
         # Setup
+        # get the package path
         pkg_path = path.dirname(path.abspath(path.curdir))
+        # get the config folder path
         yaml_config_dir = path.join(pkg_path, "config")
+        # get the config file
+        yaml_file = path.join(yaml_config_dir, "cfg_solo_jump.yaml")
+        # get the path to the precomputed trajectories
         precomputed_data_folder = path.join(
-            pkg_path, "tests", "jump_trajectories",
-            "solo_jump_without_lqr")
+            pkg_path, "tests", "jump_trajectories", "solo_jump_without_lqr")
         # create an empty directory to store the data
         self.data_dir = tempfile.mkdtemp()
         # Test the setup
@@ -118,7 +110,7 @@ class TestRobotJumps(unittest.TestCase):
 
         # compute the motion for the jump
         self.optimize_the_jumping_motion(
-            config_file_name="cfg_solo_jump.yaml", with_lqr=True)
+            config_file_name=yaml_file, with_lqr=False)
 
         # load and check the data
         self.check_generated_data(precomputed_data_folder)

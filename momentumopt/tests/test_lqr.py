@@ -19,6 +19,7 @@ here we test all the functionalities of lqr_gain__manifold
 from momentumopt.kinoptpy import lqr_gain_manifold
 from shutil import copy
 import unittest
+from nose.tools import nottest
 import tempfile
 import os
 from os import path, walk
@@ -175,7 +176,9 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
         # # print '==================='
         # # print cxu
 
+    @nottest
     def test_compute_gains(self):
+        """ This test is disabled as it is too slow """
         lqr_solver = lqr_gain_manifold.CentroidalLqr(self.data_dir)
         lqr_solver.compute_gains()
 
