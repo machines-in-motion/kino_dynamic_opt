@@ -1,7 +1,7 @@
 #! /usr/bin/python
 
 '''
-@file demo_py_momentumopt
+@file demo_solo_jump_no_lqr.py
 @package momentumopt
 @author Brahayam Ponton (brahayam.ponton@tuebingen.mpg.de)
 @license License BSD-3-Clause
