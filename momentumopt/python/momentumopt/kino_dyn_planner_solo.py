@@ -30,7 +30,7 @@ def parse_arguments(argv):
     try:
         opts, args = getopt.getopt(argv,"hi:m",["ifile=", "solo12", "disable_lqr"])
     except getopt.GetoptError:
-        print ('PyDemoMomentumopt.py -i <path_to_datafile>')
+        print ('python kino_dyn_planner.py -i <path_to_datafile>')
         sys.exit(2)
 
     RobotWrapper = QuadrupedWrapper
