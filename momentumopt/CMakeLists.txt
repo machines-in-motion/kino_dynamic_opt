@@ -167,7 +167,7 @@ endif()
 #########
 # demos #
 #########
-add_executable(demo_momentumopt demos/DemoMomentumopt.cpp)
+add_executable(demo_momentumopt demos/demo_momentumopt.cpp)
 target_link_libraries(demo_momentumopt momentumopt ${catkin_LIBRARIES})
 set_target_properties(demo_momentumopt PROPERTIES
     COMPILE_DEFINITIONS CFG_SRC_PATH="${CONFIG_PATH}/")

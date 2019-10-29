@@ -30,7 +30,7 @@ def parse_arguments(argv):
     try:
         opts, args = getopt.getopt(argv,"hi:m",["ifile=", "solo12", "disable_lqr"])
     except getopt.GetoptError:
-        print ('PyDemoMomentumopt.py -i <path_to_datafile>')
+        print ('python kino_dyn_planner.py -i <path_to_datafile>')
         sys.exit(2)
 
     RobotWrapper = QuadrupedWrapper
@@ -76,7 +76,7 @@ def build_optimization(cfg_file, RobotWrapper, with_lqr):
 
     return motion_planner
 
-def optimize_the_motion(motion_planner, plot_com_motion=True):
+def optimize_motion(motion_planner, plot_com_motion=True):
     """
     Optimize the motion using the kino-dyn optimizer.
     For the dynamics we use the centroidal dynamics solver from this package.
@@ -92,21 +92,33 @@ def optimize_the_motion(motion_planner, plot_com_motion=True):
            dynamics_feedback, planner_setting, time_vector
 
 
+def build_and_optimize_motion(cfg_file, RobotWrapper, with_lqr, plot_com_motion=True):
+    """ Build the optimization problem and solve it in one go."""
+    motion_planner = build_optimization(cfg_file, RobotWrapper, with_lqr)
+    optimized_kin_plan, optimized_motion_eff, optimized_dyn_plan, \
+      dynamics_feedback, planner_setting, time_vector = \
+          optimize_motion(motion_planner, plot_com_motion)
+    
+    return motion_planner, optimized_kin_plan, optimized_motion_eff, \
+           optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector
+
+
 def main(argv):
     """
     Main function for optimization demo
     """
+    # Get the arguments
     cfg_file, RobotWrapper, with_lqr = parse_arguments(argv)
 
-    motion_planner = build_optimization(cfg_file, RobotWrapper, with_lqr)
-
-    (optimized_kin_plan,
+    # Compute the motion
+    (motion_planner, optimized_kin_plan,
      optimized_motion_eff,
      optimized_dyn_plan,
      dynamics_feedback,
      planner_setting,
-     time_vector) = optimize_the_motion(motion_planner)
+     time_vector) = build_and_optimize_motion(cfg_file, RobotWrapper, with_lqr)
     
+    # Display the motion
     display = True
     if(display): # Display the Center of mass motion
         motion_planner.plot_com_motion(optimized_dyn_plan.dynamics_states, optimized_kin_plan.kinematics_states)

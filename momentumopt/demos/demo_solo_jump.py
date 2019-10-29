@@ -1,7 +1,7 @@
 #! /usr/bin/python
 
 '''
-@file demo_py_momentumopt
+@file demo_solo_jump.py
 @package momentumopt
 @author Brahayam Ponton (brahayam.ponton@tuebingen.mpg.de)
 @license License BSD-3-Clause
@@ -9,8 +9,15 @@
 @date 2019-10-08
 '''
 
-import sys
+from os import path
 from momentumopt.kino_dyn_planner_solo import main
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+
+    cfg_solo_jump = path.join("..", "config", "cfg_solo_jump.yaml")
+    if(not path.exists(cfg_solo_jump)):
+        raise RuntimeError("Please run this script from the demos folder")
+
+    args = ["-i", cfg_solo_jump]
+
+    main(args)
