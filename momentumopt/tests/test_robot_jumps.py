@@ -90,7 +90,7 @@ class TestRobotJumps(unittest.TestCase):
             config_file_name=yaml_file, with_lqr=True)
 
         # load and check the data
-        # self.check_generated_data(precomputed_data_folder)
+        self.check_generated_data(precomputed_data_folder)
 
     def test_cfg_solo_jump_without_lqr(self):
         # Setup
@@ -114,4 +114,4 @@ class TestRobotJumps(unittest.TestCase):
             config_file_name=yaml_file, with_lqr=False)
 
         # load and check the data
-        # self.check_generated_data(precomputed_data_folder)
+        self.check_generated_data(precomputed_data_folder)
