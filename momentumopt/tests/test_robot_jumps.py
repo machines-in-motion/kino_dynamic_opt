@@ -58,7 +58,7 @@ class TestRobotJumps(unittest.TestCase):
         self.assertEqual(sorted(old_data), sorted(new_data))
 
         for key in old_data:
-            assert_all_close(old_data[key], new_data[key], 1e-05)
+            assert_all_close(old_data[key], new_data[key], 1e-03)
 
     def load_data_from_files(self, folder_name):
         data = dict()
