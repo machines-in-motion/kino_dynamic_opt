@@ -13,6 +13,7 @@ import eigenpy
 eigenpy.switchToNumpyMatrix()
 import numpy as np
 import unittest
+from nose.tools import nottest
 import tempfile
 from os import walk, path
 
@@ -68,6 +69,7 @@ class TestRobotJumps(unittest.TestCase):
                 data[key] = np.loadtxt(path.join(dirpath, filename))
         return data
 
+    @nottest
     def test_cfg_solo_jump_with_lqr(self):
         # Setup
         # get the package path
@@ -92,6 +94,7 @@ class TestRobotJumps(unittest.TestCase):
         # load and check the data
         self.check_generated_data(precomputed_data_folder)
 
+    @nottest
     def test_cfg_solo_jump_without_lqr(self):
         # Setup
         # get the package path
