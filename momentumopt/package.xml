@@ -12,13 +12,13 @@
   <build_depend>yaml_cpp_catkin</build_depend>
   <build_depend>pybind11_catkin</build_depend>
   <build_depend>solver</build_depend>
-  <build_depend>solverlqr</build_depend>
+  <build_depend>solver_lqr</build_depend>
   
   <run_depend>mpi_cmake_modules</run_depend>
   <run_depend>yaml_cpp_catkin</run_depend>
   <run_depend>pybind11_catkin</run_depend>
   <run_depend>solver</run_depend>
-  <run_depend>solverlqr</run_depend>
+  <run_depend>solver_lqr</run_depend>
   
   <export>
   </export>

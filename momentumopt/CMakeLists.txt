@@ -27,7 +27,7 @@ set(CATKIN_PKGS ${CATKIN_PKGS}
   pybind11_catkin
   # local include
   solver
-  solverlqr
+  solver_lqr
 )
 find_package(catkin REQUIRED COMPONENTS ${CATKIN_PKGS})
 
