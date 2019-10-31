@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package>
-  <name>solverlqr</name>
+  <name>solver_lqr</name>
   <version>1.0.0</version>
   <description>Feedback Controller Routine</description>
   <maintainer email="bponton@tue.mpg.de">Autonomous Motion Lab - MPI-IS</maintainer>
