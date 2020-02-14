@@ -236,7 +236,7 @@ class Quadruped12Wrapper(BasicRobotWrapper):
         NV = model.nv
         self.q, self.dq, self.ddq, tau = zero(NQ), zero(NV), zero(NV), zero(NV)
 
-        self.q = self.robot.model.neutralConfiguration.copy()
+        self.q = pinocchio.neutral(self.robot.model)
         self.q[2] = self.floor_height
 
         # Set initial configuration
