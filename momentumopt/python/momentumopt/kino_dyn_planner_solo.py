@@ -21,7 +21,7 @@ from momentumopt.motion_execution import MotionExecutor
 from momentumopt.kinoptpy.create_data_file import create_file, create_qp_files, create_lqr_files
 
 from momentumopt.motion_planner import MotionPlanner
-from quadruped.quadruped_wrapper import QuadrupedWrapper, Quadruped12Wrapper
+from .quadruped.quadruped_wrapper import QuadrupedWrapper, Quadruped12Wrapper
 
 import matplotlib.pyplot as plt
 
