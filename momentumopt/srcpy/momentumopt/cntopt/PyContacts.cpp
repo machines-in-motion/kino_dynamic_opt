@@ -17,17 +17,27 @@ using namespace momentumopt;
 
 PYBIND11_MAKE_OPAQUE(std::vector<ContactState>)
 
+
 void init_contacts(py::module &m)
 {
   // binding of stl containers
   py::bind_vector<std::vector<ContactState>>(m, "CntStateVector");
 
+  //binding of contact type enum
+  py::enum_<ContactType>(m, "ContactType")
+    .value("FreeContact", ContactType::FreeContact)
+    .value("FlatContact", ContactType::FlatContact)
+    .value("FullContact", ContactType::FullContact)
+    .export_values();
+
+ 
   // binding of contacts state
   py::class_<ContactState>(m, "ContactState")
     .def(py::init<>())
     .def_property("start_time", (const double& (ContactState::*)(void) const) &ContactState::contactActivationTime, (void (ContactState::*)(const double&)) &ContactState::contactActivationTime)
     .def_property("end_time", (const double& (ContactState::*)(void) const) &ContactState::contactDeactivationTime, (void (ContactState::*)(const double&)) &ContactState::contactDeactivationTime)
     .def_property("position", (const Eigen::Vector3d& (ContactState::*)(void) const) &ContactState::contactPosition, (void (ContactState::*)(const Eigen::Vector3d&)) &ContactState::contactPosition)
+    .def_property("contactType", (const ContactType& (ContactState::*)(void) const) &ContactState::contactType, (void (ContactState::*)(const ContactType&)) &ContactState::contactType)
     .def("__repr__", [](const ContactState &cnt_state) { return cnt_state.toString(); } );
 
   // binding of contacts sequence
