@@ -15,6 +15,25 @@
 namespace py = pybind11;
 using namespace momentumopt;
 
+static void setIntParam(PlannerSetting& self,const PlannerIntParam& param, const int value){
+  self.get(param) = value;
+}
+static void setBoolParam(PlannerSetting& self,const PlannerBoolParam& param, const bool value){
+  self.get(param) = value;
+}
+static void setDoubleParam(PlannerSetting& self,const PlannerDoubleParam& param, const double value){
+  self.get(param) = value;
+}
+static void setStringParam(PlannerSetting& self,const PlannerStringParam& param, const std::string& value){
+  self.get(param) = value;
+}
+static void setCVectorParam(PlannerSetting& self,const PlannerCVectorParam& param, const std::vector<Eigen::VectorXd>& value){
+  self.get(param) = value;
+}
+static void setVectorParam(PlannerSetting& self,const PlannerVectorParam& param, const Eigen::Ref<const Eigen::VectorXd> value){
+  self.get(param) = value;
+}
+
 void init_setting(py::module &m)
 {
   py::enum_<Heuristic>(m, "Heuristic")
@@ -32,5 +51,13 @@ void init_setting(py::module &m)
   .def("get", (const double& (PlannerSetting::*)(PlannerDoubleParam) const) &PlannerSetting::get)
 	.def("get", (const std::string& (PlannerSetting::*)(PlannerStringParam) const) &PlannerSetting::get)
   .def("get", (const std::vector<Eigen::VectorXd>& (PlannerSetting::*)(PlannerCVectorParam) const) &PlannerSetting::get)
-	.def("get", (const Eigen::Ref<const Eigen::VectorXd> (PlannerSetting::*)(PlannerVectorParam) const) &PlannerSetting::get);
+	.def("get", (const Eigen::Ref<const Eigen::VectorXd> (PlannerSetting::*)(PlannerVectorParam) const) &PlannerSetting::get)
+  .def("set", &setIntParam, py::arg("IntParameter"), py::arg("value"))
+  .def("set", &setBoolParam, py::arg("BoolParameter"), py::arg("value"))
+  .def("set", &setDoubleParam, py::arg("DoubleParameter"), py::arg("value"))
+  .def("set", &setStringParam, py::arg("StringParameter"), py::arg("value"))
+  .def("set", &setCVectorParam, py::arg("CVectorParameter"), py::arg("value"))
+  .def("set", &setVectorParam, py::arg("VectorParameter"), py::arg("value"));
 }
+
+
