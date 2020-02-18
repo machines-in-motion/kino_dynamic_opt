@@ -30,6 +30,13 @@ void init_contacts(py::module &m)
     .value("FullContact", ContactType::FullContact)
     .export_values();
 
+  py::enum_<Problem::EffId>(m, "EffId")
+    .value("right_foot", Problem::EffId::id_right_foot)
+    .value("left_foot", Problem::EffId::id_left_foot)
+    .value("right_hand", Problem::EffId::id_right_hand)
+    .value("left_hand", Problem::EffId::id_left_hand)
+    .export_values()
+    .def("value",   [](const Problem::EffId& id) { return static_cast<int>(id); });
  
   // binding of contacts state
   py::class_<ContactState>(m, "ContactState")
