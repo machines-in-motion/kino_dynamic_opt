@@ -51,7 +51,7 @@ void init_contacts(py::module &m)
   // binding of contacts sequence
   py::class_<ContactSequence>(m, "ContactSequence")
     .def(py::init<>())
-    .def("contact_states", (const std::vector<ContactState>& (ContactSequence::*)(int) const) &ContactSequence::endeffectorContacts)
+    .def("contact_states", (std::vector<ContactState>& (ContactSequence::*)(int)) &ContactSequence::endeffectorContacts, py::return_value_policy::reference_internal)
     .def("eff_num", (const long (ContactSequence::*)() const) &ContactSequence::endeffectorNum)
     .def("__repr__", [](const ContactSequence &cnt_seq) { return cnt_seq.toString(); } );
 
@@ -59,5 +59,5 @@ void init_contacts(py::module &m)
     .def(py::init<>())
     .def("initialize", &ContactPlanInterface::initialize)
     .def("optimize", &ContactPlanInterface::optimize)
-    .def("contactSequence", (const ContactSequence& (ContactPlanInterface::*)(void) const) &ContactPlanInterface::contactSequence);
+    .def("contactSequence", (ContactSequence& (ContactPlanInterface::*)(void)) &ContactPlanInterface::contactSequence, py::return_value_policy::reference_internal);
 }
