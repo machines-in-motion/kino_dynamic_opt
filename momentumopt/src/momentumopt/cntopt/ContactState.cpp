@@ -10,6 +10,9 @@
 
 namespace momentumopt {
 
+  typedef Eigen::Matrix<double, 4, 4> Matrix4;
+  typedef Eigen::Transform<double, 3, Eigen::Affine> Transform;
+
   // ContactState functions implementation
   ContactType idToContactType(int cnt_type_id)
   {
@@ -58,6 +61,21 @@ namespace momentumopt {
     text << "    orientation      " << orientation_.coeffs().transpose() << "\n";
     return text.str();
   }
+
+  const Matrix4 ContactState::contactPlacement() const
+  {
+    Transform placement = Transform::Identity();
+    placement.translate(position_);
+    placement.rotate(orientation_);
+    return placement.matrix();
+  }
+
+  void ContactState::contactPlacement(const Matrix4& placement)
+  {
+    position_ = placement.block<3,1>(0,3);
+    orientation_ = Eigen::Quaternion<double>(placement.block<3,3>(0,0));
+  }
+
 
   // ContactSequence functions implementation
   void ContactSequence::loadFromFile(const std::string cfg_file, const std::string contact_plan_name)

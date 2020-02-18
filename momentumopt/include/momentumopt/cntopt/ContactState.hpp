@@ -54,6 +54,7 @@ namespace momentumopt {
       void contactPosition(const Eigen::Vector3d& position) { position_ = position; }
       void contactOrientation(const Eigen::Quaternion<double>& orientation) { orientation_ = orientation; }
       void contactType(const ContactType& contact_type) { contact_type_ = contact_type; }
+      void contactPlacement(const Eigen::Matrix<double, 4, 4>& placement);
 
       const int& terrainId() const { return terrain_id_; }
       const int& optimizationId() const { return optimization_id_; }
@@ -63,6 +64,8 @@ namespace momentumopt {
       const bool& selectedAsActive() const { return selected_as_active_; }
       const Eigen::Vector3d& contactPosition() const { return position_; }
       const Eigen::Quaternion<double>& contactOrientation() const { return orientation_; }
+      const Eigen::Matrix<double, 4, 4> contactPlacement() const;
+
 
       std::string toString() const;
       friend std::ostream& operator<<(std::ostream &os, const ContactState& obj) { return os << obj.toString(); }
