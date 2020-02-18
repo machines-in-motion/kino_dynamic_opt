@@ -37,6 +37,7 @@ void init_contacts(py::module &m)
     .def_property("start_time", (const double& (ContactState::*)(void) const) &ContactState::contactActivationTime, (void (ContactState::*)(const double&)) &ContactState::contactActivationTime)
     .def_property("end_time", (const double& (ContactState::*)(void) const) &ContactState::contactDeactivationTime, (void (ContactState::*)(const double&)) &ContactState::contactDeactivationTime)
     .def_property("position", (const Eigen::Vector3d& (ContactState::*)(void) const) &ContactState::contactPosition, (void (ContactState::*)(const Eigen::Vector3d&)) &ContactState::contactPosition)
+    .def_property("placement", (const Eigen::Matrix<double, 4, 4> (ContactState::*)(void) const) &ContactState::contactPlacement, (void (ContactState::*)(const Eigen::Matrix<double, 4, 4>&)) &ContactState::contactPlacement)
     .def_property("contactType", (const ContactType& (ContactState::*)(void) const) &ContactState::contactType, (void (ContactState::*)(const ContactType&)) &ContactState::contactType)
     .def("__repr__", [](const ContactState &cnt_state) { return cnt_state.toString(); } );
 
