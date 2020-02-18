@@ -52,6 +52,8 @@ namespace momentumopt {
       void contactActivationTime(const double& time_ini) { time_ini_ = time_ini; }
       void contactDeactivationTime(const double& time_end) { time_end_ = time_end; }
       void contactPosition(const Eigen::Vector3d& position) { position_ = position; }
+      void contactOrientation(const Eigen::Quaternion<double>& orientation) { orientation_ = orientation; }
+      void contactType(const ContactType& contact_type) { contact_type_ = contact_type; }
 
       const int& terrainId() const { return terrain_id_; }
       const int& optimizationId() const { return optimization_id_; }
