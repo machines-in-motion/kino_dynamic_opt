@@ -28,6 +28,9 @@ static void setEffForce(DynamicsState& self, const int effId, const Eigen::Vecto
 static void setEffTorque(DynamicsState& self, const int effId, const Eigen::Vector3d& torque){
   self.endeffectorPosition(effId) = torque;
 }
+static void setEffActivation(DynamicsState& self, const int effId, const bool activation){
+  self.endeffectorActivation(effId) = activation;
+}
 
 void init_dynamics(py::module &m)
 {
@@ -57,10 +60,12 @@ void init_dynamics(py::module &m)
     .def("effVelocity", (const Eigen::Vector3d& (DynamicsState::*)(int) const) &DynamicsState::endeffectorVelocity)
     .def("effAcceleration", (const Eigen::Vector3d& (DynamicsState::*)(int) const) &DynamicsState::endeffectorAcceleration)
     .def("effOrientation", (const Eigen::Quaternion<double>& (DynamicsState::*)(int) const) &DynamicsState::endeffectorOrientation)
+    .def("effActivation", (bool (DynamicsState::*)(int) const) &DynamicsState::endeffectorActivation)
 
     .def("setEffPosition", &setEffPosition, py::arg("EffId"), py::arg("position"))
     .def("setEffForce", &setEffForce, py::arg("EffId"), py::arg("force"))
     .def("setEffTorque", &setEffTorque, py::arg("EffId"), py::arg("torque"))
+    .def("setEffActivation", &setEffActivation, py::arg("EffId"), py::arg("activation"))
 
     .def("__repr__", [](const DynamicsState &dyn_state) { return dyn_state.toString(); } );
 
