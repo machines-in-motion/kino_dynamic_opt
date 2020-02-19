@@ -46,6 +46,7 @@ void init_contacts(py::module &m)
     .def_property("position", (const Eigen::Vector3d& (ContactState::*)(void) const) &ContactState::contactPosition, (void (ContactState::*)(const Eigen::Vector3d&)) &ContactState::contactPosition)
     .def_property("placement", (const Eigen::Matrix<double, 4, 4> (ContactState::*)(void) const) &ContactState::contactPlacement, (void (ContactState::*)(const Eigen::Matrix<double, 4, 4>&)) &ContactState::contactPlacement)
     .def_property("contactType", (const ContactType& (ContactState::*)(void) const) &ContactState::contactType, (void (ContactState::*)(const ContactType&)) &ContactState::contactType)
+    .def_property("active", (const bool& (ContactState::*)(void) const) &ContactState::selectedAsActive, (void (ContactState::*)(const bool&)) &ContactState::selectedAsActive)
     .def("__repr__", [](const ContactState &cnt_state) { return cnt_state.toString(); } );
 
   // binding of contacts sequence

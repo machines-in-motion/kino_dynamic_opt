@@ -55,6 +55,7 @@ namespace momentumopt {
       void contactOrientation(const Eigen::Quaternion<double>& orientation) { orientation_ = orientation; }
       void contactType(const ContactType& contact_type) { contact_type_ = contact_type; }
       void contactPlacement(const Eigen::Matrix<double, 4, 4>& placement);
+      void selectedAsActive(const bool& active){selected_as_active_ = active;}
 
       const int& terrainId() const { return terrain_id_; }
       const int& optimizationId() const { return optimization_id_; }
