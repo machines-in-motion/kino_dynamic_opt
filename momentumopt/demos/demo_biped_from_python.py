@@ -13,6 +13,25 @@ and retrieve the centroidal trajectories.
 It use a biped robot, walking 75cm straight with 6 steps
 """
 
+def createContactState(start_time, end_time, position, contactType):
+    """
+    Create a ContactState with the given start/end time contactType and position.
+    Assume the contact is active
+    :param start_time: float
+    :param end_time: float
+    :param position: a numpy array of shape(3,)
+    :param contactType: a member of the Enum pymomentum.ContactType
+    :return: a pymomentum.ContactState
+    """
+    cp = ContactState()
+    cp.start_time = start_time
+    cp.end_time = end_time
+    cp.contactType = contactType
+    cp.active = True
+    cp.position = position
+    return cp
+
+
 PATH = pathlib.Path(__file__).absolute()
 PATH = PATH.parent.parent / 'config'
 print("PATH to config folder : ", PATH)
@@ -39,79 +58,30 @@ mopt_cs = contact_planner.contactSequence()
 # Create the contact sequence for the right foot:
 RF_position = np.array([0., -0.085, 0.])
 mopt_cs_RF = mopt_cs.contact_states(EffId.right_foot.value())
-cp = ContactState()
-cp.start_time = 0.
-cp.end_time = 1.
-cp.contactType = ContactType.FlatContact
-cp.active = True
-cp.position = RF_position
-mopt_cs_RF.append(cp)
+mopt_cs_RF.append(createContactState(0, 1, RF_position, ContactType.FlatContact))
 #after first step
-cp = ContactState()
-cp.start_time = 2.4
-cp.end_time = 4.2
-cp.contactType = ContactType.FlatContact
-cp.active = True
 RF_position[0] = 0.15
-cp.position = RF_position
-mopt_cs_RF.append(cp)
+mopt_cs_RF.append(createContactState(2.4, 4.2, RF_position, ContactType.FlatContact))
 #after second step
-cp = ContactState()
-cp.start_time = 5.6
-cp.end_time = 7.4
-cp.contactType = ContactType.FlatContact
-cp.active = True
 RF_position[0] = 0.45
-cp.position = RF_position
-mopt_cs_RF.append(cp)
+mopt_cs_RF.append(createContactState(5.6, 7.4, RF_position, ContactType.FlatContact))
 #after final step
-cp = ContactState()
-cp.start_time = 8.8
-cp.end_time = 11.41 # must be > to duration !
-cp.contactType = ContactType.FlatContact
-cp.active = True
 RF_position[0] = 0.75
-cp.position = RF_position
-mopt_cs_RF.append(cp)
-
+mopt_cs_RF.append(createContactState(8.8, 11.41, RF_position, ContactType.FlatContact))
 
 # Create the contact sequence for the right foot:
 LF_position = np.array([0., 0.085, 0.])
 mopt_cs_LF = mopt_cs.contact_states(EffId.left_foot.value())
-cp = ContactState()
-cp.start_time = 0.
-cp.end_time = 2.6
-cp.contactType = ContactType.FlatContact
-cp.active = True
-cp.position = LF_position
-mopt_cs_LF.append(cp)
+mopt_cs_LF.append(createContactState(0, 2.6, LF_position, ContactType.FlatContact))
 # after first step
-cp = ContactState()
-cp.start_time = 4
-cp.end_time = 5.8
-cp.contactType = ContactType.FlatContact
-cp.active = True
 LF_position[0] = 0.3
-cp.position = LF_position
-mopt_cs_LF.append(cp)
+mopt_cs_LF.append(createContactState(4, 5.8, LF_position, ContactType.FlatContact))
 # after second step
-cp = ContactState()
-cp.start_time = 7.2
-cp.end_time = 9.
-cp.contactType = ContactType.FlatContact
-cp.active = True
 LF_position[0] = 0.6
-cp.position = LF_position
-mopt_cs_LF.append(cp)
+mopt_cs_LF.append(createContactState(7.2, 9., LF_position, ContactType.FlatContact))
 # after final step
-cp = ContactState()
-cp.start_time = 10.4
-cp.end_time = 11.41
-cp.contactType = ContactType.FlatContact
-cp.active = True
 LF_position[0] = 0.75
-cp.position = LF_position
-mopt_cs_LF.append(cp)
+mopt_cs_LF.append(createContactState(10.4, 11.41, LF_position, ContactType.FlatContact))
 
 # Display the final contact sequence :
 #print(contact_planner.contactSequence())
