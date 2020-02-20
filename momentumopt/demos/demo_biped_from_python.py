@@ -116,10 +116,21 @@ mopt_cs_LF.append(cp)
 # Display the final contact sequence :
 #print(contact_planner.contactSequence())
 
+# Build CoM viapoint, this step is optional
+# Here we add CoM viapoint at the middle of each double support phases.
+# The position is in the middle of the support polygon, with a reference height.
+com_viapoints = []
+com_viapoints += [np.array([2.4, 0.07, 0, 0.84])] # first value is the time, then the CoM position (x,y,z)
+com_viapoints += [np.array([4., 0.22, 0, 0.84])]
+com_viapoints += [np.array([5.6, 0.37, 0, 0.84])]
+com_viapoints += [np.array([7.2, 0.52, 0, 0.84])]
+com_viapoints += [np.array([8.8, 0.67, 0, 0.84])]
+planner_setting.set(mopt.PlannerCVectorParam_Viapoints, com_viapoints)
+planner_setting.set(mopt.PlannerIntParam_NumViapoints, len(com_viapoints))
 
 # Create the initial state :
 ini_state = DynamicsState()
-ini_state.com = np.array([0.0, 0.0, 0.83])
+ini_state.com = np.array([0.0, 0.0, 0.84])
 ini_state.setEffPosition(EffId.right_foot, np.array([0,-0.085,0]))
 ini_state.setEffPosition(EffId.left_foot, np.array([0,0.085,0]))
 # define the right and left foot in contact :
@@ -141,7 +152,8 @@ kin_sequence.resize(planner_setting.get(mopt.PlannerIntParam_NumTimesteps), 1)
 dyn_opt = DynamicsOptimizer()
 dyn_opt.initialize(planner_setting)
 code = dyn_opt.optimize(ini_state, contact_planner, kin_sequence, False)
-print("Exit with code : ", code.name)
+print("Exit with code: ", code.name)
+print("Solving time: " + str(dyn_opt.solveTime()/1000.) + " s" )
 
 # retrieve the dynamicsSequence and plot it:
 dyn_states = dyn_opt.dynamicsSequence().dynamics_states
