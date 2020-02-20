@@ -67,7 +67,7 @@ mopt_cs_RF.append(cp)
 #after final step
 cp = ContactState()
 cp.start_time = 8.8
-cp.end_time = 11.4
+cp.end_time = 11.41 # must be > to duration !
 cp.contactType = ContactType.FlatContact
 cp.active = True
 RF_position[0] = 0.75
@@ -106,7 +106,7 @@ mopt_cs_LF.append(cp)
 # after final step
 cp = ContactState()
 cp.start_time = 10.4
-cp.end_time = 11.4
+cp.end_time = 11.41
 cp.contactType = ContactType.FlatContact
 cp.active = True
 LF_position[0] = 0.75
