@@ -46,6 +46,8 @@ n_time_steps = int(floor(duration/dt))
 # update this values in planner_setting:
 planner_setting.set(mopt.PlannerDoubleParam_TimeHorizon, duration)
 planner_setting.set(mopt.PlannerIntParam_NumTimesteps, n_time_steps)
+assert planner_setting.get(mopt.PlannerDoubleParam_TimeHorizon) == duration
+assert planner_setting.get(mopt.PlannerIntParam_NumTimesteps) == n_time_steps
 
 # initialize an empty contact plan:
 contact_planner = ContactPlanFromFile()
