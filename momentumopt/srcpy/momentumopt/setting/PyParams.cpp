@@ -128,5 +128,6 @@ void init_params(py::module &m)
   // binding c-vector variables used by the planner
   py::enum_<PlannerCVectorParam>(m, "PlannerCVectorParam")
     .value("PlannerCVectorParam_JointViapoints", PlannerCVectorParam_JointViapoints)
+    .value("PlannerCVectorParam_Viapoints", PlannerCVectorParam_Viapoints)
     .export_values();
   }
