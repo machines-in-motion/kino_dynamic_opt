@@ -24,6 +24,7 @@ from momentumopt.motion_planner import MotionPlanner
 from .quadruped.quadruped_wrapper import QuadrupedWrapper, Quadruped12Wrapper
 
 import matplotlib.pyplot as plt
+pin.switchToNumpyMatrix()
 
 def parse_arguments(argv):
     cfg_file = ''
