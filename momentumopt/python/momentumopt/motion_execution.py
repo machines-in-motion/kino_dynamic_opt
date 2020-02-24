@@ -17,8 +17,8 @@ from pinocchio.utils import zero
 
 from pymomentum import *
 
-from quadruped.quadruped_wrapper import QuadrupedWrapper
-from quadruped.simulator import Simulator
+from .quadruped.quadruped_wrapper import QuadrupedWrapper
+from .quadruped.simulator import Simulator
 from momentumopt.kinoptpy.utils import isfloat
 
 

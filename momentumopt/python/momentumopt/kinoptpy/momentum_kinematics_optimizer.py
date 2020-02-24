@@ -322,7 +322,7 @@ class MomentumKinematicsOptimizer(object):
         if iters == self.max_iterations - 1:
             print('Failed to converge for initial setup.')
 
-        print "initial configuration: \n", q
+        print("initial configuration: \n", q)
 
         self.q_init = q.copy()
         self.dq_init = dq.copy()

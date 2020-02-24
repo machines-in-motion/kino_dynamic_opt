@@ -13,7 +13,7 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 
-from quadruped.quadruped_wrapper import QuadrupedWrapper
+from .quadruped.quadruped_wrapper import QuadrupedWrapper
 from pysolver import *
 from pysolverlqr import *
 
