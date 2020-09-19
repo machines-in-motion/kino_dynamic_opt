@@ -15,7 +15,7 @@ pip install quadprog treep
 And catkin: https://docs.ros.org/api/catkin/html/
 - Ubuntu
 ```
-sudo apt-get install [ros-distro]-catkin
+sudo apt-get install ros-[distro]-catkin
 ```
 - From source
 ```
