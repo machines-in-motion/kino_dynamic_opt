@@ -36,7 +36,6 @@ Clone the repository in the desired work folder <work_folder>
 ```
 mkdir devel
 cd devel
-git clone git@git-amd.tuebingen.mpg.de:amd-clmc/treep_amd_clmc.git
 git clone git@github.com:machines-in-motion/treep_machines_in_motion.git
 treep --clone KINO_DYN_PLANNER
 ```
@@ -45,7 +44,7 @@ refered as the <work_folder>\
 Compile the code, by running the following commands in the <work_folder>
 ```
 cd workspace
-catkin_make -DCMAKE_BUILD_TYPE=RELEASE
+catkin_make -DCMAKE_BUILD_TYPE=RELEASE `# or -DCMAKE_BUILD_TYPE=DEBUG if needed`
 ```
 
 Once the code has been compiled, you can source the setup.bash file in
