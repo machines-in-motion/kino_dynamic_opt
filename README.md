@@ -9,7 +9,7 @@ Please make sure to install the following packages:
 
 - the qp solver quadprog and the code manager
 ```
-pip install quadprog treep
+pip install lightargs==1.22 quadprog treep
 ```
 
 And catkin: https://docs.ros.org/api/catkin/html/
@@ -36,7 +36,7 @@ Clone the repository in the desired work folder <work_folder>
 ```
 mkdir devel
 cd devel
-git clone git@github.com:machines-in-motion/treep_machines_in_motion.git
+git clone https://github.com/machines-in-motion/treep_machines_in_motion.git
 treep --clone KINO_DYN_PLANNER
 ```
 This operation should have cloned pacakges in `workspace/src/` which will be
@@ -44,11 +44,11 @@ refered as the <work_folder>\
 Compile the code, by running the following commands in the <work_folder>
 ```
 cd workspace
-catkin_make -DCMAKE_BUILD_TYPE=RELEASE `# or -DCMAKE_BUILD_TYPE=DEBUG if needed`
+catkin_make -DCMAKE_BUILD_TYPE=Release `# or -DCMAKE_BUILD_TYPE=Debug if needed`
 ```
 
 Once the code has been compiled, you can source the setup.bash file in
-`devel/workspace/devel/setub.bash`
+`devel/workspace/devel/setup.bash`
 ```
 source ./devel/setup.bash
 ```
