@@ -55,7 +55,7 @@ source ./devel/setup.bash
 
 ## Running a demo 
 ```
-cd <work_folder>/catkin/control/momentumopt/demos
+cd `rospack find momentumopt`/demos
 python3 ../nodes/kino_dyn_planner_solo -i <path_to_config_file>
 ```
 For example plan and execute a jumping motion with
@@ -74,7 +74,7 @@ rosrun momentumopt kino_dyn_planner_solo -i ../config/cfg_solo_jump.yaml
 #### Configuration overview
 The different configuration files are available in 
 ```
-<work_folder>/kino-dynamic-opt/src/catkin/motion_planning/momentumopt/config
+<work_folder>/kino_dynamic_opt/momentumopt/config
 ```
 The available motions are:
 * Squatting: cfg_quadruped_squatting.yaml
@@ -87,7 +87,7 @@ For an explanation of the different settings in the configuration files, refer t
 ## Experimental Section
 Furthermore, there is a kinematic optimization over a horizon available, which allows for smoother trajectories, by running
 ```
-cd <work_folder>/kino-dynamic-opt/src/catkin/motion_planning/momentumopt/demos
+cd <work_folder>/kino_dynamic_opt/momentumopt/demos
 python3 ./PyDemoMomentumoptNew.py -i <path_to_config_file>
 ```
 For example plan and execute lifting the rear leg motion with
