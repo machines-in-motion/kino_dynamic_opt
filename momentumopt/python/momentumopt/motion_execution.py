@@ -14,6 +14,7 @@ from time import sleep, time
 import pybullet as p
 import pinocchio as se3
 from pinocchio.utils import zero
+import rospkg
 
 from pymomentum import *
 
@@ -232,10 +233,15 @@ class MotionSimulator(object):
             physicsClient = p.connect(p.GUI)
 
         urdf_base_string = str(os.path.dirname(os.path.abspath(__file__)))
+        urdf_robot_string = (
+                os.path.join(rospkg.RosPack().get_path("robot_properties_solo"),
+                    "urdf", 
+                    "solo.urdf")
+        )
         planeId = p.loadURDF(os.path.join(urdf_base_string, "urdf", "plane_with_restitution.urdf"))
         cubeStartPos = [0, 0, floor_height]
         cubeStartOrientation = p.getQuaternionFromEuler([0,0,0])
-        self.robotId = p.loadURDF(urdf_base_string + "/urdf/quadruped.urdf",cubeStartPos, cubeStartOrientation, flags=p.URDF_USE_INERTIA_FROM_FILE)
+        self.robotId = p.loadURDF(urdf_robot_string, cubeStartPos, cubeStartOrientation, flags=p.URDF_USE_INERTIA_FROM_FILE)
         cubePos, cubeOrn = p.getBasePositionAndOrientation(self.robotId)
 
         useRealTimeSimulation = False
