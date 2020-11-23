@@ -265,7 +265,7 @@ class MotionSimulator(object):
         # Create the simulator for easier mapping between
         self.sim = Simulator(self.robotId, self.robot,
             self.controlled_joints,
-            ['BL_ANKLE', 'BR_ANKLE', 'FL_ANKLE', 'FR_ANKLE', ]
+            ['HL_ANKLE', 'HR_ANKLE', 'FL_ANKLE', 'FR_ANKLE', ]
         )
 
 class MotionExecutor(MotionSimulator):
