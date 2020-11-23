@@ -260,12 +260,12 @@ class MotionSimulator(object):
         # Create the pinocchio robot.
         self.robot = QuadrupedWrapper()
 
-        self.controlled_joints = ['BL_HFE', 'BL_KFE', 'BR_HFE', 'BR_KFE', 'FL_HFE', 'FL_KFE', 'FR_HFE', 'FR_KFE']
+        self.controlled_joints = ['HL_HFE', 'HL_KFE', 'HR_HFE', 'HR_KFE', 'FL_HFE', 'FL_KFE', 'FR_HFE', 'FR_KFE']
 
         # Create the simulator for easier mapping between
         self.sim = Simulator(self.robotId, self.robot,
             self.controlled_joints,
-            ['BL_END', 'BR_END', 'FL_END', 'FR_END', ]
+            ['BL_ANKLE', 'BR_ANKLE', 'FL_ANKLE', 'FR_ANKLE', ]
         )
 
 class MotionExecutor(MotionSimulator):
@@ -446,7 +446,7 @@ class MotionExecutor(MotionSimulator):
                     planned_force = np.zeros((3 * len(self.robot.effs)))
                     jacobians_effs = np.zeros((3 * len(self.robot.effs), self.robot.robot.nv))
                     for eff_id, eff in enumerate(self.robot.effs):
-                        eff = eff + "_END"
+                        eff = eff + "_ANKLE"
                         force = self.optimized_dyn_plan.dynamics_states[time_id].effForce(eff_id) * robot_weight
                         # force = self.optimized_dyn_plan.dynamics_states[min(time_id - force_offset, len(self.time_vector) - 1)].effForce(eff_id) * robot_weight
                         # force = self.optimized_dyn_plan.dynamics_states[max(time_id - force_offset, 0)].effForce(eff_id) * robot_weight
