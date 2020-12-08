@@ -2,4 +2,6 @@
 # flags for external packages #
 ###############################
 
-set(CMAKE_CXX_FLAGS "-DUSE_IPOPT ${CMAKE_CXX_FLAGS}")
+if(IPOPT_FOUND)
+  set(CMAKE_CXX_FLAGS "-DUSE_IPOPT ${CMAKE_CXX_FLAGS}")
+endif()

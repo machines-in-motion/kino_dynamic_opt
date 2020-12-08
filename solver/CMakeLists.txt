@@ -78,11 +78,11 @@ target_include_directories(
 target_link_libraries(solver yaml_utils::yaml_utils)
 target_link_libraries(solver Eigen3::Eigen)
 if(IPOPT_FOUND)
-  include(${PROJECT_SOURCE_DIR}/cmake/solver-extras-ipopt.cmake)
+  include(cmake/solver-extras-ipopt.cmake)
   target_link_libraries(solver IPOPT::IPOPT)
 endif()
 if(GUROBI_FOUND)
-  include(${PROJECT_SOURCE_DIR}/cmake/solver-extras-gurobi.cmake)
+  include(cmake/solver-extras-gurobi.cmake)
   target_link_libraries(solver GUROBI::GUROBI)
 endif()
 # Properties.
@@ -91,73 +91,111 @@ set_target_properties(solver PROPERTIES COMPILE_DEFINITIONS
 # Exporting.
 list(APPEND all_targets ${PROJECT_NAME})
 
+# set(solver_LIBS m ${Boost_LIBRARIES} ${catkin_LIBRARIES})
+# if(${CMAKE_SYSTEM_NAME} MATCHES "Linux") set(solver_LIBS ${solver_LIBS} rt)
+# endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
-
-
-
-
-
-
-set(pysolver_SRC_FILES ${pysolver_SRC_FILES} srcpy/solver/PySolver.cpp
-                       srcpy/solver/interface/PySetting.cpp)
-
-# ##############################################################################
-# linking libraries #
-# ##############################################################################
-
-set(solver_LIBS m ${Boost_LIBRARIES} ${catkin_LIBRARIES})
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  set(solver_LIBS ${solver_LIBS} rt)
-endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-
-# ##############################################################################
-# optional libraries #
-# ##############################################################################
-
-if(IPOPT_FOUND)
-  set(solver_LIBS ${solver_LIBS} ${IPOPT_LIBRARIES})
-endif(IPOPT_FOUND)
-
-if(GUROBI_FOUND)
-  set(solver_LIBS ${solver_LIBS} ${GUROBI_LIBRARIES})
-endif(GUROBI_FOUND)
-
-# ##############################################################################
-# build libraries #
-# ##############################################################################
-
-# ##############################################################################
-# python bindings #
-# ##############################################################################
-
-pybind11_add_module(pysolver ${pysolver_SRC_FILES})
+#
+# Python wrappers.
+#
+add_library(pysolver MODULE srcpy/solver/PySolver.cpp
+                            srcpy/solver/interface/PySetting.cpp)
+target_link_libraries(pysolver PRIVATE pybind11::module)
+target_link_libraries(pysolver PRIVATE ${PYTHON_LIBRARIES})
 target_link_libraries(pysolver PRIVATE solver)
-set_target_properties(
+set_target_properties(pysolver PROPERTIES PREFIX ""
+                                          SUFFIX "${PYTHON_MODULE_EXTENSION}")
+target_include_directories(
   pysolver
-  PROPERTIES LIBRARY_OUTPUT_DIRECTORY
-             ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_PYTHON_DESTINATION})
-install(TARGETS pysolver DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+         $<INSTALL_INTERFACE:include>
+  PUBLIC ${PYTHON_INCLUDE_DIRS})
+_ament_cmake_python_get_python_install_dir()
+install(TARGETS pysolver DESTINATION ${PYTHON_INSTALL_DIR})
+list(APPEND all_targets pysolver)
 
 #
-# tests #
+# tests
 #
 
-set(GTEST_FILES ${GTEST_FILES} tests/GtestMain.cpp tests/TestLbfgs.cpp
-                tests/TestSolver.cpp tests/TestRtSolver.cpp)
+if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
 
-if(IPOPT_FOUND)
-  set(GTEST_FILES ${GTEST_FILES} tests/TestIpopt.cpp)
+  set(GTEST_FILES ${GTEST_FILES} tests/gtest_main.cpp tests/test_lbfgs.cpp
+                  tests/test_solver.cpp tests/test_rt_solver.cpp)
+
+  if(IPOPT_FOUND)
+    set(GTEST_FILES ${GTEST_FILES} tests/test_ipopt.cpp)
+  endif()
+
+  if(GUROBI_FOUND)
+    set(GTEST_FILES ${GTEST_FILES} tests/test_gurobi.cpp)
+  endif()
+
+  ament_add_gtest(solver_tests ${GTEST_FILES})
+  target_link_libraries(solver_tests solver)
+
+
+  get_filename_component(TEST_PATH tests ABSOLUTE)
+  set_target_properties(
+    solver_tests PROPERTIES COMPILE_DEFINITIONS
+                            TEST_PATH="${TEST_PATH}/yaml_config_files/")
+
+  # python unit tests
+  find_package(ament_cmake_pytest REQUIRED)
+  ament_add_pytest_test(test_${PROJECT_NAME}_python tests)
+
 endif()
 
-if(GUROBI_FOUND)
-  set(GTEST_FILES ${GTEST_FILES} tests/TestGurobi.cpp)
-endif()
+#
+# Install everything.
+#
+install(DIRECTORY include/ DESTINATION include)
+install(
+  TARGETS ${all_targets}
+  EXPORT export_${PROJECT_NAME}
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES
+  DESTINATION include)
 
-catkin_add_gtest(solver_tests ${GTEST_FILES})
-target_link_libraries(solver_tests solver ${catkin_LIBRARIES})
-set_target_properties(
-  solver_tests PROPERTIES COMPILE_DEFINITIONS
-                          TEST_PATH="${TEST_PATH}/yaml_config_files/")
+# install the CMake find modules at the good place
+macro(SUBDIRLIST result curdir)
+  file(
+    GLOB children
+    RELATIVE ${curdir}
+    ${curdir}/*)
+  set(dirlist "")
+  foreach(child ${children})
+    if(IS_DIRECTORY ${curdir}/${child})
+      list(APPEND dirlist cmake/${child})
+    endif()
+  endforeach()
+  set(${result} ${dirlist})
+endmacro()
+subdirlist(cmake_dirs ${PROJECT_SOURCE_DIR}/cmake)
+install(DIRECTORY ${cmake_dirs} DESTINATION share/${PROJECT_NAME}/cmake)
+
+#
+# building documentation
+#
+add_documentation()
+
+#
+# export the package as a ament package
+#
+file(
+  GLOB cmake_files
+  RELATIVE ${PROJECT_SOURCE_DIR}
+  cmake/*.cmake)
+ament_package(CONFIG_EXTRAS ${cmake_files})
+
+
+
+
+
+
 
 # ##############################################################################
 # building documentation #
@@ -186,5 +224,3 @@ endif()
 # definitions #
 # ##############################################################################
 
-get_filename_component(TEST_PATH tests ABSOLUTE)
-get_filename_component(CONFIG_PATH config ABSOLUTE)
