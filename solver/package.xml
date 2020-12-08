@@ -1,22 +1,40 @@
 <?xml version="1.0"?>
-<package>
-  <name>solver</name>
-  <version>1.0.0</version>
-  <description>Optimization Routine</description>
-  <maintainer email="bponton@tue.mpg.de"></maintainer>
-  <license>BSD 3-Clause</license>
-  
-  <buildtool_depend>catkin</buildtool_depend>
-  
-  <build_depend> mpi_cmake_modules </build_depend>
-  <run_depend>   mpi_cmake_modules </run_depend>
+<?xml-model
+   href="http://download.ros.org/schema/package_format3.xsd"
+   schematypens="http://www.w3.org/2001/XMLSchema"?>
 
-  <build_depend> pybind11_catkin </build_depend>
-  <run_depend>   pybind11_catkin </run_depend>
+
+<package format="3">
+
+    <name>solver</name>
+    <version>1.0.0</version>
     
-  <build_depend> yaml_cpp_catkin </build_depend>
-  <run_depend>   yaml_cpp_catkin </run_depend>
+    <description>
+        Numerical optimization routines.
+    </description>
 
-  <export>
-  </export>
+    <maintainer email="vberenz@tuebingen.mpg.de">Vincent Berenz</maintainer>
+    <author email="bponton@tue.mpg.de"></author>
+
+    <license>BSD 3-clause</license>
+
+    <!-- ROS2 build -->
+    <buildtool_depend>ament_cmake</buildtool_depend>
+    <buildtool_depend>ament_cmake_python</buildtool_depend>
+
+    <!-- CMake module containing helper to find the OS, boost, python, etc. -->
+    <buildtool_depend>mpi_cmake_modules</buildtool_depend>
+    <buildtool_depend>pybind11_vendor</buildtool_depend>
+
+    <!-- Run time dependencies -->
+    <depend>yaml_utils</depend>
+    <depend>Eigen3</depend>
+
+    <!-- Unit tests -->
+    <test_depend>ament_cmake_gtest</test_depend>
+
+    <export>
+        <build_type>ament_cmake</build_type>
+    </export>
+
 </package>
