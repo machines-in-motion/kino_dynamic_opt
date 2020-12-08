@@ -26,6 +26,7 @@
     <!-- CMake module containing helper to find the OS, boost, python, etc. -->
     <buildtool_depend>mpi_cmake_modules</buildtool_depend>
     <buildtool_depend>pybind11_vendor</buildtool_depend>
+    <buildtool_depend>pybind11</buildtool_depend>
 
     <!-- Run time dependencies -->
     <depend>yaml_utils</depend>
@@ -33,6 +34,7 @@
 
     <!-- Unit tests -->
     <test_depend>ament_cmake_gtest</test_depend>
+    <test_depend>ament_cmake_pytest</test_depend>
 
     <export>
         <build_type>ament_cmake</build_type>

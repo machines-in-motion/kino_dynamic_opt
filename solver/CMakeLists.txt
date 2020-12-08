@@ -94,10 +94,6 @@ set_target_properties(solver PROPERTIES COMPILE_DEFINITIONS
 # Exporting.
 list(APPEND all_targets ${PROJECT_NAME})
 
-# set(solver_LIBS m ${Boost_LIBRARIES} ${catkin_LIBRARIES})
-# if(${CMAKE_SYSTEM_NAME} MATCHES "Linux") set(solver_LIBS ${solver_LIBS} rt)
-# endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-
 #
 # Python wrappers.
 #
