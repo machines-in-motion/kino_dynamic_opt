@@ -92,7 +92,7 @@ endif()
 set_target_properties(solver PROPERTIES COMPILE_DEFINITIONS
                                         "${solver_DEFINITIONS}")
 # Exporting.
-list(APPEND all_targets ${PROJECT_NAME})
+list(APPEND all_targets solver)
 
 #
 # Python wrappers.

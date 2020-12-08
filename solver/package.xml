@@ -31,6 +31,7 @@
     <!-- Run time dependencies -->
     <depend>yaml_utils</depend>
     <depend>Eigen3</depend>
+    <depend>Boost</depend>
 
     <!-- Unit tests -->
     <test_depend>ament_cmake_gtest</test_depend>
