@@ -57,6 +57,16 @@ namespace momentumopt {
 	  void linearMomentumRate(const Eigen::Vector3d& lmomd) { lmomd_ = lmomd; }
 	  void angularMomentumRate(const Eigen::Vector3d& amomd) { amomd_ = amomd; }
 
+	  void setCenterOfMass(const Eigen::Vector3d& com) {
+	      std::cout << "setting CoM to: " << std::endl;
+	      com_ = com;
+	      std::cout << com_ << std::endl;
+	  }
+
+	  void setCenterOfMass2(double x, double y, double z) {
+	      com_ << x, y, z;
+	  }
+
       // Endeffector forces, torques and cops
       Eigen::Vector3d& endeffectorCoP(int eff_id) { return eff_cops_[eff_id]; }
       Eigen::Vector3d& endeffectorForce(int eff_id) { return eff_forces_[eff_id]; }
@@ -135,6 +145,8 @@ namespace momentumopt {
 
 	  const std::vector<DynamicsState>& dynamicsSequence() const { return dynamics_sequence_; }
 	  void dynamicsSequence(const std::vector<DynamicsState>& dynamics_sequence) { dynamics_sequence_ = dynamics_sequence; }
+
+	  void setCoMAtTime(const Eigen::VectorXd& com, int time_id) { dynamics_sequence_[time_id].setCenterOfMass(com); }
 
       DynamicsState& dynamicsState(int time_id) { return dynamics_sequence_[time_id]; }
 	  const DynamicsState& dynamicsState(int time_id) const { return dynamics_sequence_[time_id]; }

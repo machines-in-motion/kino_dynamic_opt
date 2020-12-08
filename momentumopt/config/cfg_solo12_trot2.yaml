@@ -1,0 +1,364 @@
+floor_height: &floor_height 0.015
+time_horizon: &time_horizion 3.0
+time_step: &time_step 0.01
+
+initial_robot_configuration:
+
+  ###############################
+  # Initial robot configuration #
+  ###############################
+
+  com: [0.0, 0.0, 0.2]
+  amom: [0.0, 0.0, 0.0]
+  lmom: [0.0, 0.0, 0.0]
+  eef_ctrl:
+    eef_frc_rf: [0.0, 0.0, 0.25]
+    eef_frc_lf: [0.0, 0.0, 0.25]
+    eef_frc_rh: [0.0, 0.0, 0.25]
+    eef_frc_lh: [0.0, 0.0, 0.25]
+  eef_pose:
+    eef_rf: [1.0, 0.20, -0.142, *floor_height, 1.0, 0.0, 0.0, 0.0]
+    eef_lf: [1.0, 0.20, 0.142, *floor_height, 1.0, 0.0, 0.0, 0.0]
+    eef_rh: [1.0, -0.20, -0.142, *floor_height, 1.0, 0.0, 0.0, 0.0]
+    eef_lh: [1.0, -0.20, 0.142, *floor_height, 1.0, 0.0, 0.0, 0.0]
+
+
+terrain_description:
+
+  #######################
+  # Terrain description #
+  #######################
+
+  regions: [[[1.00, 1.00, 0.0], [-1.00, 1.00, 0.0], [-1.00, -1.00, 0.0], [1.00, -1.00,
+        0.0]]]
+
+
+contact_plan:
+
+  ################
+  # Contact plan #
+  ################
+
+  effcnt_rf:
+  - [0.00, 0.25, 0.20, -0.142, *floor_height, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [0.50, 0.95, 0.30, -0.142, *floor_height, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [1.20, 1.65, 0.50, -0.142, *floor_height, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [1.90, 2.35, 0.70, -0.142, *floor_height, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [2.60, 3.00, 0.80, -0.142, *floor_height, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  effcnt_lf:
+  - [0.00, 0.60, 0.20, 0.142, *floor_height, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [0.85, 1.30, 0.40, 0.142, *floor_height, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [1.55, 2.00, 0.60, 0.142, *floor_height, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [2.25, 3.00, 0.80, 0.142, *floor_height, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  effcnt_rh:
+  - [0.00, 0.60, -0.20, -0.142, *floor_height, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [0.85, 1.30, -0.00, -0.142, *floor_height, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [1.55, 2.00, 0.20, -0.142, *floor_height, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [2.25, 3.00, 0.40, -0.142, *floor_height, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  effcnt_lh:
+  - [0.00, 0.25, -0.20, 0.142, *floor_height, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [0.50, 0.95, -0.10, 0.142, *floor_height, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [1.20, 1.65, 0.10, 0.142, *floor_height, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [1.90, 2.35, 0.30, 0.142, *floor_height, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [2.60, 3.00, 0.40, 0.142, *floor_height, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  effvia_rf: []
+  effvia_lf: []
+  effvia_rh: []
+  effvia_lh: []
+
+planner_variables:
+
+  #########################
+  # Kinematics parameters #
+  #########################
+
+  load_kinematics: true
+  display_motion: true
+  num_dofs: 12
+  kd_iterations: 1
+  num_subsamples: 3
+  active_dofs: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+  min_joint_limits: [-2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5]
+  max_joint_limits: [2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5]
+  default_joint_positions: [0., 0.52, -1.04, 0., 0.52, -1.04, 0., -0.52, 1.04, 0., -0.52, 1.04]
+
+  #########################
+  # Kinematics momentum parameters #
+  #########################
+
+  swing_traj_via_z: .1
+  w_lin_mom_tracking: 1.
+  w_ang_mom_tracking: 10.
+  w_endeff_contact: 1.
+  w_endeff_tracking: 1.
+  p_endeff_tracking: 10.
+  p_com_tracking: 1.
+  w_joint_regularization: .001
+  reg_orientation: 5.
+  reg_joint_position: 2.
+  num_joint_viapoints: 0
+  num_base_viapoints: 0
+  # via point definition, Not implemented yet the binding properly
+  #  [time,                      # activation time of the via point
+  # Front_left_hip, Front_left_knee,
+  # Front_right_hip, Front_right_knee,
+  # Back_left_hip, Back_left_knee,
+  # Back_right_hip, Back_right_knee ]        # desired joint position
+  joint_viapoints:
+    via0: [1., 0.1, -0.2 ,0.1, -0.2 ,-0.1, 0.2 ,-0.1, 0.2]
+  # base via point definition
+  #  [time,                      # activation time of the via point
+  # roll, pitch, yaw]        # desired base Euler angles in radian
+  base_viapoints:
+    via0: [1.4, 0., 0., 0.]
+
+
+  #######################
+  # Dynamics parameters #
+  #######################
+
+  heuristic: SoftConstraint  # Types: TrustRegion, SoftConstraint, TimeOptimization #
+  n_act_eefs: 4
+  time_step: *time_step
+  time_horizon: *time_horizion
+  external_force: [0.00, 0.00, 0.00]
+  com_displacement: [0.0, 0.0, 0.00]
+  num_com_viapoints: 1
+  com_viapoints:
+    via0: [3.0, 0.62, 0.0, 0.]
+
+  #####################
+  # Timing parameters #
+  #####################
+
+  max_time_iterations: 50
+  max_time_residual_tolerance: 1e-3
+  min_time_residual_improvement: 1e-5
+
+  ############################
+  # Configuration parameters #
+  ############################
+
+  gravity: 9.81
+  robot_mass: 2.978
+  floor_height: *floor_height
+  friction_coeff: 1.0
+  min_rel_height: 0.08
+  friction_cone: LinearCone  # Types: LinearCone, SocCone #
+  time_range: [*time_step, *time_step]
+  is_time_horizon_fixed: true
+  torque_range: [0.0, 0.0]
+  eff_offset_rf: [0.200, -0.142, 0.000]
+  eff_offset_lf: [0.200, 0.142, 0.000]
+  eff_offset_rh: [-0.200, -0.142, 0.000]
+  eff_offset_lh: [-0.200, 0.142, 0.000]
+  cop_range_rf: [0.00, 0.00, 0.00, 0.00]
+  cop_range_lf: [0.00, 0.00, 0.00, 0.00]
+  cop_range_rh: [0.00, 0.00, 0.00, 0.00]
+  cop_range_lh: [0.00, 0.00, 0.00, 0.00]
+  max_eef_lengths: [0.29, 0.29, 0.29, 0.29]
+  has_torque_limits: false
+  min_torque_limits: [-0.675, -0.675, -0.675, -0.675, -0.675, -0.675, -0.675, -0.675, -0.675, -0.675, -0.675, -0.675]
+  max_torque_limits: [0.675, 0.675, 0.675, 0.675, 0.675, 0.675, 0.675, 0.675, 0.675, 0.675, 0.675, 0.675]
+
+  ####################
+  # Dynamics weights #
+  ####################
+
+  w_trq_arm: 0.000
+  w_trq_leg: 0.000
+  w_time_penalty: 0.000
+  w_time: 1.0
+  w_com: [100000., 100000., 100000.] # weight to bring the com at each time step to final value
+  w_amom: [1.0, 1.0, 100]
+  w_lmom: [0.100, 0.10, 10.0]
+  w_amomd: [10000.0, 100000.0, 100000.0]
+  w_lmomd: [0.100, 0.100, 0.100]
+  w_amom_final: [10000.0, 100000.0, 100000.0]
+  w_lmom_final: [10.00, 10.00, 10.00]
+  w_com_via: [1000000.0, 0.000, 0.000]
+  w_frc_arm: [0.001, 0.001, 0.001]
+  w_frc_leg: [0.001, 0.001, 0.001]
+  w_dfrc_arm: [0.000, 0.000, 0.000]
+  w_dfrc_leg: [0.000, 0.000, 0.000]
+  w_com_track: [0.000, 0.000, 1.000]
+  w_lmom_track: [0.100, 0.10, 10.0]
+  w_amom_track: [0.010, 0.010, 0.010]
+
+  ######################
+  # Kinematics weights #
+  ######################
+
+  max_trajectory_iters: 5
+  max_convergence_iters: 50
+  convergence_tolerance: 1e-2
+  integration_step: 1e-2
+  slacks_penalty: 1e-2
+  lambda_regularization: 1e-4
+
+  w_kin_com: [1.000, 1.42, 1.000]
+  w_kin_lmom: [1.e-3, 0.0, 1.e-4]                    #[ 0.000,   1.e-3,   1.e-4]
+  w_kin_amom: [0.000, 0.014199999999999999, 0.000]   #[ 4.e-3,   4.e-3,   0.000]
+  w_kin_lmomd: [1.e-4, 1.42, 1.e-4]                  #[ 1.e-4,   1.e-4,   1.e-4]
+  w_kin_amomd: [0.000, 0.000142, 0.000]              #[ 1.e-3,   1.e-3,   0.000]
+  w_kin_eff_pos: [5.000, 1.42, 5.000]
+  w_kin_eff_pos_nonact: [1.000, 1.42, 1.000]
+  w_kin_base_ori: [0.000, 0.0, 0.000]
+  w_kin_default_joints: [1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4]
+  w_kin_joint_vel: [1e-4, 1e-4, 1e-4, 1e-4, 1e+4, 1e+4, 1e-5, 1e-5, 1e-5, 1e-5, 1e-5,
+    1e-5, 1e-5, 1e-5, 1e-5, 1e-5, 1e-5, 1e-5]
+  w_kin_joint_acc: [1e-6, 1e-6, 1e-6, 1e-8, 1e+4, 1e+4, 1e-6, 1e-6, 1e-6, 1e-6, 1e-6,
+    1e-6, 1e-6, 1e-6, 1e-6, 1e-6, 1e-6, 1e-6]
+                          # base                                 # joints
+
+  #######################
+  # Storage information #
+  #######################
+
+  store_data: true
+
+  ##################
+  # Solver setting #
+  ##################
+
+  use_default_solver_setting: false
+
+
+solverlqr_dynamics:
+
+  ############################
+  # Lqr algorithm parameters #
+  ############################
+
+  verbosity: 0
+  decimal_digits: 4
+  lqr_max_iters: 1
+  linesearch_coeff: 1.1
+  linesearch_num_coeffs: 10
+  cost_change_tolerance: 1e-9
+  divergence_limit_check: 1e6
+  bpass_regularization_type: 2
+  bpass_min_regularization: 1e-6
+  bpass_max_regularization: 1e10
+  control_gradient_tolerance: 1e-6
+  bpass_initial_regularization: 0.1
+  min_expected_cost_improvement: 0.2
+  bpass_mult_regularization_incr: 1.2
+  bpass_initial_mult_regularization_incr: 1.0
+
+  ##########################
+  # Lqr problem parameters #
+  ##########################
+
+  problem_name: DynamicMomentumOptimization
+  time_step: *time_step
+  time_horizon: *time_horizion
+  state_dimension: 9
+  control_dimension: 12
+  initial_state: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+  has_control_limits: false
+
+  #######################
+  # Storage information #
+  #######################
+
+  store_data: false
+
+  ###################
+  # User parameters #
+  ###################
+
+  user_parameters:
+    control_cost: [0.001, 0.00142, 0.001]
+    com_tracking: [1.0, 0., 1.0]
+    lmom_tracking: [1., 0.0, 1.]
+    amom_tracking: [10., 10.0, 0.]
+    com_final_tracking: [1.0, 0., 1.0]
+    lmom_final_tracking: [1., 0.0, 1.]
+    amom_final_tracking: [10., 10.0, 0.]
+
+
+solver_variables:
+
+  ###########################
+  # Branch and Bound solver #
+  ###########################
+
+  BnB_verbose: false
+  BnB_max_iterations: 1000
+  BnB_integer_tolerance: 1e-4
+  BnB_absolute_suboptimality_gap: 1e-3
+  BnB_relative_suboptimality_gap: 1e-6
+
+  ##########################
+  # Convergence tolerances #
+  ##########################
+
+  feasibility_tolerance: 1e-7
+  max_residual_tolerance: 1e-3
+  absolute_suboptimality_gap: 1e-7
+  relative_suboptimality_gap: 1e-6
+  max_indeterminate_tolerance: 1e-9
+  feasibility_tolerance_inaccurate: 1e-4
+  absolute_suboptimality_gap_inaccurate: 5e-5
+  relative_suboptimality_gap_inaccurate: 5e-5
+
+  ############################
+  # Equilibration parameters #
+  ############################
+
+  equil_iterations: 3
+  scaling_factor: 1.0
+  equil_upper_bound: 1.0e3
+  equil_lower_bound: 1.0e-3
+
+  ############################
+  # Linear System parameters #
+  ############################
+
+  dyn_reg_thresh: 1e-13
+  lin_sys_accuracy: 1e-14
+  err_reduction_factor: 6.0
+  num_iter_ref_lin_solve: 9
+  static_regularization: 7e-8
+  dynamic_regularization: 2e-7
+
+  cg_step_rate: 2.0
+  cg_full_precision: 1e-9
+  cg_residual_bound: 1e-18
+  cg_reduced_precision: 1e-1
+
+  ########################
+  # Algorithm parameters #
+  ########################
+
+  safeguard: 500.0
+  min_step_length: 1e-6
+  max_step_length: 0.999
+  min_centering_step: 1e-4
+  max_centering_step: 1.00
+  step_length_scaling: 0.99
+
+  over_relaxation: 1.5
+  optinfo_interval: 100
+  converged_interval: 20
+  consensus_penalty: 1e-3
+
+  ####################
+  # Model parameters #
+  ####################
+
+  verbose: false
+  warm_start: false
+
+  max_iters: 100
+  ipsolver_max_iters: 100
+  ipsolver_warm_iters: 100
+  conicsolver_max_iters: 300
+  conicsolver_warm_iters: 300
+
+  num_itrefs_trustregion: 2
+  trust_region_threshold: 0.15
+  soft_constraint_weight_full: 1.0e4
+  soft_constraint_weight_reduced: 1.0e4

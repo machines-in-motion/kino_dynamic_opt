@@ -37,6 +37,7 @@ namespace solver {
       ExitCode optimize();
       const OptimizationVector& optimalVector() const { return opt_; }
       void initialize(SolverStorage& stg, Cone& cone, SolverSetting& stgs);
+      int current_iter;
 
     private:
       inline Cone& getCone() { return *cone_; }

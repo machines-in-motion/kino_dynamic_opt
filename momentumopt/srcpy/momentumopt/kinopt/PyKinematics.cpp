@@ -98,5 +98,6 @@ void init_kinematics(py::module &m)
     .def(py::init<>())
     .def("initialize", &KinematicsOptimizer::initialize)
 	.def("optimize", &KinematicsOptimizer::optimize, py::arg("ini_state"), py::arg("contact_plan"), py::arg("dyn_sequence"), py::arg("is_first_kinopt"))
+	.def("toDynSequence", &KinematicsOptimizer::statesToDynamicsSequence, py::arg("dyn_sequence"), py::arg("com"), py::arg("lmom"), py::arg("amom"))
     .def("kinematicsSequence", (const KinematicsSequence& (KinematicsOptimizer::*)(void) const) &KinematicsOptimizer::kinematicsSequence);
 }

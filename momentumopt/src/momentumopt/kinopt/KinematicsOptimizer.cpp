@@ -505,6 +505,11 @@ namespace momentumopt {
     }
   }
 
+  void KinematicsOptimizer::statesToDynamicsSequence(DynamicsSequence& dyn_sequence, Eigen::VectorXd com, Eigen::VectorXd lmom, Eigen::VectorXd amom) {
+      auto num_vars = dyn_sequence.size();
+      std::cout << num_vars << std::endl;
+  }
+
   void KinematicsOptimizer::storeSolution(const DynamicsState& ini_state, DynamicsSequence& dyn_sequence)
   {
     try

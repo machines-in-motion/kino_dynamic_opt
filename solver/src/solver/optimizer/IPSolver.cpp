@@ -31,6 +31,7 @@ namespace solver {
     cone_ = &cone;
     storage_ = &storage;
     setting_ = &setting;
+    current_iter = 0;
     this->internalInitialization();
   }
 
@@ -217,21 +218,25 @@ namespace solver {
     this->getInfo().mode() = mode;
     double feastol, abstol, reltol;
     ExitCode exitcode = ExitCode::NotConverged;
+    current_iter+=1;
 
     // set accuracy
     if ( mode == PrecisionConvergence::Full) {
       feastol = this->getSetting().get(SolverDoubleParam_FeasibilityTol);
+      //std::cout << feastol << std::endl;
       abstol  = this->getSetting().get(SolverDoubleParam_DualityGapAbsTol);
       reltol  = this->getSetting().get(SolverDoubleParam_DualityGapRelTol);
+      //std::cout << "accurate" << std::endl;
     } else {
+      std::cout << "inaccurate" << std::endl;
       feastol = this->getSetting().get(SolverDoubleParam_FeasibilityTolInacc);
       abstol  = this->getSetting().get(SolverDoubleParam_DualityGapAbsTolInacc);
       reltol  = this->getSetting().get(SolverDoubleParam_DualityGapRelTolInacc);
     }
 
     // Optimality
-    if ( (cx_<0.0 || by_+hz_<=abstol) && (this->getInfo().get(SolverDoubleParam_PrimalResidual)<feastol && this->getInfo().get(SolverDoubleParam_DualResidual)<feastol) && (this->getInfo().get(SolverDoubleParam_DualityGap)<abstol || this->getInfo().get(SolverDoubleParam_RelativeDualityGap)<reltol)) {
-      this->getPrinter().display(Msg::OptimalityReached, this->getInfo());
+    if ( (cx_<0.0 || by_+hz_<=abstol) && (this->getInfo().get(SolverDoubleParam_PrimalResidual)<feastol && this->getInfo().get(SolverDoubleParam_DualResidual)<feastol) && (this->getInfo().get(SolverDoubleParam_DualityGap)<abstol || this->getInfo().get(SolverDoubleParam_RelativeDualityGap)<reltol) ) {
+	this->getPrinter().display(Msg::OptimalityReached, this->getInfo());
       (mode==PrecisionConvergence::Full ? exitcode=ExitCode::Optimal : exitcode=ExitCode::OptimalInacc);
     }
 

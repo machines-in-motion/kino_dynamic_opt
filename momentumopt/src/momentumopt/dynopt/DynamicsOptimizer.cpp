@@ -72,8 +72,10 @@ namespace momentumopt {
     contact_plan_->fillDynamicsSequence(ini_state, this->dynamicsSequence());
     this->initializeOptimizationVariables();
 
-	if (update_tracking_objective)
-	  this->updateTrackingObjective();
+	if (update_tracking_objective) {
+        std::cout << "Updating tracking objective" << std::endl;
+	    this->updateTrackingObjective();
+    }
 
 	solve_time_ = 0.0;
 	has_converged_ = false;
@@ -118,384 +120,389 @@ namespace momentumopt {
         addVariableToModel(trq_local_[eff_id], model_, vars_);
       }
 
-      // adding quadratic objective
-      quad_objective_.clear();
+        // adding quadratic objective
+        quad_objective_.clear();
 
-      if (this->getSetting().get(PlannerIntParam_NumViapoints) > 0) {
-        for (int via_id=0; via_id<this->getSetting().get(PlannerIntParam_NumViapoints); via_id++)
-          for (int axis_id=0; axis_id<3; axis_id++)
-        	    quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightCenterOfMassViapoint)[axis_id], LinExpr(vars_[com_.id(axis_id,int(this->getSetting().get(PlannerCVectorParam_Viapoints)[via_id](0)/this->getSetting().get(PlannerDoubleParam_TimeStep)))]) - LinExpr(this->getSetting().get(PlannerCVectorParam_Viapoints)[via_id](axis_id+1)) );
-      }
-
-      for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++) {
-        for (int axis_id=0; axis_id<3; axis_id++) {
-
-          // penalty on center of mass, linear and angular momentum
-          if (time_id==this->getSetting().get(PlannerIntParam_NumTimesteps)-1) {
-            quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightCenterOfMass)[axis_id], LinExpr(vars_[com_.id(axis_id,time_id)]) - LinExpr(com_pos_goal_[axis_id]));
-            quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightFinalLinearMomentum)[axis_id], LinExpr(vars_[lmom_.id(axis_id,time_id)]) - LinExpr(kin_sequence.kinematicsState(time_id).linearMomentum()[axis_id]));
-            quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightFinalAngularMomentum)[axis_id], LinExpr(vars_[amom_.id(axis_id,time_id)]) - LinExpr(kin_sequence.kinematicsState(time_id).angularMomentum()[axis_id]));
-          } else {
-            quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightLinearMomentum)[axis_id], LinExpr(vars_[lmom_.id(axis_id,time_id)]) - LinExpr(kin_sequence.kinematicsState(time_id).linearMomentum()[axis_id]));
-            quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightAngularMomentum)[axis_id], LinExpr(vars_[amom_.id(axis_id,time_id)]) - LinExpr(kin_sequence.kinematicsState(time_id).angularMomentum()[axis_id]));
-          }
-          quad_objective_.addQuaTerm(weight_desired_com_tracking_[axis_id], vars_[com_.id(axis_id,time_id)] - kin_sequence.kinematicsState(time_id).centerOfMass()[axis_id]);
-
-          // penalty on linear and angular momentum rates
-          if (this->getSetting().heuristic() == Heuristic::TimeOptimization) {
-            quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightLinearMomentumRate)[axis_id], vars_[lmomd_.id(axis_id,time_id)]);
-            quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightAngularMomentumRate)[axis_id], vars_[amomd_.id(axis_id,time_id)]);
-          } else {
-            if (time_id==0) {
-              quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightLinearMomentumRate)[axis_id], (LinExpr(vars_[lmom_.id(axis_id,time_id)]) - LinExpr(ini_state_.linearMomentum()[axis_id]))*(1.0/dynamicsSequence().dynamicsState(time_id).time()));
-              quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightAngularMomentumRate)[axis_id], (LinExpr(vars_[amom_.id(axis_id,time_id)]) - LinExpr(ini_state_.angularMomentum()[axis_id]))*(1.0/dynamicsSequence().dynamicsState(time_id).time()));
-            } else {
-              quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightLinearMomentumRate)[axis_id], (LinExpr(vars_[lmom_.id(axis_id,time_id)]) - LinExpr(vars_[lmom_.id(axis_id,time_id-1)]))*(1.0/dynamicsSequence().dynamicsState(time_id).time()));
-              quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightAngularMomentumRate)[axis_id], (LinExpr(vars_[amom_.id(axis_id,time_id)]) - LinExpr(vars_[amom_.id(axis_id,time_id-1)]))*(1.0/dynamicsSequence().dynamicsState(time_id).time()));
-            }
-          }
-
-    	      // penalty on forces
-    	      for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++) {
-    	        if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id)) {
-    	          if (eff_id==static_cast<int>(Problem::EffId::id_right_foot) || eff_id==static_cast<int>(Problem::EffId::id_left_foot)) { quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightLegForce)[axis_id], vars_[frc_world_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))]); }
-    	                                                                                                                            else { quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightArmForce)[axis_id], vars_[frc_world_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))]); }
-    	        }
-          }
-
-          // penalty on rate of forces
-          for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++) {
-            Eigen::Vector3d ctrl_rate_penalty = Eigen::Vector3d::Zero();
-            if (Problem::isHand(eff_id)) { ctrl_rate_penalty = this->getSetting().get(PlannerVectorParam_WeightArmForceRate); }
-                                    else { ctrl_rate_penalty = this->getSetting().get(PlannerVectorParam_WeightLegForceRate); }
-
-            if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id)) {
-              // current force
-              LinExpr current_force = vars_[frc_world_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))];
-
-              // next force
-              LinExpr next_force = 0.0;
-              if (time_id==this->getSetting().get(PlannerIntParam_NumTimesteps)-1) { next_force = current_force; }
-              else {
-                if (dynamicsSequence().dynamicsState(time_id+1).endeffectorActivation(eff_id))
-                  next_force = vars_[frc_world_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id+1).endeffectorActivationId(eff_id))];
-              }
-
-              // previous force
-              LinExpr previous_force = 0.0;
-              if (time_id==0) { previous_force = ini_state_.endeffectorForce(eff_id)[axis_id]; }
-              else {
-                if (dynamicsSequence().dynamicsState(time_id-1).endeffectorActivation(eff_id))
-                  previous_force = vars_[frc_world_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id-1).endeffectorActivationId(eff_id))];
-              }
-
-              // penalty on force smoothness
-              quad_objective_.addQuaTerm(ctrl_rate_penalty[axis_id], next_force - current_force);
-              quad_objective_.addQuaTerm(ctrl_rate_penalty[axis_id], current_force - previous_force);
-            }
-          }
+        if (this->getSetting().get(PlannerIntParam_NumViapoints) > 0) {
+            std::cout << "Getting to a via point" << std::endl;
+            for (int via_id=0; via_id<this->getSetting().get(PlannerIntParam_NumViapoints); via_id++)
+                for (int axis_id=0; axis_id<3; axis_id++)
+                    quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightCenterOfMassViapoint)[axis_id], LinExpr(vars_[com_.id(axis_id,int(this->getSetting().get(PlannerCVectorParam_Viapoints)[via_id](0)/this->getSetting().get(PlannerDoubleParam_TimeStep)))]) - LinExpr(this->getSetting().get(PlannerCVectorParam_Viapoints)[via_id](axis_id+1)) );
         }
 
-        // penalty on torques
-  	    for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++) {
-  	      if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id)) {
-  	        if (eff_id==static_cast<int>(Problem::EffId::id_right_foot) || eff_id==static_cast<int>(Problem::EffId::id_left_foot)) { quad_objective_.addQuaTerm(this->getSetting().get(PlannerDoubleParam_WeightLegTorque), vars_[trq_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))]); }
-  	                                                                                                                          else { quad_objective_.addQuaTerm(this->getSetting().get(PlannerDoubleParam_WeightArmTorque), vars_[trq_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))]); }
-  	      }
-        }
-
-  	    // penalty on time
-  	    if (this->getSetting().heuristic() == Heuristic::TimeOptimization) {
-  	    	  quad_objective_.addQuaTerm(this->getSetting().get(PlannerDoubleParam_WeightTimePenalty), LinExpr(vars_[dt_.id(0,time_id)]));
-  	    	  quad_objective_.addQuaTerm(this->getSetting().get(PlannerDoubleParam_WeightTimeRegularization), LinExpr(vars_[dt_.id(0,time_id)]) - LinExpr(this->getSetting().get(PlannerDoubleParam_TimeStep)));
-  	    }
-      }
-
-      if (!is_first_time && this->getSetting().heuristic() == Heuristic::TimeOptimization) {
         for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++) {
-      	  for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++) {
-      	    if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id)) {
-      		  Eigen::Matrix3d rot = this->contactRotation(time_id, eff_id);
-      		  Eigen::Vector3d rx = rot.col(0);
-      		  Eigen::Vector3d ry = rot.col(1);
+            for (int axis_id=0; axis_id<3; axis_id++) {
 
-              LinExpr lx, ly, lz, fx, fy, fz;
-              lx = LinExpr(this->contactLocation(time_id, eff_id, 0)) - LinExpr(vars_[com_.id(0,time_id)]) + LinExpr(vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*rx(0) + LinExpr(vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*ry(0);
-              ly = LinExpr(this->contactLocation(time_id, eff_id, 1)) - LinExpr(vars_[com_.id(1,time_id)]) + LinExpr(vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*rx(1) + LinExpr(vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*ry(1);
-              lz = LinExpr(this->contactLocation(time_id, eff_id, 2)) - LinExpr(vars_[com_.id(2,time_id)]) + LinExpr(vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*rx(2) + LinExpr(vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*ry(2);
-              fx = vars_[frc_world_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))];
-              fy = vars_[frc_world_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))];
-              fz = vars_[frc_world_[eff_id].id(2,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))];
-
-  		      double lx_val, ly_val, lz_val, fx_val, fy_val, fz_val;
-              lx_val = this->contactLocation(time_id, eff_id, 0) - dynamicsSequence().dynamicsState(time_id).centerOfMass().x() + rx(0)*dynamicsSequence().dynamicsState(time_id).endeffectorCoP(eff_id).x() + ry(0)*dynamicsSequence().dynamicsState(time_id).endeffectorCoP(eff_id).y();
-              ly_val = this->contactLocation(time_id, eff_id, 1) - dynamicsSequence().dynamicsState(time_id).centerOfMass().y() + rx(1)*dynamicsSequence().dynamicsState(time_id).endeffectorCoP(eff_id).x() + ry(1)*dynamicsSequence().dynamicsState(time_id).endeffectorCoP(eff_id).y();
-              lz_val = this->contactLocation(time_id, eff_id, 2) - dynamicsSequence().dynamicsState(time_id).centerOfMass().z() + rx(2)*dynamicsSequence().dynamicsState(time_id).endeffectorCoP(eff_id).x() + ry(2)*dynamicsSequence().dynamicsState(time_id).endeffectorCoP(eff_id).y();
-              fx_val = dynamicsSequence().dynamicsState(time_id).endeffectorForce(eff_id).x();
-              fy_val = dynamicsSequence().dynamicsState(time_id).endeffectorForce(eff_id).y();
-              fz_val = dynamicsSequence().dynamicsState(time_id).endeffectorForce(eff_id).z();
-
-              LinExpr ub_x, lb_x, ub_y, lb_y, ub_z, lb_z;
-              ub_x = ( LinExpr(std::pow(-lz_val+fy_val, 2.0) + std::pow( ly_val+fz_val, 2.0)) + ((LinExpr()-lz+fy)-(-lz_val+fy_val))*2.0*(-lz_val+fy_val) + (( ly+fz)-( ly_val+fz_val))*2.0*( ly_val+fz_val) ) - LinExpr(vars_[ub_var_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))]);
-              lb_x = ( LinExpr(std::pow(-lz_val-fy_val, 2.0) + std::pow( ly_val-fz_val, 2.0)) + ((LinExpr()-lz-fy)-(-lz_val-fy_val))*2.0*(-lz_val-fy_val) + (( ly-fz)-( ly_val-fz_val))*2.0*( ly_val-fz_val) ) - LinExpr(vars_[lb_var_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))]);
-              ub_y = ( LinExpr(std::pow( lz_val+fx_val, 2.0) + std::pow(-lx_val+fz_val, 2.0)) + (( lz+fx)-( lz_val+fx_val))*2.0*( lz_val+fx_val) + ((LinExpr()-lx+fz)-(-lx_val+fz_val))*2.0*(-lx_val+fz_val) ) - LinExpr(vars_[ub_var_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))]);
-              lb_y = ( LinExpr(std::pow( lz_val-fx_val, 2.0) + std::pow(-lx_val-fz_val, 2.0)) + (( lz-fx)-( lz_val-fx_val))*2.0*( lz_val-fx_val) + ((LinExpr()-lx-fz)-(-lx_val-fz_val))*2.0*(-lx_val-fz_val) ) - LinExpr(vars_[lb_var_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))]);
-              ub_z = ( LinExpr(std::pow(-ly_val+fx_val, 2.0) + std::pow( lx_val+fy_val, 2.0)) + ((LinExpr()-ly+fx)-(-ly_val+fx_val))*2.0*(-ly_val+fx_val) + (( lx+fy)-( lx_val+fy_val))*2.0*( lx_val+fy_val) ) - LinExpr(vars_[ub_var_[eff_id].id(2,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))]);
-              lb_z = ( LinExpr(std::pow(-ly_val-fx_val, 2.0) + std::pow( lx_val-fy_val, 2.0)) + ((LinExpr()-ly-fx)-(-ly_val-fx_val))*2.0*(-ly_val-fx_val) + (( lx-fy)-( lx_val-fy_val))*2.0*( lx_val-fy_val) ) - LinExpr(vars_[lb_var_[eff_id].id(2,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))]);
-
-              double w_soft_constraint = model_.getSetting().get(SolverDoubleParam_SoftConstraintWeightReduced);
-              quad_objective_.addQuaTerm(w_soft_constraint, ub_x);
-              quad_objective_.addQuaTerm(w_soft_constraint, lb_x);
-              quad_objective_.addQuaTerm(w_soft_constraint, ub_y);
-              quad_objective_.addQuaTerm(w_soft_constraint, lb_y);
-              quad_objective_.addQuaTerm(w_soft_constraint, ub_z);
-              quad_objective_.addQuaTerm(w_soft_constraint, lb_z);
-      	    }
-          }
-        }
-      }
-
-      model_.setObjective(quad_objective_, 0.0);
-
-      // center of mass above endeffector positions
-      for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++) {
-        model_.addLinConstr(LinExpr(vars_[com_.id(2,time_id)]) - LinExpr(this->contactLocation(0, 0, 2)), ">", this->getSetting().get(PlannerDoubleParam_MinRelHeight));
-        //for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++) {
-        //  if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id)) {
-        //      model_.addLinConstr(vars_[com_.id(2,time_id)] - this->contactLocation(time_id, eff_id, 2), ">", this->getSetting().get(PlannerDoubleParam_MinRelHeight));
-        //  }
-        //}
-      }
-
-      // constant time horizon with time adaptation
-      if (this->getSetting().get(PlannerBoolParam_IsTimeHorizonFixed) && this->getSetting().heuristic() == Heuristic::TimeOptimization) {
-        lin_cons_ = 0.0;
-        for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++)
-    	      lin_cons_ += vars_[dt_.id(0,time_id)];
-        model_.addLinConstr(lin_cons_, "=", this->getSetting().get(PlannerIntParam_NumTimesteps)*this->getSetting().get(PlannerDoubleParam_TimeStep));
-      }
-
-      // upper and lower bounds constraints
-      for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++) {
-    	    if (this->getSetting().heuristic() == Heuristic::TimeOptimization) {
-          model_.addLinConstr(vars_[dt_.id(0,time_id)], ">", this->getSetting().get(PlannerVectorParam_TimeRange)[0]);
-          model_.addLinConstr(vars_[dt_.id(0,time_id)], "<", this->getSetting().get(PlannerVectorParam_TimeRange)[1]);
-    	    }
-      	for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++) {
-      	  if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id)) {
-      		model_.addLinConstr(vars_[trq_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))], ">", this->getSetting().get(PlannerVectorParam_TorqueRange)[0]);
-      	 	model_.addLinConstr(vars_[trq_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))], "<", this->getSetting().get(PlannerVectorParam_TorqueRange)[1]);
-      		model_.addLinConstr(vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))], ">", this->getSetting().get(PlannerArrayParam_CenterOfPressureRange)[eff_id][0]);
-      		model_.addLinConstr(vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))], "<", this->getSetting().get(PlannerArrayParam_CenterOfPressureRange)[eff_id][1]);
-      		model_.addLinConstr(vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))], ">", this->getSetting().get(PlannerArrayParam_CenterOfPressureRange)[eff_id][2]);
-      		model_.addLinConstr(vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))], "<", this->getSetting().get(PlannerArrayParam_CenterOfPressureRange)[eff_id][3]);
-      	  }
-      	}
-      }
-
-      // friction cone constraints
-      for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++) {
-        for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++) {
-          if (this->contactType(time_id, eff_id) != ContactType::FullContact) {
-            if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id)) {
-              Eigen::Matrix3d eff_rotation = this->contactRotation(time_id, eff_id);
-              if (this->getSetting().get(PlannerBoolParam_IsFrictionConeLinear)) {  // using a linear representation
-                Eigen::Matrix<double,4,3> rotated_cone_matrix_ = cone_matrix_*eff_rotation.transpose();
-                for (int row_id=0; row_id<4; row_id++) {
-                  lin_cons_ = 0.0;
-                  for (int axis_id=0; axis_id<3; axis_id++)
-                    lin_cons_ += LinExpr(vars_[frc_world_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*rotated_cone_matrix_(row_id,axis_id);
-                  model_.addLinConstr(lin_cons_, "<", 0.0);
+                // penalty on center of mass, linear and angular momentum
+                if (time_id==this->getSetting().get(PlannerIntParam_NumTimesteps)-1) {
+                    quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightCenterOfMass)[axis_id], LinExpr(vars_[com_.id(axis_id,time_id)]) - LinExpr(com_pos_goal_[axis_id]));
+                    quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightFinalLinearMomentum)[axis_id], LinExpr(vars_[lmom_.id(axis_id,time_id)]) - LinExpr(kin_sequence.kinematicsState(time_id).linearMomentum()[axis_id]));
+                    quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightFinalAngularMomentum)[axis_id], LinExpr(vars_[amom_.id(axis_id,time_id)]) - LinExpr(kin_sequence.kinematicsState(time_id).angularMomentum()[axis_id]));
+                } else {
+                    quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightLinearMomentum)[axis_id], LinExpr(vars_[lmom_.id(axis_id,time_id)]) - LinExpr(kin_sequence.kinematicsState(time_id).linearMomentum()[axis_id]));
+                    quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightAngularMomentum)[axis_id], LinExpr(vars_[amom_.id(axis_id,time_id)]) - LinExpr(kin_sequence.kinematicsState(time_id).angularMomentum()[axis_id]));
                 }
-              } else {  // using a second-order cone representation
-                LinExpr fx = 0.0, fy = 0.0, fz = 0.0;
+                quad_objective_.addQuaTerm(weight_desired_com_tracking_[axis_id], vars_[com_.id(axis_id,time_id)] - kin_sequence.kinematicsState(time_id).centerOfMass()[axis_id]);
+                if (time_id==this->getSetting().get(PlannerIntParam_NumTimesteps)-2)
+                    std::cout << "Desired weighting com: " << weight_desired_com_tracking_[axis_id] << std::endl;
+
+                // penalty on linear and angular momentum rates
+                if (this->getSetting().heuristic() == Heuristic::TimeOptimization) {
+                    quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightLinearMomentumRate)[axis_id], vars_[lmomd_.id(axis_id,time_id)]);
+                    quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightAngularMomentumRate)[axis_id], vars_[amomd_.id(axis_id,time_id)]);
+                } else {
+                    if (time_id==0) {
+                        quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightLinearMomentumRate)[axis_id], (LinExpr(vars_[lmom_.id(axis_id,time_id)]) - LinExpr(ini_state_.linearMomentum()[axis_id]))*(1.0/dynamicsSequence().dynamicsState(time_id).time()));
+                        quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightAngularMomentumRate)[axis_id], (LinExpr(vars_[amom_.id(axis_id,time_id)]) - LinExpr(ini_state_.angularMomentum()[axis_id]))*(1.0/dynamicsSequence().dynamicsState(time_id).time()));
+                    } else {
+                        quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightLinearMomentumRate)[axis_id], (LinExpr(vars_[lmom_.id(axis_id,time_id)]) - LinExpr(vars_[lmom_.id(axis_id,time_id-1)]))*(1.0/dynamicsSequence().dynamicsState(time_id).time()));
+                        quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightAngularMomentumRate)[axis_id], (LinExpr(vars_[amom_.id(axis_id,time_id)]) - LinExpr(vars_[amom_.id(axis_id,time_id-1)]))*(1.0/dynamicsSequence().dynamicsState(time_id).time()));
+                    }
+                }
+
+                // penalty on forces
+                for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++) {
+                    if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id)) {
+                        if (eff_id==static_cast<int>(Problem::EffId::id_right_foot) || eff_id==static_cast<int>(Problem::EffId::id_left_foot)) { quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightLegForce)[axis_id], vars_[frc_world_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))]); }
+                        else { quad_objective_.addQuaTerm(this->getSetting().get(PlannerVectorParam_WeightArmForce)[axis_id], vars_[frc_world_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))]); }
+                    }
+                }
+
+                // penalty on rate of forces
+                for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++) {
+                    Eigen::Vector3d ctrl_rate_penalty = Eigen::Vector3d::Zero();
+                    if (Problem::isHand(eff_id)) { ctrl_rate_penalty = this->getSetting().get(PlannerVectorParam_WeightArmForceRate); }
+                    else { ctrl_rate_penalty = this->getSetting().get(PlannerVectorParam_WeightLegForceRate); }
+
+                    if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id)) {
+                        // current force
+                        LinExpr current_force = vars_[frc_world_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))];
+
+                        // next force
+                        LinExpr next_force = 0.0;
+                        if (time_id==this->getSetting().get(PlannerIntParam_NumTimesteps)-1) { next_force = current_force; }
+                        else {
+                            if (dynamicsSequence().dynamicsState(time_id+1).endeffectorActivation(eff_id))
+                                next_force = vars_[frc_world_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id+1).endeffectorActivationId(eff_id))];
+                        }
+
+                        // previous force
+                        LinExpr previous_force = 0.0;
+                        if (time_id==0) { previous_force = ini_state_.endeffectorForce(eff_id)[axis_id]; }
+                        else {
+                            if (dynamicsSequence().dynamicsState(time_id-1).endeffectorActivation(eff_id))
+                                previous_force = vars_[frc_world_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id-1).endeffectorActivationId(eff_id))];
+                        }
+
+                        // penalty on force smoothness
+                        quad_objective_.addQuaTerm(ctrl_rate_penalty[axis_id], next_force - current_force);
+                        quad_objective_.addQuaTerm(ctrl_rate_penalty[axis_id], current_force - previous_force);
+                    }
+                }
+            }
+
+            // penalty on torques
+            for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++) {
+                if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id)) {
+                    if (eff_id==static_cast<int>(Problem::EffId::id_right_foot) || eff_id==static_cast<int>(Problem::EffId::id_left_foot)) { quad_objective_.addQuaTerm(this->getSetting().get(PlannerDoubleParam_WeightLegTorque), vars_[trq_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))]); }
+                    else { quad_objective_.addQuaTerm(this->getSetting().get(PlannerDoubleParam_WeightArmTorque), vars_[trq_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))]); }
+                }
+            }
+
+            // penalty on time
+            if (this->getSetting().heuristic() == Heuristic::TimeOptimization) {
+                quad_objective_.addQuaTerm(this->getSetting().get(PlannerDoubleParam_WeightTimePenalty), LinExpr(vars_[dt_.id(0,time_id)]));
+                quad_objective_.addQuaTerm(this->getSetting().get(PlannerDoubleParam_WeightTimeRegularization), LinExpr(vars_[dt_.id(0,time_id)]) - LinExpr(this->getSetting().get(PlannerDoubleParam_TimeStep)));
+            }
+        }
+
+        if (!is_first_time && this->getSetting().heuristic() == Heuristic::TimeOptimization) {
+            for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++) {
+                for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++) {
+                    if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id)) {
+                        Eigen::Matrix3d rot = this->contactRotation(time_id, eff_id);
+                        Eigen::Vector3d rx = rot.col(0);
+                        Eigen::Vector3d ry = rot.col(1);
+
+                        LinExpr lx, ly, lz, fx, fy, fz;
+                        lx = LinExpr(this->contactLocation(time_id, eff_id, 0)) - LinExpr(vars_[com_.id(0,time_id)]) + LinExpr(vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*rx(0) + LinExpr(vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*ry(0);
+                        ly = LinExpr(this->contactLocation(time_id, eff_id, 1)) - LinExpr(vars_[com_.id(1,time_id)]) + LinExpr(vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*rx(1) + LinExpr(vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*ry(1);
+                        lz = LinExpr(this->contactLocation(time_id, eff_id, 2)) - LinExpr(vars_[com_.id(2,time_id)]) + LinExpr(vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*rx(2) + LinExpr(vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*ry(2);
+                        fx = vars_[frc_world_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))];
+                        fy = vars_[frc_world_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))];
+                        fz = vars_[frc_world_[eff_id].id(2,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))];
+
+                        double lx_val, ly_val, lz_val, fx_val, fy_val, fz_val;
+                        lx_val = this->contactLocation(time_id, eff_id, 0) - dynamicsSequence().dynamicsState(time_id).centerOfMass().x() + rx(0)*dynamicsSequence().dynamicsState(time_id).endeffectorCoP(eff_id).x() + ry(0)*dynamicsSequence().dynamicsState(time_id).endeffectorCoP(eff_id).y();
+                        ly_val = this->contactLocation(time_id, eff_id, 1) - dynamicsSequence().dynamicsState(time_id).centerOfMass().y() + rx(1)*dynamicsSequence().dynamicsState(time_id).endeffectorCoP(eff_id).x() + ry(1)*dynamicsSequence().dynamicsState(time_id).endeffectorCoP(eff_id).y();
+                        lz_val = this->contactLocation(time_id, eff_id, 2) - dynamicsSequence().dynamicsState(time_id).centerOfMass().z() + rx(2)*dynamicsSequence().dynamicsState(time_id).endeffectorCoP(eff_id).x() + ry(2)*dynamicsSequence().dynamicsState(time_id).endeffectorCoP(eff_id).y();
+                        fx_val = dynamicsSequence().dynamicsState(time_id).endeffectorForce(eff_id).x();
+                        fy_val = dynamicsSequence().dynamicsState(time_id).endeffectorForce(eff_id).y();
+                        fz_val = dynamicsSequence().dynamicsState(time_id).endeffectorForce(eff_id).z();
+
+                        LinExpr ub_x, lb_x, ub_y, lb_y, ub_z, lb_z;
+                        ub_x = ( LinExpr(std::pow(-lz_val+fy_val, 2.0) + std::pow( ly_val+fz_val, 2.0)) + ((LinExpr()-lz+fy)-(-lz_val+fy_val))*2.0*(-lz_val+fy_val) + (( ly+fz)-( ly_val+fz_val))*2.0*( ly_val+fz_val) ) - LinExpr(vars_[ub_var_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))]);
+                        lb_x = ( LinExpr(std::pow(-lz_val-fy_val, 2.0) + std::pow( ly_val-fz_val, 2.0)) + ((LinExpr()-lz-fy)-(-lz_val-fy_val))*2.0*(-lz_val-fy_val) + (( ly-fz)-( ly_val-fz_val))*2.0*( ly_val-fz_val) ) - LinExpr(vars_[lb_var_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))]);
+                        ub_y = ( LinExpr(std::pow( lz_val+fx_val, 2.0) + std::pow(-lx_val+fz_val, 2.0)) + (( lz+fx)-( lz_val+fx_val))*2.0*( lz_val+fx_val) + ((LinExpr()-lx+fz)-(-lx_val+fz_val))*2.0*(-lx_val+fz_val) ) - LinExpr(vars_[ub_var_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))]);
+                        lb_y = ( LinExpr(std::pow( lz_val-fx_val, 2.0) + std::pow(-lx_val-fz_val, 2.0)) + (( lz-fx)-( lz_val-fx_val))*2.0*( lz_val-fx_val) + ((LinExpr()-lx-fz)-(-lx_val-fz_val))*2.0*(-lx_val-fz_val) ) - LinExpr(vars_[lb_var_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))]);
+                        ub_z = ( LinExpr(std::pow(-ly_val+fx_val, 2.0) + std::pow( lx_val+fy_val, 2.0)) + ((LinExpr()-ly+fx)-(-ly_val+fx_val))*2.0*(-ly_val+fx_val) + (( lx+fy)-( lx_val+fy_val))*2.0*( lx_val+fy_val) ) - LinExpr(vars_[ub_var_[eff_id].id(2,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))]);
+                        lb_z = ( LinExpr(std::pow(-ly_val-fx_val, 2.0) + std::pow( lx_val-fy_val, 2.0)) + ((LinExpr()-ly-fx)-(-ly_val-fx_val))*2.0*(-ly_val-fx_val) + (( lx-fy)-( lx_val-fy_val))*2.0*( lx_val-fy_val) ) - LinExpr(vars_[lb_var_[eff_id].id(2,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))]);
+
+                        double w_soft_constraint = model_.getSetting().get(SolverDoubleParam_SoftConstraintWeightReduced);
+                        quad_objective_.addQuaTerm(w_soft_constraint, ub_x);
+                        quad_objective_.addQuaTerm(w_soft_constraint, lb_x);
+                        quad_objective_.addQuaTerm(w_soft_constraint, ub_y);
+                        quad_objective_.addQuaTerm(w_soft_constraint, lb_y);
+                        quad_objective_.addQuaTerm(w_soft_constraint, ub_z);
+                        quad_objective_.addQuaTerm(w_soft_constraint, lb_z);
+                    }
+                }
+            }
+        }
+
+        model_.setObjective(quad_objective_, 0.0);
+
+        // center of mass above endeffector positions
+        for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++) {
+            model_.addLinConstr(LinExpr(vars_[com_.id(2,time_id)]) - LinExpr(this->contactLocation(0, 0, 2)), ">", this->getSetting().get(PlannerDoubleParam_MinRelHeight));
+            //for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++) {
+            //  if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id)) {
+            //      model_.addLinConstr(vars_[com_.id(2,time_id)] - this->contactLocation(time_id, eff_id, 2), ">", this->getSetting().get(PlannerDoubleParam_MinRelHeight));
+            //  }
+            //}
+        }
+
+        // constant time horizon with time adaptation
+        if (this->getSetting().get(PlannerBoolParam_IsTimeHorizonFixed) && this->getSetting().heuristic() == Heuristic::TimeOptimization) {
+            lin_cons_ = 0.0;
+            for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++)
+                lin_cons_ += vars_[dt_.id(0,time_id)];
+            model_.addLinConstr(lin_cons_, "=", this->getSetting().get(PlannerIntParam_NumTimesteps)*this->getSetting().get(PlannerDoubleParam_TimeStep));
+        }
+
+        // upper and lower bounds constraints
+        for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++) {
+            if (this->getSetting().heuristic() == Heuristic::TimeOptimization) {
+                model_.addLinConstr(vars_[dt_.id(0,time_id)], ">", this->getSetting().get(PlannerVectorParam_TimeRange)[0]);
+                model_.addLinConstr(vars_[dt_.id(0,time_id)], "<", this->getSetting().get(PlannerVectorParam_TimeRange)[1]);
+            }
+            for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++) {
+                if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id)) {
+                    model_.addLinConstr(vars_[trq_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))], ">", this->getSetting().get(PlannerVectorParam_TorqueRange)[0]);
+                    model_.addLinConstr(vars_[trq_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))], "<", this->getSetting().get(PlannerVectorParam_TorqueRange)[1]);
+                    model_.addLinConstr(vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))], ">", this->getSetting().get(PlannerArrayParam_CenterOfPressureRange)[eff_id][0]);
+                    model_.addLinConstr(vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))], "<", this->getSetting().get(PlannerArrayParam_CenterOfPressureRange)[eff_id][1]);
+                    model_.addLinConstr(vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))], ">", this->getSetting().get(PlannerArrayParam_CenterOfPressureRange)[eff_id][2]);
+                    model_.addLinConstr(vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))], "<", this->getSetting().get(PlannerArrayParam_CenterOfPressureRange)[eff_id][3]);
+                }
+            }
+        }
+
+        // friction cone constraints
+        for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++) {
+            for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++) {
+                if (this->contactType(time_id, eff_id) != ContactType::FullContact) {
+                    if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id)) {
+                        Eigen::Matrix3d eff_rotation = this->contactRotation(time_id, eff_id);
+                        if (this->getSetting().get(PlannerBoolParam_IsFrictionConeLinear)) {  // using a linear representation
+                            Eigen::Matrix<double,4,3> rotated_cone_matrix_ = cone_matrix_*eff_rotation.transpose();
+                            for (int row_id=0; row_id<4; row_id++) {
+                                lin_cons_ = 0.0;
+                                for (int axis_id=0; axis_id<3; axis_id++)
+                                    lin_cons_ += LinExpr(vars_[frc_world_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*rotated_cone_matrix_(row_id,axis_id);
+                                model_.addLinConstr(lin_cons_, "<", 0.0);
+                            }
+                        } else {  // using a second-order cone representation
+                            LinExpr fx = 0.0, fy = 0.0, fz = 0.0;
+                            for (int axis_id=0; axis_id<3; axis_id++) {
+                                fx += LinExpr(vars_[frc_world_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*eff_rotation(axis_id,0);
+                                fy += LinExpr(vars_[frc_world_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*eff_rotation(axis_id,1);
+                                fz += LinExpr(vars_[frc_world_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*eff_rotation(axis_id,2);
+                            }
+                            quad_cons_.clear();    quad_cons_.addQuaTerm(1.0, fx);    quad_cons_.addQuaTerm(1.0, fy);
+                            model_.addSocConstr(quad_cons_, "<", fz*this->getSetting().get(PlannerDoubleParam_FrictionCoefficient));
+                        }
+                    }
+                }
+            }
+        }
+
+        for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++) {
+            if (this->getSetting().heuristic() == Heuristic::TimeOptimization) {
+                if (is_first_time) {
+                    // center of mass constraint
+                    for (int axis_id=0; axis_id<3; axis_id++) {
+                        if (time_id==0) { lin_cons_ = LinExpr(vars_[com_.id(axis_id,time_id)]) - LinExpr(ini_state_.centerOfMass()[axis_id]) - LinExpr(vars_[lmom_.id(axis_id,time_id)])*(dynamicsSequence().dynamicsState(time_id).time()/this->getSetting().get(PlannerDoubleParam_RobotMass)); }
+                        else            { lin_cons_ = LinExpr(vars_[com_.id(axis_id,time_id)]) - LinExpr(vars_[com_.id(axis_id,time_id-1)])  - LinExpr(vars_[lmom_.id(axis_id,time_id)])*(dynamicsSequence().dynamicsState(time_id).time()/this->getSetting().get(PlannerDoubleParam_RobotMass)); }
+                        model_.addLinConstr(lin_cons_, "=", 0.0);
+                    }
+
+                    // linear momentum constraint
+                    for (int axis_id=0; axis_id<3; axis_id++) {
+                        if (time_id==0) { lin_cons_ = LinExpr(vars_[lmom_.id(axis_id,time_id)]) - LinExpr(ini_state_.linearMomentum()[axis_id]) - LinExpr(vars_[lmomd_.id(axis_id,time_id)])*dynamicsSequence().dynamicsState(time_id).time(); }
+                        else            { lin_cons_ = LinExpr(vars_[lmom_.id(axis_id,time_id)]) - LinExpr(vars_[lmom_.id(axis_id,time_id-1)])   - LinExpr(vars_[lmomd_.id(axis_id,time_id)])*dynamicsSequence().dynamicsState(time_id).time(); }
+                        model_.addLinConstr(lin_cons_, "=", 0.0);
+                    }
+
+                    // angular momentum constraint
+                    for (int axis_id=0; axis_id<3; axis_id++) {
+                        if (time_id==0) { lin_cons_ = LinExpr(vars_[amom_.id(axis_id,time_id)]) - LinExpr(ini_state_.angularMomentum()[axis_id]) - LinExpr(vars_[amomd_.id(axis_id,time_id)])*dynamicsSequence().dynamicsState(time_id).time(); }
+                        else            { lin_cons_ = LinExpr(vars_[amom_.id(axis_id,time_id)]) - LinExpr(vars_[amom_.id(axis_id,time_id-1)])    - LinExpr(vars_[amomd_.id(axis_id,time_id)])*dynamicsSequence().dynamicsState(time_id).time(); }
+                        model_.addLinConstr(lin_cons_, "=", 0.0);
+                    }
+                } else {
+                    LinExpr lmom, lmomd, amomd, dt = vars_[dt_.id(0,time_id)];
+                    double lmom_val, lmomd_val, amomd_val, dt_val = dynamicsSequence().dynamicsState(time_id).time();
+
+                    // center of mass constraint
+                    for (int axis_id=0; axis_id<3; axis_id++) {
+                        lmom  = vars_[lmom_.id(axis_id,time_id)];
+                        lmom_val  = dynamicsSequence().dynamicsState(time_id).linearMomentum()[axis_id];
+                        lin_cons_ = 0.0;
+                        if (time_id==0) { lin_cons_ += LinExpr(ini_state_.centerOfMass()[axis_id]) - LinExpr(vars_[com_.id(axis_id,time_id)]); }
+                        else            { lin_cons_ += LinExpr(vars_[com_.id(axis_id,time_id-1)])  - LinExpr(vars_[com_.id(axis_id,time_id)]); }
+                        lin_cons_ += ( LinExpr(std::pow(dt_val+lmom_val, 2.0)) + ((dt+lmom)-(dt_val+lmom_val))*2.0*(dt_val+lmom_val) )*(0.25/this->getSetting().get(PlannerDoubleParam_RobotMass))
+                                     - ( LinExpr(std::pow(dt_val-lmom_val, 2.0)) + ((dt-lmom)-(dt_val-lmom_val))*2.0*(dt_val-lmom_val) )*(0.25/this->getSetting().get(PlannerDoubleParam_RobotMass));
+                        model_.addLinConstr(lin_cons_, "=", 0.0);
+                    }
+
+                    // linear momentum constraint
+                    for (int axis_id=0; axis_id<3; axis_id++) {
+                        lmomd  = vars_[lmomd_.id(axis_id,time_id)];
+                        lmomd_val  = dynamicsSequence().dynamicsState(time_id).linearMomentumRate()[axis_id];
+                        lin_cons_ = 0.0;
+                        if (time_id==0) { lin_cons_ += LinExpr(ini_state_.linearMomentum()[axis_id]) - LinExpr(vars_[lmom_.id(axis_id,time_id)]); }
+                        else            { lin_cons_ += LinExpr(vars_[lmom_.id(axis_id,time_id-1)]) - LinExpr(vars_[lmom_.id(axis_id,time_id)]); }
+                        lin_cons_ += ( LinExpr(std::pow(dt_val+lmomd_val, 2.0)) + ((dt+lmomd)-(dt_val+lmomd_val))*2.0*(dt_val+lmomd_val) )*0.25
+                                     - ( LinExpr(std::pow(dt_val-lmomd_val, 2.0)) + ((dt-lmomd)-(dt_val-lmomd_val))*2.0*(dt_val-lmomd_val) )*0.25;
+                        model_.addLinConstr(lin_cons_, "=", 0.0);
+                    }
+
+                    // angular momentum constraint
+                    for (int axis_id=0; axis_id<3; axis_id++) {
+                        amomd  = vars_[amomd_.id(axis_id,time_id)];
+                        amomd_val  = dynamicsSequence().dynamicsState(time_id).angularMomentumRate()[axis_id];
+                        lin_cons_ = 0.0;
+                        if (time_id==0) { lin_cons_ += LinExpr(ini_state_.angularMomentum()[axis_id]) - LinExpr(vars_[amom_.id(axis_id,time_id)]); }
+                        else            { lin_cons_ += LinExpr(vars_[amom_.id(axis_id,time_id-1)]) - LinExpr(vars_[amom_.id(axis_id,time_id)]); }
+                        lin_cons_ += ( LinExpr(std::pow(dt_val+amomd_val, 2.0)) + ((dt+amomd)-(dt_val+amomd_val))*2.0*(dt_val+amomd_val) )*0.25
+                                     - ( LinExpr(std::pow(dt_val-amomd_val, 2.0)) + ((dt-amomd)-(dt_val-amomd_val))*2.0*(dt_val-amomd_val) )*0.25;
+                        model_.addLinConstr(lin_cons_, "=", 0.0);
+                    }
+                }
+
+                // linear momentum rate constraint
                 for (int axis_id=0; axis_id<3; axis_id++) {
-                  fx += LinExpr(vars_[frc_world_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*eff_rotation(axis_id,0);
-                  fy += LinExpr(vars_[frc_world_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*eff_rotation(axis_id,1);
-                  fz += LinExpr(vars_[frc_world_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*eff_rotation(axis_id,2);
+                    lin_cons_ = LinExpr(this->getSetting().get(PlannerDoubleParam_RobotMass)*this->getSetting().get(PlannerVectorParam_GravityVector)[axis_id]) - LinExpr(vars_[lmomd_.id(axis_id,time_id)]);
+                    for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++)
+                        if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id)) { lin_cons_ += LinExpr(vars_[frc_world_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*this->getSetting().get(PlannerDoubleParam_MassTimesGravity); }
+                    model_.addLinConstr(lin_cons_, "=", 0.0);
                 }
-                quad_cons_.clear();    quad_cons_.addQuaTerm(1.0, fx);    quad_cons_.addQuaTerm(1.0, fy);
-                model_.addSocConstr(quad_cons_, "<", fz*this->getSetting().get(PlannerDoubleParam_FrictionCoefficient));
-              }
+
+                // angular momentum rate constraint
+                for (int axis_id=0; axis_id<3; axis_id++) {
+                    lin_cons_ = LinExpr() - LinExpr(vars_[amomd_.id(axis_id,time_id)]);
+                    for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++) {
+                        if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id)) {
+                            Eigen::Matrix3d rot = this->contactRotation(time_id, eff_id);
+                            lin_cons_ += (LinExpr(vars_[ub_var_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])-LinExpr(vars_[lb_var_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))]))*0.25*this->getSetting().get(PlannerDoubleParam_MassTimesGravity);
+                            lin_cons_ += LinExpr(vars_[trq_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*rot.col(2)[axis_id];
+                        }
+                    }
+                    model_.addLinConstr(lin_cons_, "=", 0.0);
+                }
+            } else {
+                // center of mass constraint
+                for (int axis_id=0; axis_id<3; axis_id++) {
+                    if (time_id==0) { lin_cons_ = LinExpr(vars_[com_.id(axis_id,time_id)]) - LinExpr(ini_state_.centerOfMass()[axis_id]) - LinExpr(vars_[lmom_.id(axis_id,time_id)])*(dynamicsSequence().dynamicsState(time_id).time()/this->getSetting().get(PlannerDoubleParam_RobotMass)); }
+                    else            { lin_cons_ = LinExpr(vars_[com_.id(axis_id,time_id)]) - LinExpr(vars_[com_.id(axis_id,time_id-1)])  - LinExpr(vars_[lmom_.id(axis_id,time_id)])*(dynamicsSequence().dynamicsState(time_id).time()/this->getSetting().get(PlannerDoubleParam_RobotMass)); }
+                    model_.addLinConstr(lin_cons_, "=", 0.0);
+                }
+
+                // linear momentum constraint
+                for (int axis_id=0; axis_id<3; axis_id++) {
+                    if (time_id==0) { lin_cons_ = LinExpr(vars_[lmom_.id(axis_id,time_id)]) - LinExpr(dynamicsSequence().dynamicsState(time_id).time()*(this->getSetting().get(PlannerDoubleParam_RobotMass)*this->getSetting().get(PlannerVectorParam_GravityVector)[axis_id])) - LinExpr(ini_state_.linearMomentum()(axis_id)); }
+                    else            { lin_cons_ = LinExpr(vars_[lmom_.id(axis_id,time_id)]) - LinExpr(dynamicsSequence().dynamicsState(time_id).time()*(this->getSetting().get(PlannerDoubleParam_RobotMass)*this->getSetting().get(PlannerVectorParam_GravityVector)[axis_id])) - LinExpr(vars_[lmom_.id(axis_id,time_id-1)]); }
+
+                    for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++)
+                        if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id)) { lin_cons_ += LinExpr(vars_[frc_world_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*(-dynamicsSequence().dynamicsState(time_id).time()*this->getSetting().get(PlannerDoubleParam_MassTimesGravity)); }
+                    if (time_id==0) { lin_cons_ += LinExpr(this->getSetting().get(PlannerVectorParam_ExternalForce)[axis_id])*(-dynamicsSequence().dynamicsState(time_id).time()*this->getSetting().get(PlannerDoubleParam_MassTimesGravity)); }
+                    model_.addLinConstr(lin_cons_, "=", 0.0);
+                }
+
+                // angular momentum constraint
+                for (int axis_id=0; axis_id<3; axis_id++) {
+                    if (time_id==0) { lin_cons_ = LinExpr(vars_[amom_.id(axis_id,time_id)]) - LinExpr(ini_state_.angularMomentum()[axis_id]); }
+                    else            { lin_cons_ = LinExpr(vars_[amom_.id(axis_id,time_id)]) - LinExpr(vars_[amom_.id(axis_id,time_id-1)]); }
+
+                    for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++) {
+                        if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id)) {
+                            lin_cons_ += (LinExpr(vars_[lb_var_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])-LinExpr(vars_[ub_var_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))]))*(0.25*dynamicsSequence().dynamicsState(time_id).time()*this->getSetting().get(PlannerDoubleParam_MassTimesGravity));
+
+                            Eigen::Vector3d rz = this->contactRotation(time_id, eff_id).col(2);
+                            lin_cons_ += LinExpr(vars_[trq_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*(-rz[axis_id]*dynamicsSequence().dynamicsState(time_id).time());
+                        }
+                    }
+                    model_.addLinConstr(lin_cons_, "=", 0.0);
+                }
             }
-          }
         }
-      }
 
-      for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++) {
-    	    if (this->getSetting().heuristic() == Heuristic::TimeOptimization) {
-        	  if (is_first_time) {
-        	    // center of mass constraint
-        	    for (int axis_id=0; axis_id<3; axis_id++) {
-        	      if (time_id==0) { lin_cons_ = LinExpr(vars_[com_.id(axis_id,time_id)]) - LinExpr(ini_state_.centerOfMass()[axis_id]) - LinExpr(vars_[lmom_.id(axis_id,time_id)])*(dynamicsSequence().dynamicsState(time_id).time()/this->getSetting().get(PlannerDoubleParam_RobotMass)); }
-        	      else            { lin_cons_ = LinExpr(vars_[com_.id(axis_id,time_id)]) - LinExpr(vars_[com_.id(axis_id,time_id-1)])  - LinExpr(vars_[lmom_.id(axis_id,time_id)])*(dynamicsSequence().dynamicsState(time_id).time()/this->getSetting().get(PlannerDoubleParam_RobotMass)); }
-        	      model_.addLinConstr(lin_cons_, "=", 0.0);
-        	    }
+        QuadConstrApprox qapprox = QuadConstrApprox::None;
+        switch (this->getSetting().heuristic()) {
+            case Heuristic::TimeOptimization: { qapprox = QuadConstrApprox::None; break; }
+            case Heuristic::TrustRegion: { qapprox = QuadConstrApprox::TrustRegion; break; }
+            case Heuristic::SoftConstraint: { qapprox = QuadConstrApprox::SoftConstraint; break; }
+            default: { qapprox = QuadConstrApprox::None; break; }
+        }
 
-        	    // linear momentum constraint
-        	    for (int axis_id=0; axis_id<3; axis_id++) {
-        	      if (time_id==0) { lin_cons_ = LinExpr(vars_[lmom_.id(axis_id,time_id)]) - LinExpr(ini_state_.linearMomentum()[axis_id]) - LinExpr(vars_[lmomd_.id(axis_id,time_id)])*dynamicsSequence().dynamicsState(time_id).time(); }
-        	      else            { lin_cons_ = LinExpr(vars_[lmom_.id(axis_id,time_id)]) - LinExpr(vars_[lmom_.id(axis_id,time_id-1)])   - LinExpr(vars_[lmomd_.id(axis_id,time_id)])*dynamicsSequence().dynamicsState(time_id).time(); }
-        	      model_.addLinConstr(lin_cons_, "=", 0.0);
-        	    }
-
-        	    // angular momentum constraint
-        	    for (int axis_id=0; axis_id<3; axis_id++) {
-        	      if (time_id==0) { lin_cons_ = LinExpr(vars_[amom_.id(axis_id,time_id)]) - LinExpr(ini_state_.angularMomentum()[axis_id]) - LinExpr(vars_[amomd_.id(axis_id,time_id)])*dynamicsSequence().dynamicsState(time_id).time(); }
-        	      else            { lin_cons_ = LinExpr(vars_[amom_.id(axis_id,time_id)]) - LinExpr(vars_[amom_.id(axis_id,time_id-1)])    - LinExpr(vars_[amomd_.id(axis_id,time_id)])*dynamicsSequence().dynamicsState(time_id).time(); }
-        	      model_.addLinConstr(lin_cons_, "=", 0.0);
-        	    }
-          } else {
-            LinExpr lmom, lmomd, amomd, dt = vars_[dt_.id(0,time_id)];
-            double lmom_val, lmomd_val, amomd_val, dt_val = dynamicsSequence().dynamicsState(time_id).time();
-
-      	    // center of mass constraint
-      	    for (int axis_id=0; axis_id<3; axis_id++) {
-              lmom  = vars_[lmom_.id(axis_id,time_id)];
-              lmom_val  = dynamicsSequence().dynamicsState(time_id).linearMomentum()[axis_id];
-              lin_cons_ = 0.0;
-      	      if (time_id==0) { lin_cons_ += LinExpr(ini_state_.centerOfMass()[axis_id]) - LinExpr(vars_[com_.id(axis_id,time_id)]); }
-      	      else            { lin_cons_ += LinExpr(vars_[com_.id(axis_id,time_id-1)])  - LinExpr(vars_[com_.id(axis_id,time_id)]); }
-              lin_cons_ += ( LinExpr(std::pow(dt_val+lmom_val, 2.0)) + ((dt+lmom)-(dt_val+lmom_val))*2.0*(dt_val+lmom_val) )*(0.25/this->getSetting().get(PlannerDoubleParam_RobotMass))
-                         - ( LinExpr(std::pow(dt_val-lmom_val, 2.0)) + ((dt-lmom)-(dt_val-lmom_val))*2.0*(dt_val-lmom_val) )*(0.25/this->getSetting().get(PlannerDoubleParam_RobotMass));
-      	      model_.addLinConstr(lin_cons_, "=", 0.0);
-      	    }
-
-      	    // linear momentum constraint
-      	    for (int axis_id=0; axis_id<3; axis_id++) {
-              lmomd  = vars_[lmomd_.id(axis_id,time_id)];
-              lmomd_val  = dynamicsSequence().dynamicsState(time_id).linearMomentumRate()[axis_id];
-              lin_cons_ = 0.0;
-      	      if (time_id==0) { lin_cons_ += LinExpr(ini_state_.linearMomentum()[axis_id]) - LinExpr(vars_[lmom_.id(axis_id,time_id)]); }
-      	      else            { lin_cons_ += LinExpr(vars_[lmom_.id(axis_id,time_id-1)]) - LinExpr(vars_[lmom_.id(axis_id,time_id)]); }
-              lin_cons_ += ( LinExpr(std::pow(dt_val+lmomd_val, 2.0)) + ((dt+lmomd)-(dt_val+lmomd_val))*2.0*(dt_val+lmomd_val) )*0.25
-                         - ( LinExpr(std::pow(dt_val-lmomd_val, 2.0)) + ((dt-lmomd)-(dt_val-lmomd_val))*2.0*(dt_val-lmomd_val) )*0.25;
-      	      model_.addLinConstr(lin_cons_, "=", 0.0);
-      	    }
-
-      	    // angular momentum constraint
-      	    for (int axis_id=0; axis_id<3; axis_id++) {
-              amomd  = vars_[amomd_.id(axis_id,time_id)];
-              amomd_val  = dynamicsSequence().dynamicsState(time_id).angularMomentumRate()[axis_id];
-              lin_cons_ = 0.0;
-              if (time_id==0) { lin_cons_ += LinExpr(ini_state_.angularMomentum()[axis_id]) - LinExpr(vars_[amom_.id(axis_id,time_id)]); }
-              else            { lin_cons_ += LinExpr(vars_[amom_.id(axis_id,time_id-1)]) - LinExpr(vars_[amom_.id(axis_id,time_id)]); }
-              lin_cons_ += ( LinExpr(std::pow(dt_val+amomd_val, 2.0)) + ((dt+amomd)-(dt_val+amomd_val))*2.0*(dt_val+amomd_val) )*0.25
-                         - ( LinExpr(std::pow(dt_val-amomd_val, 2.0)) + ((dt-amomd)-(dt_val-amomd_val))*2.0*(dt_val-amomd_val) )*0.25;
-      	      model_.addLinConstr(lin_cons_, "=", 0.0);
-      	    }
-          }
-
-          // linear momentum rate constraint
-          for (int axis_id=0; axis_id<3; axis_id++) {
-            lin_cons_ = LinExpr(this->getSetting().get(PlannerDoubleParam_RobotMass)*this->getSetting().get(PlannerVectorParam_GravityVector)[axis_id]) - LinExpr(vars_[lmomd_.id(axis_id,time_id)]);
-            for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++)
-              if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id)) { lin_cons_ += LinExpr(vars_[frc_world_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*this->getSetting().get(PlannerDoubleParam_MassTimesGravity); }
-            model_.addLinConstr(lin_cons_, "=", 0.0);
-          }
-
-          // angular momentum rate constraint
-          for (int axis_id=0; axis_id<3; axis_id++) {
-            lin_cons_ = LinExpr() - LinExpr(vars_[amomd_.id(axis_id,time_id)]);
+        for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++) {
             for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++) {
-              if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id)) {
-                Eigen::Matrix3d rot = this->contactRotation(time_id, eff_id);
-                lin_cons_ += (LinExpr(vars_[ub_var_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])-LinExpr(vars_[lb_var_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))]))*0.25*this->getSetting().get(PlannerDoubleParam_MassTimesGravity);
-                lin_cons_ += LinExpr(vars_[trq_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*rot.col(2)[axis_id];
-              }
+                if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id)) {
+                    Eigen::Matrix3d rot = this->contactRotation(time_id, eff_id);
+                    Eigen::Vector3d rx = rot.col(0);
+                    Eigen::Vector3d ry = rot.col(1);
+
+                    LinExpr lx, ly , lz, fx, fy, fz;
+                    lx = LinExpr(this->contactLocation(time_id, eff_id, 0)) - LinExpr(vars_[com_.id(0,time_id)]) + LinExpr(vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*rx(0) + LinExpr(vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*ry(0);
+                    ly = LinExpr(this->contactLocation(time_id, eff_id, 1)) - LinExpr(vars_[com_.id(1,time_id)]) + LinExpr(vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*rx(1) + LinExpr(vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*ry(1);
+                    lz = LinExpr(this->contactLocation(time_id, eff_id, 2)) - LinExpr(vars_[com_.id(2,time_id)]) + LinExpr(vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*rx(2) + LinExpr(vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*ry(2);
+                    fx = vars_[frc_world_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))];
+                    fy = vars_[frc_world_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))];
+                    fz = vars_[frc_world_[eff_id].id(2,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))];
+
+                    // upper and lower bounds on momentum rate constraints
+                    quad_cons_.clear();    quad_cons_.addQuaTerm(1.0, LinExpr()-lz+fy);    quad_cons_.addQuaTerm(1.0,  ly+fz);
+                    model_.addQuaConstr(quad_cons_, "<", vars_[ub_var_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))], qapprox);
+
+                    quad_cons_.clear();    quad_cons_.addQuaTerm(1.0,  lz+fx);    quad_cons_.addQuaTerm(1.0, LinExpr()-lx+fz);
+                    model_.addQuaConstr(quad_cons_, "<", vars_[ub_var_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))], qapprox);
+
+                    quad_cons_.clear();    quad_cons_.addQuaTerm(1.0, LinExpr()-ly+fx);    quad_cons_.addQuaTerm(1.0,  lx+fy);
+                    model_.addQuaConstr(quad_cons_, "<", vars_[ub_var_[eff_id].id(2,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))], qapprox);
+
+                    quad_cons_.clear();    quad_cons_.addQuaTerm(1.0, LinExpr()-lz-fy);    quad_cons_.addQuaTerm(1.0,  ly-fz);
+                    model_.addQuaConstr(quad_cons_, "<", vars_[lb_var_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))], qapprox);
+
+                    quad_cons_.clear();    quad_cons_.addQuaTerm(1.0,  lz-fx);    quad_cons_.addQuaTerm(1.0, LinExpr()-lx-fz);
+                    model_.addQuaConstr(quad_cons_, "<", vars_[lb_var_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))], qapprox);
+
+                    quad_cons_.clear();    quad_cons_.addQuaTerm(1.0, LinExpr()-ly-fx);    quad_cons_.addQuaTerm(1.0,  lx-fy);
+                    model_.addQuaConstr(quad_cons_, "<", vars_[lb_var_[eff_id].id(2,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))], qapprox);
+
+                    // end-effector length constraint
+                    quad_cons_.clear();  quad_cons_.addQuaTerm(1.0, lx-this->getSetting().get(PlannerArrayParam_EndeffectorOffset)[eff_id].x());  quad_cons_.addQuaTerm(1.0, ly-this->getSetting().get(PlannerArrayParam_EndeffectorOffset)[eff_id].y());  quad_cons_.addQuaTerm(1.0, lz-this->getSetting().get(PlannerArrayParam_EndeffectorOffset)[eff_id].z());
+                    model_.addQuaConstr(quad_cons_, "<", pow(this->getSetting().get(PlannerVectorParam_MaxEndeffectorLengths)[eff_id],2.0));
+                }
             }
-            model_.addLinConstr(lin_cons_, "=", 0.0);
-          }
-    	    } else {
-          // center of mass constraint
-          for (int axis_id=0; axis_id<3; axis_id++) {
-            if (time_id==0) { lin_cons_ = LinExpr(vars_[com_.id(axis_id,time_id)]) - LinExpr(ini_state_.centerOfMass()[axis_id]) - LinExpr(vars_[lmom_.id(axis_id,time_id)])*(dynamicsSequence().dynamicsState(time_id).time()/this->getSetting().get(PlannerDoubleParam_RobotMass)); }
-            else            { lin_cons_ = LinExpr(vars_[com_.id(axis_id,time_id)]) - LinExpr(vars_[com_.id(axis_id,time_id-1)])  - LinExpr(vars_[lmom_.id(axis_id,time_id)])*(dynamicsSequence().dynamicsState(time_id).time()/this->getSetting().get(PlannerDoubleParam_RobotMass)); }
-            model_.addLinConstr(lin_cons_, "=", 0.0);
-          }
-
-          // linear momentum constraint
-          for (int axis_id=0; axis_id<3; axis_id++) {
-            if (time_id==0) { lin_cons_ = LinExpr(vars_[lmom_.id(axis_id,time_id)]) - LinExpr(dynamicsSequence().dynamicsState(time_id).time()*(this->getSetting().get(PlannerDoubleParam_RobotMass)*this->getSetting().get(PlannerVectorParam_GravityVector)[axis_id])) - LinExpr(ini_state_.linearMomentum()(axis_id)); }
-            else            { lin_cons_ = LinExpr(vars_[lmom_.id(axis_id,time_id)]) - LinExpr(dynamicsSequence().dynamicsState(time_id).time()*(this->getSetting().get(PlannerDoubleParam_RobotMass)*this->getSetting().get(PlannerVectorParam_GravityVector)[axis_id])) - LinExpr(vars_[lmom_.id(axis_id,time_id-1)]); }
-
-            for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++)
-              if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id)) { lin_cons_ += LinExpr(vars_[frc_world_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*(-dynamicsSequence().dynamicsState(time_id).time()*this->getSetting().get(PlannerDoubleParam_MassTimesGravity)); }
-            if (time_id==0) { lin_cons_ += LinExpr(this->getSetting().get(PlannerVectorParam_ExternalForce)[axis_id])*(-dynamicsSequence().dynamicsState(time_id).time()*this->getSetting().get(PlannerDoubleParam_MassTimesGravity)); }
-            model_.addLinConstr(lin_cons_, "=", 0.0);
-          }
-
-          // angular momentum constraint
-          for (int axis_id=0; axis_id<3; axis_id++) {
-            if (time_id==0) { lin_cons_ = LinExpr(vars_[amom_.id(axis_id,time_id)]) - LinExpr(ini_state_.angularMomentum()[axis_id]); }
-            else            { lin_cons_ = LinExpr(vars_[amom_.id(axis_id,time_id)]) - LinExpr(vars_[amom_.id(axis_id,time_id-1)]); }
-
-            for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++) {
-              if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id)) {
-                lin_cons_ += (LinExpr(vars_[lb_var_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])-LinExpr(vars_[ub_var_[eff_id].id(axis_id,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))]))*(0.25*dynamicsSequence().dynamicsState(time_id).time()*this->getSetting().get(PlannerDoubleParam_MassTimesGravity));
-
-          	    Eigen::Vector3d rz = this->contactRotation(time_id, eff_id).col(2);
-                lin_cons_ += LinExpr(vars_[trq_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*(-rz[axis_id]*dynamicsSequence().dynamicsState(time_id).time());
-              }
-            }
-            model_.addLinConstr(lin_cons_, "=", 0.0);
-          }
         }
-      }
-
-	  QuadConstrApprox qapprox = QuadConstrApprox::None;
-      switch (this->getSetting().heuristic()) {
-        case Heuristic::TimeOptimization: { qapprox = QuadConstrApprox::None; break; }
-        case Heuristic::TrustRegion: { qapprox = QuadConstrApprox::TrustRegion; break; }
-        case Heuristic::SoftConstraint: { qapprox = QuadConstrApprox::SoftConstraint; break; }
-        default: { qapprox = QuadConstrApprox::None; break; }
-	  }
-
-      for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++) {
-      	for (int eff_id=0; eff_id<this->getSetting().get(PlannerIntParam_NumActiveEndeffectors); eff_id++) {
-      	  if (dynamicsSequence().dynamicsState(time_id).endeffectorActivation(eff_id)) {
-      		Eigen::Matrix3d rot = this->contactRotation(time_id, eff_id);
-      		Eigen::Vector3d rx = rot.col(0);
-      		Eigen::Vector3d ry = rot.col(1);
-
-			LinExpr lx, ly , lz, fx, fy, fz;
-      		lx = LinExpr(this->contactLocation(time_id, eff_id, 0)) - LinExpr(vars_[com_.id(0,time_id)]) + LinExpr(vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*rx(0) + LinExpr(vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*ry(0);
-		    ly = LinExpr(this->contactLocation(time_id, eff_id, 1)) - LinExpr(vars_[com_.id(1,time_id)]) + LinExpr(vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*rx(1) + LinExpr(vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*ry(1);
-		    lz = LinExpr(this->contactLocation(time_id, eff_id, 2)) - LinExpr(vars_[com_.id(2,time_id)]) + LinExpr(vars_[cop_local_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*rx(2) + LinExpr(vars_[cop_local_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))])*ry(2);
-			fx = vars_[frc_world_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))];
-		    fy = vars_[frc_world_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))];
-		    fz = vars_[frc_world_[eff_id].id(2,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))];
-
-		    // upper and lower bounds on momentum rate constraints
-		    quad_cons_.clear();    quad_cons_.addQuaTerm(1.0, LinExpr()-lz+fy);    quad_cons_.addQuaTerm(1.0,  ly+fz);
-		    model_.addQuaConstr(quad_cons_, "<", vars_[ub_var_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))], qapprox);
-
-		    quad_cons_.clear();    quad_cons_.addQuaTerm(1.0,  lz+fx);    quad_cons_.addQuaTerm(1.0, LinExpr()-lx+fz);
-		    model_.addQuaConstr(quad_cons_, "<", vars_[ub_var_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))], qapprox);
-
-		    quad_cons_.clear();    quad_cons_.addQuaTerm(1.0, LinExpr()-ly+fx);    quad_cons_.addQuaTerm(1.0,  lx+fy);
-		    model_.addQuaConstr(quad_cons_, "<", vars_[ub_var_[eff_id].id(2,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))], qapprox);
-
-		    quad_cons_.clear();    quad_cons_.addQuaTerm(1.0, LinExpr()-lz-fy);    quad_cons_.addQuaTerm(1.0,  ly-fz);
-		    model_.addQuaConstr(quad_cons_, "<", vars_[lb_var_[eff_id].id(0,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))], qapprox);
-
-		    quad_cons_.clear();    quad_cons_.addQuaTerm(1.0,  lz-fx);    quad_cons_.addQuaTerm(1.0, LinExpr()-lx-fz);
-		    model_.addQuaConstr(quad_cons_, "<", vars_[lb_var_[eff_id].id(1,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))], qapprox);
-
-		    quad_cons_.clear();    quad_cons_.addQuaTerm(1.0, LinExpr()-ly-fx);    quad_cons_.addQuaTerm(1.0,  lx-fy);
-		    model_.addQuaConstr(quad_cons_, "<", vars_[lb_var_[eff_id].id(2,dynamicsSequence().dynamicsState(time_id).endeffectorActivationId(eff_id))], qapprox);
-
-		    // end-effector length constraint
-		    quad_cons_.clear();  quad_cons_.addQuaTerm(1.0, lx-this->getSetting().get(PlannerArrayParam_EndeffectorOffset)[eff_id].x());  quad_cons_.addQuaTerm(1.0, ly-this->getSetting().get(PlannerArrayParam_EndeffectorOffset)[eff_id].y());  quad_cons_.addQuaTerm(1.0, lz-this->getSetting().get(PlannerArrayParam_EndeffectorOffset)[eff_id].z());
-		    model_.addQuaConstr(quad_cons_, "<", pow(this->getSetting().get(PlannerVectorParam_MaxEndeffectorLengths)[eff_id],2.0));
-      	  }
-        }
-      }
 
       // formulate problem in standard conic form and solve it
       timer_.start();
       exitcode_ = model_.optimize();
       solve_time_ += timer_.stop();
+      std::cout << solve_time_ << std::endl;
+      //std::cout << exitcode_ << std::endl;
 
       // extract solution
       solution_.resize(num_vars_, 1);  solution_.setZero();
@@ -727,7 +734,8 @@ namespace momentumopt {
           cop_local_[eff_id].getGuessValue(mat_guess_);
           qcqp_cfg["dynopt_params"]["eef_cop_"+std::to_string(eff_id)] = mat_guess_;
         }
-        std::ofstream file_out(this->getSetting().get(PlannerStringParam_SaveDynamicsFile)); file_out << qcqp_cfg;
+        std::ofstream file_out("mom_opt.yaml");
+        file_out << qcqp_cfg;
       }
       catch (YAML::ParserException &e) { std::cout << e.what() << "\n"; }
     }

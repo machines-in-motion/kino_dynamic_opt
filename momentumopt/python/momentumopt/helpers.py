@@ -186,7 +186,7 @@ class Graphics:
         'Read data from file'
         with open(cfg_file, 'r') as stream:
             try:
-                cfg_pars = yaml.load(stream)
+                cfg_pars = yaml.safe_load(stream)
                 self.time_step = cfg_pars['dynopt_params']['time_step']
                 self.robot_mass = cfg_pars['dynopt_params']['robot_mass']
                 self.n_act_eefs = cfg_pars['dynopt_params']['n_act_eefs']

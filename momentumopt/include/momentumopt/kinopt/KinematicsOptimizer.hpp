@@ -50,6 +50,8 @@ namespace momentumopt {
        */
       void optimize(const DynamicsState& ini_state, ContactPlanInterface* contact_plan, DynamicsSequence& dyn_sequence, bool is_first_kinopt);
 
+      void statesToDynamicsSequence(DynamicsSequence& dyn_sequence, Eigen::VectorXd com, Eigen::VectorXd lmom, Eigen::VectorXd amom);
+
       /**
        * this function gives access to the optimized motion plan
        * @return     DynamicsSequence                     reference to kinematic sequence, which is a collection of kinematic states,

@@ -110,6 +110,7 @@ def main(argv):
     """
     # Get the arguments
     cfg_file, RobotWrapper, with_lqr = parse_arguments(argv)
+    print RobotWrapper
 
     # Compute the motion
     (motion_planner, optimized_kin_plan,

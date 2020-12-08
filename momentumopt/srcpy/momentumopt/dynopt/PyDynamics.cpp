@@ -23,6 +23,7 @@ static void setEffPosition(DynamicsState& self, const int effId, const Eigen::Ve
   self.endeffectorPosition(effId) = pos;
 }
 static void setEffForce(DynamicsState& self, const int effId, const Eigen::Vector3d& force){
+    std::cout << force << std::endl;
   self.endeffectorForce(effId) = force;
 }
 static void setEffTorque(DynamicsState& self, const int effId, const Eigen::Vector3d& torque){
@@ -31,6 +32,10 @@ static void setEffTorque(DynamicsState& self, const int effId, const Eigen::Vect
 static void setEffActivation(DynamicsState& self, const int effId, const bool activation){
   self.endeffectorActivation(effId) = activation;
 }
+//static void setCoM(DynamicsState& self, const Eigen::Vector3d& com){
+//    self.centerOfMass(com);
+//}
+
 
 void init_dynamics(py::module &m)
 {
@@ -66,6 +71,8 @@ void init_dynamics(py::module &m)
     .def("setEffForce", &setEffForce, py::arg("EffId"), py::arg("force"))
     .def("setEffTorque", &setEffTorque, py::arg("EffId"), py::arg("torque"))
     .def("setEffActivation", &setEffActivation, py::arg("EffId"), py::arg("activation"))
+    .def("setCoM", &DynamicsState::setCenterOfMass, py::arg("com"))
+    .def("setCoM2", &DynamicsState::setCenterOfMass2, py::arg("x"), py::arg("y"), py::arg("z"))
 
     .def("__repr__", [](const DynamicsState &dyn_state) { return dyn_state.toString(); } );
 
@@ -75,6 +82,7 @@ void init_dynamics(py::module &m)
     .def("size", &DynamicsSequence::size)
     .def("clean", &DynamicsSequence::clean)
     .def("resize", &DynamicsSequence::resize)
+    .def("setCoMAtTime", &DynamicsSequence::setCoMAtTime, py::arg("com"), py::arg("time_id"))
     .def_property("dynamics_states", (const std::vector<DynamicsState>& (DynamicsSequence::*)(void) const) &DynamicsSequence::dynamicsSequence, (void (DynamicsSequence::*)(const std::vector<DynamicsState>&)) &DynamicsSequence::dynamicsSequence)
     .def("__repr__", [](const DynamicsSequence &dyn_seq) { return dyn_seq.toString(); } );
 

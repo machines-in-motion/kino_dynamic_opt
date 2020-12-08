@@ -99,6 +99,7 @@ class MotionPlanner():
     def optimize_kinematics(self, kd_iter, plotting=False):
         print("KinOpt", kd_iter)
         start = time.time()
+
         self.kin_optimizer.optimize(self.ini_state, self.contact_plan.contactSequence(),
                                     self.dyn_optimizer.dynamicsSequence(), plotting=plotting)
         print("kinopt - ", time.time() - start)
@@ -237,7 +238,7 @@ class MotionPlanner():
 
         for i, label in enumerate(['x', 'y', 'z']):
             axes[i, 0].set_ylabel(label + ' [m]')
-            axes[2, i].set_xlabel('time steps [5ms]')
+            axes[2, i].set_xlabel('time steps')
 
         axes[0, 2].legend()
 
@@ -277,11 +278,15 @@ class MotionPlanner():
     def optimize_motion(self, plot_com_motion=True):
         dyn_optimizer = self.dyn_optimizer
         kin_optimizer = self.kin_optimizer
-
+        # dyn_optimizer.dynamicsSequence().dynamics_states[0].setCoM2(100, 100, 100)
+        # dyn_optimizer.dynamicsSequence().setCoMAtTime(np.ones(3), 0)
+        # print dyn_optimizer.dynamicsSequence().dynamics_states[0].com
+        #print dir(dyn_optimizer.dynamicsSequence().dynamics_states[0])
+        # time.sleep(10)
         self.optimize_dynamics(0)
         for kd_iter in range(0, self.planner_setting.get(PlannerIntParam_KinDynIterations)):
             self.optimize_kinematics(kd_iter + 1, plotting=False)
-            self.optimize_dynamics(kd_iter + 1)
+            #self.optimize_dynamics(kd_iter + 1)
             optimized_kin_plan = self.kin_optimizer.kinematics_sequence
             optimized_dyn_plan = self.dyn_optimizer.dynamicsSequence()
 

@@ -14,7 +14,7 @@ from momentumopt.kino_dyn_planner_solo import main
 
 if __name__ == "__main__":
 
-    cfg_solo_jump = path.join("..", "config", "cfg_solo_jump.yaml")
+    cfg_solo_jump = path.join("..", "config", "solo_jump.yaml")
     if(not path.exists(cfg_solo_jump)):
         raise RuntimeError("Please run this script from the demos folder")
 
