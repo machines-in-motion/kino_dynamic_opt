@@ -13,8 +13,9 @@
         Numerical optimization routines.
     </description>
 
-    <maintainer email="vberenz@tuebingen.mpg.de">Vincent Berenz</maintainer>
-    <author email="bponton@tue.mpg.de"></author>
+    <maintainer email="lrighetti@tuebingen.mpg.de">Ludovic Righetti</maintainer>
+    <maintainer email="mnaveau@tuebingen.mpg.de">Maximilien Naveau</maintainer>
+    <author email="bponton@tue.mpg.de">Brahayam Ponton</author>
 
     <license>BSD 3-clause</license>
 

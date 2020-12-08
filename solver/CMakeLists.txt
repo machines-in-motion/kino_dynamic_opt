@@ -30,6 +30,7 @@ find_package(mpi_cmake_modules REQUIRED)
 find_package(pybind11 REQUIRED)
 find_package(yaml_utils REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(Boost REQUIRED COMPONENTS thread)
 
 # local find package.
 set(CMAKE_MODULE_PATH cmake ${CMAKE_MODULE_PATH})
@@ -72,11 +73,13 @@ set(solver_SRC_FILES
 add_library(solver ${solver_SRC_FILES})
 # Includes. Add the include dependencies
 target_include_directories(
-  solver INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-                   $<INSTALL_INTERFACE:include>)
+  solver PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+                $<INSTALL_INTERFACE:include>)
 # Linking.
 target_link_libraries(solver yaml_utils::yaml_utils)
 target_link_libraries(solver Eigen3::Eigen)
+target_link_libraries(solver Boost::boost)
+target_link_libraries(solver Boost::thread)
 if(IPOPT_FOUND)
   include(cmake/solver-extras-ipopt.cmake)
   target_link_libraries(solver IPOPT::IPOPT)
@@ -119,23 +122,22 @@ list(APPEND all_targets pysolver)
 #
 
 if(BUILD_TESTING)
-  find_package(ament_cmake_gtest REQUIRED)
 
+  # C++ unit-tests
+  find_package(ament_cmake_gtest REQUIRED)
   set(GTEST_FILES ${GTEST_FILES} tests/gtest_main.cpp tests/test_lbfgs.cpp
                   tests/test_solver.cpp tests/test_rt_solver.cpp)
-
   if(IPOPT_FOUND)
     set(GTEST_FILES ${GTEST_FILES} tests/test_ipopt.cpp)
   endif()
-
   if(GUROBI_FOUND)
     set(GTEST_FILES ${GTEST_FILES} tests/test_gurobi.cpp)
   endif()
-
   ament_add_gtest(solver_tests ${GTEST_FILES})
   target_link_libraries(solver_tests solver)
-
-
+  target_include_directories(
+    solver_tests PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/tests/>
+                        $<INSTALL_INTERFACE:include>)
   get_filename_component(TEST_PATH tests ABSOLUTE)
   set_target_properties(
     solver_tests PROPERTIES COMPILE_DEFINITIONS
@@ -190,37 +192,3 @@ file(
   RELATIVE ${PROJECT_SOURCE_DIR}
   cmake/*.cmake)
 ament_package(CONFIG_EXTRAS ${cmake_files})
-
-
-
-
-
-
-
-# ##############################################################################
-# building documentation #
-# ##############################################################################
-build_doxygen_documentation()
-
-set(EXPORTED_LIBRARIES ${EXPORTED_LIBRARIES} "solver")
-set(EXPORTED_CFG_EXTRAS ${EXPORTED_CFG_EXTRAS} "solver.cmake")
-set(EXPORTED_INCLUDE_DIRS ${EXPORTED_INCLUDE_DIRS} "include"
-                          ${EIGEN3_INCLUDE_DIR})
-if(IPOPT_FOUND)
-  set(EXPORTED_LIBRARIES ${EXPORTED_LIBRARIES} ${IPOPT_LIBRARIES})
-  set(EXPORTED_CFG_EXTRAS ${EXPORTED_CFG_EXTRAS}
-                          "${PROJECT_NAME}-extras-ipopt.cmake")
-  set(EXPORTED_INCLUDE_DIRS ${EXPORTED_INCLUDE_DIRS} ${IPOPT_INCLUDE_DIRS})
-endif()
-
-if(GUROBI_FOUND)
-  set(EXPORTED_LIBRARIES ${EXPORTED_LIBRARIES} ${GUROBI_LIBRARIES})
-  set(EXPORTED_CFG_EXTRAS ${EXPORTED_CFG_EXTRAS}
-                          "${PROJECT_NAME}-extras-gurobi.cmake")
-  set(EXPORTED_INCLUDE_DIRS ${EXPORTED_INCLUDE_DIRS} ${GUROBI_INCLUDE_DIRS})
-endif()
-
-# ##############################################################################
-# definitions #
-# ##############################################################################
-
