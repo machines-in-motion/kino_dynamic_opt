@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <yaml_cpp_catkin/yaml_cpp_fwd.hpp>
+#include <yaml_utils/yaml_cpp_fwd.hpp>
 
 namespace momentumopt {
 
