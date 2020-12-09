@@ -37,13 +37,13 @@ set(CMAKE_MODULE_PATH cmake ${CMAKE_MODULE_PATH})
 find_package(GUROBI QUIET)
 find_package(IPOPT QUIET)
 
-# export de dependencies
+# export dependencies
 ament_export_dependencies(ament_cmake mpi_cmake_modules pybind11 yaml_utils
-                          Eigen3)
+                          Eigen3 Boost)
 
 # prepare the final export
 set(all_targets)
-ament_export_interfaces(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
 # Some additionnal optimization for the code.
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -funroll-loops -fPIC")
