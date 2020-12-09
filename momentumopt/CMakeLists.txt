@@ -48,7 +48,7 @@ ament_export_dependencies(
 
 # prepare the final export
 set(all_targets)
-ament_export_interfaces(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
 # Some additionnal optimization for the code.
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -funroll-loops -fPIC")
@@ -122,7 +122,10 @@ set(pymomentumopt_SRC_FILES
 add_library(pymomentumopt MODULE ${pymomentumopt_SRC_FILES})
 target_link_libraries(pymomentumopt PRIVATE pybind11::module)
 target_link_libraries(pymomentumopt PRIVATE ${PYTHON_LIBRARIES})
-target_link_libraries(pymomentumopt PRIVATE solver)
+target_link_libraries(pymomentumopt PRIVATE solver::solver)
+target_link_libraries(pymomentumopt PRIVATE solver_lqr::solver_lqr)
+target_link_libraries(pymomentumopt PRIVATE Eigen3::Eigen)
+target_link_libraries(pymomentumopt PRIVATE yaml_utils::yaml_utils)
 set_target_properties(pymomentumopt
                       PROPERTIES PREFIX "" SUFFIX "${PYTHON_MODULE_EXTENSION}")
 target_include_directories(
@@ -172,7 +175,7 @@ if(BUILD_TESTING)
   set_target_properties(
     test_momentumopt
     PROPERTIES COMPILE_DEFINITIONS CFG_SRC_PATH="${CONFIG_PATH}/"
-               TEST_PATH="${TEST_PATH}/yaml_config_files/")
+               COMPILE_DEFINITIONS TEST_PATH="${TEST_PATH}/yaml_config_files/")
 
   # python unit tests
   find_package(ament_cmake_pytest REQUIRED)
@@ -194,14 +197,14 @@ install(
   DESTINATION include)
 
 # the config folder
-install(FOLDER config DESTINATION share/${PROJECT_NAME})
+install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
 
 # Install the demo python files
 install_scripts(
-    demo_momentumopt_biped_from_python.py
-    demo_momentumopt_solo12_jump.py
-    demo_momentumopt_solo_jump_no_lqr.py
-    demo_momentumopt_solo_jump.py
+    demos/demo_momentumopt_biped_from_python.py
+    demos/demo_momentumopt_solo12_jump.py
+    demos/demo_momentumopt_solo_jump_no_lqr.py
+    demos/demo_momentumopt_solo_jump.py
     DESTINATION bin
 )
 
