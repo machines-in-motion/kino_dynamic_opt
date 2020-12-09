@@ -76,7 +76,7 @@ namespace momentumopt {
       void loadFromFile(const std::string cfg_file, const std::string terrain_description_name = "terrain_description");
 
       /*! Getter and setter methods */
-      const int numRegions() const { return terrain_regions_.size(); }
+      int numRegions() const { return terrain_regions_.size(); }
       TerrainRegion& terrainRegion(int terrain_id) { return terrain_regions_[terrain_id]; }
       const TerrainRegion& terrainRegion(int terrain_id) const { return terrain_regions_[terrain_id]; }
 

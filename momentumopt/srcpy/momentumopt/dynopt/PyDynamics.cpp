@@ -54,7 +54,7 @@ void init_dynamics(py::module &m)
     .def("effForce", (const Eigen::Vector3d& (DynamicsState::*)(int) const) &DynamicsState::endeffectorForce)
     .def("effTorque", (const Eigen::Vector3d& (DynamicsState::*)(int) const) &DynamicsState::endeffectorTorque)
 
-    .def("effNum", (const long (DynamicsState::*)() const) &DynamicsState::endeffectorNum)
+    .def("effNum", (long (DynamicsState::*)() const) &DynamicsState::endeffectorNum)
 
     .def("effPosition", (const Eigen::Vector3d& (DynamicsState::*)(int) const) &DynamicsState::endeffectorPosition)
     .def("effVelocity", (const Eigen::Vector3d& (DynamicsState::*)(int) const) &DynamicsState::endeffectorVelocity)

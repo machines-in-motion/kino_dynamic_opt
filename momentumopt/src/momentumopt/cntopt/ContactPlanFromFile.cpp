@@ -11,7 +11,7 @@
 namespace momentumopt {
 
   // ContactPlan
-  void ContactPlanFromFile::optimize(const DynamicsState& ini_state, const TerrainDescription& terrain)
+  void ContactPlanFromFile::optimize(const DynamicsState& /*ini_state*/, const TerrainDescription& /*terrain*/)
   {
     // this function fills in the contact sequence by reading it from a file
     this->contactSequence().loadFromFile(this->getSetting().get(PlannerStringParam_ConfigFile));

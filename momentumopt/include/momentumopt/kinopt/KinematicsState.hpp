@@ -191,7 +191,7 @@ namespace momentumopt {
 
 	  // Helper functions
 	  std::string toString() const;
-	  const int numJoints() const { return num_joints_; }
+	  const int& numJoints() const { return num_joints_; }
 	  friend std::ostream& operator<<(std::ostream &os, const KinematicsState& obj) { return os << obj.toString(); }
 
     private:

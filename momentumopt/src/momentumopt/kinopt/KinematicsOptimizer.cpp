@@ -505,7 +505,7 @@ namespace momentumopt {
     }
   }
 
-  void KinematicsOptimizer::storeSolution(const DynamicsState& ini_state, DynamicsSequence& dyn_sequence)
+  void KinematicsOptimizer::storeSolution(const DynamicsState& /*ini_state*/, DynamicsSequence& dyn_sequence)
   {
     try
     {

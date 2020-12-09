@@ -733,19 +733,19 @@ namespace momentumopt {
     }
   }
 
-  const ContactType DynamicsOptimizer::contactType(int time_id, int eff_id) const
+  const ContactType& DynamicsOptimizer::contactType(int time_id, int eff_id) const
   {
     int contact_id = dynamicsSequence().dynamicsState(time_id).endeffectorContactId(eff_id);
     return contact_plan_->contactSequence().endeffectorContacts(eff_id)[contact_id].contactType();
   }
 
-  const Eigen::Matrix3d DynamicsOptimizer::contactRotation(int time_id, int eff_id) const
+  Eigen::Matrix3d DynamicsOptimizer::contactRotation(int time_id, int eff_id) const
   {
     int contact_id = dynamicsSequence().dynamicsState(time_id).endeffectorContactId(eff_id);
     return contact_plan_->contactSequence().endeffectorContacts(eff_id)[contact_id].contactOrientation().toRotationMatrix();
   }
 
-  const double DynamicsOptimizer::contactLocation(int time_id, int eff_id, int axis_id) const
+  double DynamicsOptimizer::contactLocation(int time_id, int eff_id, int axis_id) const
   {
     int contact_id = dynamicsSequence().dynamicsState(time_id).endeffectorContactId(eff_id);
     return contact_plan_->contactSequence().endeffectorContacts(eff_id)[contact_id].contactPosition()[axis_id];
