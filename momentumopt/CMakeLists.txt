@@ -160,6 +160,7 @@ list(APPEND all_targets demo_momentumopt)
 if(BUILD_TESTING)
 
   # C++ unit-tests
+  find_package(ament_cmake_gtest REQUIRED)
   ament_add_gtest(test_momentumopt tests/gtest_main.cpp
                   tests/test_momentumopt.cpp)
   target_link_libraries(test_momentumopt momentumopt)
