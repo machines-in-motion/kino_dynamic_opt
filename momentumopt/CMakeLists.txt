@@ -32,7 +32,6 @@ find_package(solver_lqr REQUIRED COMPONENTS thread)
 find_package(pybind11 REQUIRED)
 find_package(yaml_utils REQUIRED)
 find_package(Eigen3 REQUIRED)
-find_package(Boost REQUIRED COMPONENTS thread)
 
 # export de dependencies
 ament_export_dependencies(
@@ -48,7 +47,7 @@ ament_export_dependencies(
 
 # prepare the final export
 set(all_targets)
-ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+ament_export_interfaces(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
 # Some additionnal optimization for the code.
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -funroll-loops -fPIC")
@@ -85,7 +84,7 @@ set(momentumopt_SRC_FILES
     src/momentumopt/utilities/OrientationUtils.cpp
     src/momentumopt/utilities/TrajectoryGenerator.cpp)
 # Add Library.
-add_library(momentumopt ${momentumopt_SRC_FILES})
+add_library(momentumopt SHARED ${momentumopt_SRC_FILES})
 # Includes. Add the include dependencies
 target_include_directories(
   momentumopt PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -95,8 +94,6 @@ target_link_libraries(momentumopt solver::solver)
 target_link_libraries(momentumopt solver_lqr::solver_lqr)
 target_link_libraries(momentumopt yaml_utils::yaml_utils)
 target_link_libraries(momentumopt Eigen3::Eigen)
-target_link_libraries(momentumopt Boost::boost)
-target_link_libraries(momentumopt Boost::thread)
 # Properties.
 set_target_properties(momentumopt PROPERTIES COMPILE_DEFINITIONS
                                              CFG_SRC_PATH="${CONFIG_PATH}/")

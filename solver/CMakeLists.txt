@@ -43,10 +43,10 @@ ament_export_dependencies(ament_cmake mpi_cmake_modules pybind11 yaml_utils
 
 # prepare the final export
 set(all_targets)
-ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+ament_export_interfaces(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
 # Some additionnal optimization for the code.
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -funroll-loops -fPIC")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -funroll-loops")
 
 #
 # Add the main library
@@ -70,7 +70,7 @@ set(solver_SRC_FILES
     src/solver/optimizer/SparseCholesky.cpp
     src/solver/optimizer/CvxInfoPrinter.cpp)
 # Add Library.
-add_library(solver ${solver_SRC_FILES})
+add_library(solver SHARED ${solver_SRC_FILES})
 # Includes. Add the include dependencies
 target_include_directories(
   solver PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

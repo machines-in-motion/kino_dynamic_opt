@@ -30,7 +30,7 @@ find_package(mpi_cmake_modules REQUIRED)
 find_package(pybind11 REQUIRED)
 find_package(yaml_utils REQUIRED)
 find_package(Eigen3 REQUIRED)
-find_package(Boost REQUIRED COMPONENTS thread)
+# find_package(Boost REQUIRED COMPONENTS thread)
 
 
 # local find package.
@@ -39,14 +39,14 @@ find_package(solver REQUIRED)
 
 # export dependencies
 ament_export_dependencies(ament_cmake mpi_cmake_modules pybind11 yaml_utils
-                          Eigen3 solver)
+                          Eigen3 Boost solver)
 
 # prepare the final export
 set(all_targets)
-ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+ament_export_interfaces(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
 # Some additionnal optimization for the code.
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -funroll-loops -fPIC")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -funroll-loops")
 
 
 #
@@ -75,7 +75,7 @@ set(pysolverlqr_SRC_FILES ${pysolverlqr_SRC_FILES}
 )
 
 # Add Library
-add_library(solver_lqr ${solver_lqr_SRC_FILES})
+add_library(solver_lqr SHARED ${solver_lqr_SRC_FILES})
 
 # Includes. Add the include dependencies
 target_include_directories(
