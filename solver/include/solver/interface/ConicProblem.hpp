@@ -40,9 +40,9 @@ namespace solver {
       void setObjective(const DCPQuadExpr& qexpr, const LinExpr& expr);
       ExitCode optimize();
 
-      const int numTrustRegions() const { return numTrustRegions_; }
-      const int numBinaryVariables() const { return bin_vars_.size(); }
-      const int numSoftConstraints() const { return numSoftConstraints_; }
+      int numTrustRegions() const { return numTrustRegions_; }
+      int numBinaryVariables() const { return bin_vars_.size(); }
+      int numSoftConstraints() const { return numSoftConstraints_; }
 
     private:
       friend class Model;

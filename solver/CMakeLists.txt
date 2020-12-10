@@ -186,5 +186,5 @@ add_documentation()
 file(
   GLOB cmake_files
   RELATIVE ${PROJECT_SOURCE_DIR}
-  cmake/*.cmake)
+  cmake/solver-extras*.cmake)
 ament_package(CONFIG_EXTRAS ${cmake_files})

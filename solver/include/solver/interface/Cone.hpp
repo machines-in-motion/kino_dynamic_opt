@@ -97,24 +97,24 @@ namespace solver {
 	  void initialize(int nvars, int nleq, int nlineq, const Eigen::VectorXi& nsoc);
 
 	  // Getter and setter methods for problem size variables
-	  inline const int numLeq() const { return neq_; }
-	  inline const int numSoc() const { return nsoc_; }
-	  inline const int sizeSoc() const { return ssoc_; }
-	  inline const int sizeLpc() const { return nineq_; }
-	  inline const int numVars() const { return nvars_; }
-	  inline const int sizeCone() const { return sizecone_; }
-	  inline const int extSizeSoc() const { return extssoc_; }
-	  inline const int sizeSoc(int id) const { return q_(id); }
-	  inline const int numCones() const { return nineq_+nsoc_; }
-	  inline const int sizeProb() const { return sizeproblem_; }
-	  inline const int extSizeCone() const { return extsizecone_; }
-	  inline const int lpConeStart() const { return lpconestart_; }
-	  inline const int soConeStart() const { return soconestart_; }
-	  inline const int extSizeProb() const { return extsizeproblem_; }
-	  inline const int startSoc(int id) const { return SOC_start_(id); }
-	  inline const int sizeConstraints() const { return sizeconstraints_; }
-	  inline const int optStartSoc(int id) const { return opt_SOC_start_(id); }
-	  inline const int extStartSoc(int id) const { return ext_SOC_start_(id); }
+	  inline int numLeq() const { return neq_; }
+	  inline int numSoc() const { return nsoc_; }
+	  inline int sizeSoc() const { return ssoc_; }
+	  inline int sizeLpc() const { return nineq_; }
+	  inline int numVars() const { return nvars_; }
+	  inline int sizeCone() const { return sizecone_; }
+	  inline int extSizeSoc() const { return extssoc_; }
+	  inline int sizeSoc(int id) const { return q_(id); }
+	  inline int numCones() const { return nineq_+nsoc_; }
+	  inline int sizeProb() const { return sizeproblem_; }
+	  inline int extSizeCone() const { return extsizecone_; }
+	  inline int lpConeStart() const { return lpconestart_; }
+	  inline int soConeStart() const { return soconestart_; }
+	  inline int extSizeProb() const { return extsizeproblem_; }
+	  inline int startSoc(int id) const { return SOC_start_(id); }
+	  inline int sizeConstraints() const { return sizeconstraints_; }
+	  inline int optStartSoc(int id) const { return opt_SOC_start_(id); }
+	  inline int extStartSoc(int id) const { return ext_SOC_start_(id); }
 	  static double normSoc(const Eigen::Ref<const Eigen::VectorXd>& v) { return v[0]-v.tail(v.size()-1).norm(); }
 
 	  // Getter and setter methods for variables of linear cone
