@@ -94,6 +94,20 @@ set_target_properties(solver PROPERTIES COMPILE_DEFINITIONS
 # Exporting.
 list(APPEND all_targets solver)
 
+# ignore warning for external imported files
+set_source_files_properties(
+  src/solver/optimizer/IPSolver.cpp
+  src/solver/optimizer/LinSolver.cpp
+  src/solver/optimizer/EqRoutine.cpp
+  src/solver/optimizer/BnBSolver.cpp
+  src/solver/optimizer/LbfgsSolver.cpp
+  src/solver/optimizer/NcvxBnBSolver.cpp
+  src/solver/optimizer/SparseCholesky.cpp
+  src/solver/optimizer/CvxInfoPrinter.cpp
+  PROPERTIES
+  COMPILE_FLAGS "-w"
+)
+
 #
 # Python wrappers.
 #
