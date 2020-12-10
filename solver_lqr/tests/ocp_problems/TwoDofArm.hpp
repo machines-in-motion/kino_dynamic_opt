@@ -53,14 +53,14 @@ namespace ocp_test_problems
         return coriolis;
       }
 
-      Eigen::Vector2d GravityV(const solverlqr::StateBase& state)
+      Eigen::Vector2d GravityV(const solverlqr::StateBase& /*state*/)
       {
     	Eigen::Vector2d gravity;
     	gravity.setZero();
     	return gravity;
       }
 
-      Eigen::Matrix2d SelectionM(const solverlqr::StateBase& state)
+      Eigen::Matrix2d SelectionM(const solverlqr::StateBase& /*state*/)
       {
     	Eigen::Matrix2d selection;
     	selection.setIdentity();
@@ -127,7 +127,7 @@ namespace ocp_test_problems
         return objective;
       }
 
-      solverlqr::StateBase dynamics(const solverlqr::StateBase& state, const solverlqr::ControlBase& control, int time_id)
+      solverlqr::StateBase dynamics(const solverlqr::StateBase& state, const solverlqr::ControlBase& control, int /*time_id*/)
       {
         Eigen::LLT<Eigen::Matrix2d> mass_inv;
         mass_inv.compute(this->MassM(state));
@@ -138,12 +138,12 @@ namespace ocp_test_problems
         return this->dt()*dstate_dt;
       }
 
-      Eigen::MatrixXd processNoiseFilter(int time_id) const
+      Eigen::MatrixXd processNoiseFilter(int /*time_id*/) const
       {
     	    return process_filter_;
       }
 
-      Eigen::MatrixXd measurementNoiseFilter(int time_id) const
+      Eigen::MatrixXd measurementNoiseFilter(int /*time_id*/) const
       {
         return measurement_filter_;
       }
