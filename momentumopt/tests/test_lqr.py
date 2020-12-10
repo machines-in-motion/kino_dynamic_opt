@@ -19,7 +19,6 @@ here we test all the functionalities of lqr_gain__manifold
 from momentumopt.kinoptpy import lqr_gain_manifold
 from shutil import copy
 import unittest
-from nose.tools import nottest
 import tempfile
 import os
 from os import path, walk
@@ -47,7 +46,7 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
 
     def setUp(self):
         # get the path this package
-        self.pkg_path = path.dirname(path.abspath(path.curdir))
+        self.pkg_path = path.dirname(path.abspath(path.dirname(__file__)))
         # get the path to the reference trajectories
         self.data_ref_dir = path.join(self.pkg_path, "tests",
                                       "jump_trajectories",
@@ -142,9 +141,9 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
         # can test smaller blocks individually, will do that later but seems
         # ok for now
 
-        # print fx
-        # print '==================='
-        # print fu
+        # print (fx)
+        # print ('===================')
+        # print (fu)
 
     def test_cost_along_trajectory(self):
         '''tests computation of cost residuals along a reference trajectory '''
@@ -159,24 +158,24 @@ class TestDifferentialDynamicProgramming(unittest.TestCase):
             else:
                 c += lqr_solver.cost(t, lqr_solver.xp[t], lqr_solver.u0[t])
 
-        print 'cost along trajectory = ', c
+        print ('cost along trajectory = ', c)
 
     def test_cost_derivatives(self):
         lqr_solver = lqr_gain_manifold.CentroidalLqr(self.data_dir)
 
         cx, cu, cxx, cuu, cxu = lqr_solver.cost_derivatives(
             0, lqr_solver.x0[0], lqr_solver.u0[0])
-        # print cx
-        # print '==================='
-        # print cu
-        # print '==================='
-        # print cxx
-        # # print '==================='
-        # # print cuu
-        # # print '==================='
-        # # print cxu
+        # print (cx)
+        # print ('===================')
+        # print (cu)
+        # print ('===================')
+        # print (cxx)
+        # # print ('===================')
+        # # print (cuu)
+        # # print ('===================')
+        # # print (cxu)
 
-    @nottest
+    @pytest.mark.skip(reason="This test is disabled as it is too slow")
     def test_compute_gains(self):
         """ This test is disabled as it is too slow """
         lqr_solver = lqr_gain_manifold.CentroidalLqr(self.data_dir)

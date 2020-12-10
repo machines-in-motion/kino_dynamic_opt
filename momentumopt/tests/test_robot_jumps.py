@@ -17,7 +17,7 @@ from nose.tools import nottest
 import tempfile
 from os import walk, path
 
-from utils import assert_all_close, CD
+from .utils import assert_all_close, CD
 from momentumopt.kino_dyn_planner_solo import build_and_optimize_motion
 from momentumopt.quadruped.quadruped_wrapper import QuadrupedWrapper
 

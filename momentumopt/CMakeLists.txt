@@ -95,8 +95,10 @@ target_link_libraries(momentumopt solver_lqr::solver_lqr)
 target_link_libraries(momentumopt yaml_utils::yaml_utils)
 target_link_libraries(momentumopt Eigen3::Eigen)
 # Properties.
-set_target_properties(momentumopt PROPERTIES COMPILE_DEFINITIONS
-                                             CFG_SRC_PATH="${CONFIG_PATH}/")
+target_compile_definitions(
+  momentumopt
+  PRIVATE CFG_SRC_PATH="${CONFIG_PATH}/"
+  INTERFACE CFG_SRC_PATH="share/${PROJECT_NAME}/resource/")
 # Exporting.
 list(APPEND all_targets momentumopt)
 
@@ -116,23 +118,20 @@ set(pymomentumopt_SRC_FILES
     srcpy/momentumopt/PyMomentumopt.cpp
     srcpy/momentumopt/setting/PyParams.cpp
     srcpy/momentumopt/setting/PySetting.cpp)
-add_library(pymomentumopt MODULE ${pymomentumopt_SRC_FILES})
-target_link_libraries(pymomentumopt PRIVATE pybind11::module)
-target_link_libraries(pymomentumopt PRIVATE ${PYTHON_LIBRARIES})
-target_link_libraries(pymomentumopt PRIVATE solver::solver)
-target_link_libraries(pymomentumopt PRIVATE solver_lqr::solver_lqr)
-target_link_libraries(pymomentumopt PRIVATE Eigen3::Eigen)
-target_link_libraries(pymomentumopt PRIVATE yaml_utils::yaml_utils)
-set_target_properties(pymomentumopt
+add_library(pymomentum MODULE ${pymomentumopt_SRC_FILES})
+target_link_libraries(pymomentum PRIVATE pybind11::module)
+target_link_libraries(pymomentum PRIVATE ${PYTHON_LIBRARIES})
+target_link_libraries(pymomentum PRIVATE momentumopt)
+set_target_properties(pymomentum
                       PROPERTIES PREFIX "" SUFFIX "${PYTHON_MODULE_EXTENSION}")
 target_include_directories(
-  pymomentumopt
+  pymomentum
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
          $<INSTALL_INTERFACE:include>
   PUBLIC ${PYTHON_INCLUDE_DIRS})
 _ament_cmake_python_get_python_install_dir()
-install(TARGETS pymomentumopt DESTINATION ${PYTHON_INSTALL_DIR})
-list(APPEND all_targets pymomentumopt)
+install(TARGETS pymomentum DESTINATION ${PYTHON_INSTALL_DIR})
+list(APPEND all_targets pymomentum)
 
 # #
 # ##############################################################################
@@ -148,9 +147,6 @@ list(APPEND all_targets pymomentumopt)
 #
 add_executable(demo_momentumopt demos/demo_momentumopt.cpp)
 target_link_libraries(demo_momentumopt momentumopt)
-set_target_properties(
-  demo_momentumopt PROPERTIES COMPILE_DEFINITIONS
-                              CFG_SRC_PATH="${CONFIG_PATH}/")
 list(APPEND all_targets demo_momentumopt)
 
 #
@@ -169,10 +165,9 @@ if(BUILD_TESTING)
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/tests/>
            $<INSTALL_INTERFACE:include>)
   get_filename_component(TEST_PATH tests ABSOLUTE)
-  set_target_properties(
+  target_compile_definitions(
     test_momentumopt
-    PROPERTIES COMPILE_DEFINITIONS CFG_SRC_PATH="${CONFIG_PATH}/"
-               COMPILE_DEFINITIONS TEST_PATH="${TEST_PATH}/yaml_config_files/")
+    PRIVATE TEST_PATH="${TEST_PATH}/yaml_config_files/")
 
   # python unit tests
   find_package(ament_cmake_pytest REQUIRED)
@@ -198,12 +193,13 @@ install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
 
 # Install the demo python files
 install_scripts(
-    demos/demo_momentumopt_biped_from_python.py
-    demos/demo_momentumopt_solo12_jump.py
-    demos/demo_momentumopt_solo_jump_no_lqr.py
-    demos/demo_momentumopt_solo_jump.py
-    DESTINATION bin
-)
+  demos/demo_momentumopt_biped_from_python.py
+  demos/demo_momentumopt_solo12_jump.py
+  demos/demo_momentumopt_solo_jump_no_lqr.py
+  demos/demo_momentumopt_solo_jump.py
+  DESTINATION
+  bin)
+install(DIRECTORY config DESTINATION share/${PROJECT_NAME}/resource/)
 
 # Python Native code.
 ament_python_install_package(${PROJECT_NAME} PACKAGE_DIR python/${PROJECT_NAME})
