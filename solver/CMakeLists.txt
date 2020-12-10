@@ -154,8 +154,8 @@ if(BUILD_TESTING)
                             TEST_PATH="${TEST_PATH}/yaml_config_files/")
 
   # python unit tests
-  find_package(ament_cmake_pytest REQUIRED)
-  ament_add_pytest_test(test_${PROJECT_NAME}_python tests)
+#   find_package(ament_cmake_pytest REQUIRED)
+#   ament_add_pytest_test(test_${PROJECT_NAME}_python tests)
 
 endif()
 
