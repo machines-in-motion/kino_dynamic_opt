@@ -157,7 +157,7 @@ if(BUILD_TESTING)
   # C++ unit-tests
   find_package(ament_cmake_gtest REQUIRED)
   ament_add_gtest(test_momentumopt tests/gtest_main.cpp
-                  tests/test_momentumopt.cpp)
+                  tests/test_momentumopt.cpp TIMEOUT 500)
   target_link_libraries(test_momentumopt momentumopt)
   target_include_directories(
     test_momentumopt
