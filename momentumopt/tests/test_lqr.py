@@ -24,6 +24,7 @@ import os
 from os import path, walk
 import numpy as np
 import eigenpy
+import pytest
 eigenpy.switchToNumpyMatrix()
 
 

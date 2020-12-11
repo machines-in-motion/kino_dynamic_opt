@@ -55,7 +55,6 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -funroll-loops -fPIC")
 #
 # Definitions.
 #
-get_filename_component(TEST_PATH tests ABSOLUTE)
 get_filename_component(CONFIG_PATH config ABSOLUTE)
 
 #

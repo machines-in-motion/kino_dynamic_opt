@@ -16,3 +16,4 @@ void init_setting(py::module& module);
 PYBIND11_MODULE(pysolver, m) {
   init_setting(m);
 }
+

@@ -46,7 +46,7 @@ set(all_targets)
 ament_export_interfaces(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
 # Some additionnal optimization for the code.
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -funroll-loops")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -funroll-loops -fPIC")
 
 #
 # Add the main library
@@ -188,6 +188,7 @@ macro(SUBDIRLIST result curdir)
 endmacro()
 subdirlist(cmake_dirs ${PROJECT_SOURCE_DIR}/cmake)
 install(DIRECTORY ${cmake_dirs} DESTINATION share/${PROJECT_NAME}/cmake)
+
 
 #
 # building documentation
