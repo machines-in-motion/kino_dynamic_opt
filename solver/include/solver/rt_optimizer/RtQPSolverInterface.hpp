@@ -115,7 +115,7 @@ namespace rt_solver {
         RtMatrixUtils::setZero(Ineq_mat_, 0, max_dim_qp);
       }
 
-      inline virtual void reset(int dim_qp, int num_eq, int num_ineq)
+      inline virtual void reset(int dim_qp, int /*num_eq*/, int /*num_ineq*/)
       {
         qp_properties_ = 0;
         RtVectorUtils::setZero(g_, dim_qp);

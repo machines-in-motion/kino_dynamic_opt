@@ -23,6 +23,6 @@ namespace rt_solver {
       virtual int maxRank() const = 0;
       virtual void updateAfterSolutionFound() = 0;
       virtual void addCostToHierarchy(int rank) const = 0;
-      virtual void addCostToHierarchyAfterReduction(int rank) const{};
+      virtual void addCostToHierarchyAfterReduction(int /*rank*/) const{};
   };
 }

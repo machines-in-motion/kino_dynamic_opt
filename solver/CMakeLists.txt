@@ -1,120 +1,101 @@
-cmake_minimum_required(VERSION 3.5.1)
+#
+# Copyright (c) 2019, New York University and Max Planck Gesellschaft.
+#
+# License BSD-3 clause
+#
+
+#
+# set up the project
+#
+cmake_minimum_required(VERSION 3.10.2)
+
 project(solver)
 
-#########
-# flags #
-#########
-
-# required to use std::shared_ptr in code and to link the python bindings
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--no-as-needed")
+# Using C++17
+if(NOT CMAKE_C_STANDARD)
+  set(CMAKE_C_STANDARD 99)
 endif()
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -g -Wall -pedantic -O3 -funroll-loops -fPIC")
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+endif()
 
-# ensuring path to libraries are set during install
-set(CMAKE_SKIP_BUILD_RPATH  FALSE)
-set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
+#
+# Dependencies
+#
 
+# depend on ament macros
+find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
+find_package(mpi_cmake_modules REQUIRED)
+find_package(pybind11 REQUIRED)
+find_package(yaml_utils REQUIRED)
+find_package(Eigen3 REQUIRED)
+find_package(Boost REQUIRED COMPONENTS thread)
 
-#####################
-# required packages #
-#####################
+# local find package.
+set(CMAKE_MODULE_PATH cmake ${CMAKE_MODULE_PATH})
+find_package(GUROBI QUIET)
+find_package(IPOPT QUIET)
 
-set(CATKIN_PKGS ${CATKIN_PKGS}
-  mpi_cmake_modules
-  pybind11_catkin
-  yaml_cpp_catkin
-)
-find_package(catkin REQUIRED COMPONENTS ${CATKIN_PKGS})
+# export dependencies
+ament_export_dependencies(ament_cmake mpi_cmake_modules pybind11 yaml_utils
+                          Eigen3 Boost)
 
-search_for_boost()
-search_for_eigen()
+# prepare the final export
+set(all_targets)
+ament_export_interfaces(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
-#####################
-# optional packages #
-#####################
+# Some additionnal optimization for the code.
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -funroll-loops -fPIC")
 
-# To be fixed, the cmake crashes when using IPOPT
-# find_package(IPOPT QUIET)
-# find_package(GUROBI QUIET)
+#
+# Add the main library
+#
 
-##################
-# catkin package #
-##################
-
-set(EXPORTED_LIBRARIES ${EXPORTED_LIBRARIES} "solver")
-set(EXPORTED_CFG_EXTRAS ${EXPORTED_CFG_EXTRAS} "solver.cmake")
-set(EXPORTED_INCLUDE_DIRS ${EXPORTED_INCLUDE_DIRS} "include" ${EIGEN3_INCLUDE_DIR})
-
+# Source.
+set(solver_SRC_FILES
+    src/solver/interface/Var.cpp
+    src/solver/interface/Cone.cpp
+    src/solver/interface/Exprs.cpp
+    src/solver/interface/Model.cpp
+    src/solver/interface/OptVar.cpp
+    src/solver/interface/ConicProblem.cpp
+    src/solver/interface/SolverSetting.cpp
+    src/solver/optimizer/IPSolver.cpp
+    src/solver/optimizer/LinSolver.cpp
+    src/solver/optimizer/EqRoutine.cpp
+    src/solver/optimizer/BnBSolver.cpp
+    src/solver/optimizer/LbfgsSolver.cpp
+    src/solver/optimizer/NcvxBnBSolver.cpp
+    src/solver/optimizer/SparseCholesky.cpp
+    src/solver/optimizer/CvxInfoPrinter.cpp)
+# Add Library.
+add_library(solver SHARED ${solver_SRC_FILES})
+# Includes. Add the include dependencies
+target_include_directories(
+  solver PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+                $<INSTALL_INTERFACE:include>)
+# Linking.
+target_link_libraries(solver yaml_utils::yaml_utils)
+target_link_libraries(solver Eigen3::Eigen)
+target_link_libraries(solver Boost::boost)
+target_link_libraries(solver Boost::thread)
 if(IPOPT_FOUND)
-  set(EXPORTED_LIBRARIES ${EXPORTED_LIBRARIES} ${IPOPT_LIBRARIES})
-  set(EXPORTED_CFG_EXTRAS ${EXPORTED_CFG_EXTRAS} "${PROJECT_NAME}-extras-ipopt.cmake")
-  set(EXPORTED_INCLUDE_DIRS ${EXPORTED_INCLUDE_DIRS} ${IPOPT_INCLUDE_DIRS})
+  include(cmake/solver-extras-ipopt.cmake)
+  target_link_libraries(solver IPOPT::IPOPT)
 endif()
-
 if(GUROBI_FOUND)
-  set(EXPORTED_LIBRARIES ${EXPORTED_LIBRARIES} ${GUROBI_LIBRARIES})
-  set(EXPORTED_CFG_EXTRAS ${EXPORTED_CFG_EXTRAS} "${PROJECT_NAME}-extras-gurobi.cmake")
-  set(EXPORTED_INCLUDE_DIRS ${EXPORTED_INCLUDE_DIRS} ${GUROBI_INCLUDE_DIRS})
+  include(cmake/solver-extras-gurobi.cmake)
+  target_link_libraries(solver GUROBI::GUROBI)
 endif()
+# Properties.
+set_target_properties(solver PROPERTIES COMPILE_DEFINITIONS
+                                        "${solver_DEFINITIONS}")
+# Exporting.
+list(APPEND all_targets solver)
 
-catkin_package(
-  CATKIN_DEPENDS ${CATKIN_PKGS}
-  LIBRARIES ${EXPORTED_LIBRARIES}
-  CFG_EXTRAS ${EXPORTED_CFG_EXTRAS}
-  INCLUDE_DIRS ${EXPORTED_INCLUDE_DIRS}
-)
-
-###############
-# definitions #
-###############
-
-get_filename_component(TEST_PATH tests ABSOLUTE)
-get_filename_component(CONFIG_PATH config ABSOLUTE)
-
-#######################
-# include directories #
-#######################
-
-include_directories(
-  tests
-  include
-  ${EIGEN3_INCLUDE_DIR}
-  ${GTEST_INCLUDE_DIRS}
-  ${Boost_INCLUDE_DIRS}
-  ${PYBIND11_INCLUDE_DIRS}
-  ${catkin_INCLUDE_DIRS}
-)
-
-#####################
-# optional includes #
-#####################
-
-if (IPOPT_FOUND)
-  include_directories( ${IPOPT_INCLUDE_DIRS} )
-  include(${PROJECT_SOURCE_DIR}/cmake/solver-extras-ipopt.cmake)
-endif (IPOPT_FOUND)
-
-if (GUROBI_FOUND)
-  include_directories( ${GUROBI_INCLUDE_DIRS} )
-  include(${PROJECT_SOURCE_DIR}/cmake/solver-extras-gurobi.cmake)
-endif (GUROBI_FOUND)
-
-################
-# source files #
-################
-
-set(solver_SRC_FILES ${solver_SRC_FILES}
-  src/solver/interface/Var.cpp
-  src/solver/interface/Cone.cpp
-  src/solver/interface/Exprs.cpp
-  src/solver/interface/Model.cpp
-  src/solver/interface/OptVar.cpp
-  src/solver/interface/ConicProblem.cpp
-  src/solver/interface/SolverSetting.cpp
-
+# ignore warning for external imported files
+set_source_files_properties(
   src/solver/optimizer/IPSolver.cpp
   src/solver/optimizer/LinSolver.cpp
   src/solver/optimizer/EqRoutine.cpp
@@ -123,80 +104,102 @@ set(solver_SRC_FILES ${solver_SRC_FILES}
   src/solver/optimizer/NcvxBnBSolver.cpp
   src/solver/optimizer/SparseCholesky.cpp
   src/solver/optimizer/CvxInfoPrinter.cpp
+  PROPERTIES
+  COMPILE_FLAGS "-w"
 )
 
-set(pysolver_SRC_FILES ${pysolver_SRC_FILES}
-  srcpy/solver/PySolver.cpp
-  srcpy/solver/interface/PySetting.cpp
-)
-
-#####################
-# linking libraries #
-#####################
-
-set(solver_LIBS
-  m
-  ${Boost_LIBRARIES}
-  ${catkin_LIBRARIES}
-)
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  set(solver_LIBS ${solver_LIBS} rt)
-ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-
-######################
-# optional libraries #
-######################
-
-if (IPOPT_FOUND)
-  set(solver_LIBS ${solver_LIBS} ${IPOPT_LIBRARIES})
-endif (IPOPT_FOUND)
-
-if (GUROBI_FOUND)
-  set(solver_LIBS ${solver_LIBS} ${GUROBI_LIBRARIES})
-endif (GUROBI_FOUND)
-
-###################
-# build libraries #
-###################
-
-add_library(solver ${solver_SRC_FILES})
-target_link_libraries(solver ${solver_LIBS})
-set_target_properties(solver PROPERTIES COMPILE_DEFINITIONS "${solver_DEFINITIONS}")
-
-###################
-# python bindings #
-###################
-
-pybind11_add_module(pysolver ${pysolver_SRC_FILES})
+#
+# Python wrappers.
+#
+add_library(pysolver MODULE srcpy/solver/PySolver.cpp
+                            srcpy/solver/interface/PySetting.cpp)
+target_link_libraries(pysolver PRIVATE pybind11::module)
+target_link_libraries(pysolver PRIVATE ${PYTHON_LIBRARIES})
 target_link_libraries(pysolver PRIVATE solver)
-set_target_properties(pysolver PROPERTIES
-         LIBRARY_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_PYTHON_DESTINATION})
-install(TARGETS pysolver DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
+set_target_properties(pysolver PROPERTIES PREFIX ""
+                                          SUFFIX "${PYTHON_MODULE_EXTENSION}")
+target_include_directories(
+  pysolver
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+         $<INSTALL_INTERFACE:include>
+  PUBLIC ${PYTHON_INCLUDE_DIRS})
+_ament_cmake_python_get_python_install_dir()
+install(TARGETS pysolver DESTINATION ${PYTHON_INSTALL_DIR})
+list(APPEND all_targets pysolver)
 
-#########
-# tests #
-#########
+#
+# tests
+#
 
-set(GTEST_FILES ${GTEST_FILES}
-  tests/GtestMain.cpp
-  tests/TestLbfgs.cpp
-  tests/TestSolver.cpp
-  tests/TestRtSolver.cpp
-)
+if(BUILD_TESTING)
 
-if(IPOPT_FOUND)
-  set(GTEST_FILES ${GTEST_FILES} tests/TestIpopt.cpp )
+  # C++ unit-tests
+  find_package(ament_cmake_gtest REQUIRED)
+  set(GTEST_FILES ${GTEST_FILES} tests/gtest_main.cpp tests/test_lbfgs.cpp
+                  tests/test_solver.cpp tests/test_rt_solver.cpp)
+  if(IPOPT_FOUND)
+    set(GTEST_FILES ${GTEST_FILES} tests/test_ipopt.cpp)
+  endif()
+  if(GUROBI_FOUND)
+    set(GTEST_FILES ${GTEST_FILES} tests/test_gurobi.cpp)
+  endif()
+  ament_add_gtest(solver_tests ${GTEST_FILES})
+  target_link_libraries(solver_tests solver)
+  target_include_directories(
+    solver_tests PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/tests/>
+                        $<INSTALL_INTERFACE:include>)
+  get_filename_component(TEST_PATH tests ABSOLUTE)
+  set_target_properties(
+    solver_tests PROPERTIES COMPILE_DEFINITIONS
+                            TEST_PATH="${TEST_PATH}/yaml_config_files/")
+
+  # python unit tests
+#   find_package(ament_cmake_pytest REQUIRED)
+#   ament_add_pytest_test(test_${PROJECT_NAME}_python tests)
+
 endif()
 
-if(GUROBI_FOUND)
-  set(GTEST_FILES ${GTEST_FILES} tests/TestGurobi.cpp )
-endif()
+#
+# Install everything.
+#
+install(DIRECTORY include/ DESTINATION include)
+install(
+  TARGETS ${all_targets}
+  EXPORT export_${PROJECT_NAME}
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES
+  DESTINATION include)
 
-catkin_add_gtest(solver_tests ${GTEST_FILES})
-target_link_libraries(solver_tests solver ${catkin_LIBRARIES})
-set_target_properties(solver_tests PROPERTIES COMPILE_DEFINITIONS TEST_PATH="${TEST_PATH}/yaml_config_files/")
+# install the CMake find modules at the good place
+macro(SUBDIRLIST result curdir)
+  file(
+    GLOB children
+    RELATIVE ${curdir}
+    ${curdir}/*)
+  set(dirlist "")
+  foreach(child ${children})
+    if(IS_DIRECTORY ${curdir}/${child})
+      list(APPEND dirlist cmake/${child})
+    endif()
+  endforeach()
+  set(${result} ${dirlist})
+endmacro()
+subdirlist(cmake_dirs ${PROJECT_SOURCE_DIR}/cmake)
+install(DIRECTORY ${cmake_dirs} DESTINATION share/${PROJECT_NAME}/cmake)
 
-##########################
-# building documentation #
-##########################
-build_doxygen_documentation()
+
+#
+# building documentation
+#
+add_documentation()
+
+#
+# export the package as a ament package
+#
+file(
+  GLOB cmake_files
+  RELATIVE ${PROJECT_SOURCE_DIR}
+  cmake/solver-extras*.cmake)
+ament_package(CONFIG_EXTRAS ${cmake_files})

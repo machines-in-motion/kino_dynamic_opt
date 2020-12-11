@@ -1,122 +1,163 @@
-cmake_minimum_required(VERSION 2.8.3)
+#
+# Copyright (c) 2019, New York University and Max Planck Gesellschaft.
+#
+# License BSD-3 clause
+#
+
+#
+# set up the project
+#
+cmake_minimum_required(VERSION 3.10.2)
+
 project(solver_lqr)
 
-#########
-# flags #
-#########
-
-# required to use std::shared_ptr in code and to link the python bindings
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--no-as-needed")
+# Using C++17
+if(NOT CMAKE_C_STANDARD)
+  set(CMAKE_C_STANDARD 99)
 endif()
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -g -Wall -pedantic -O3 -funroll-loops -fPIC")
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+endif()
 
-# ensuring path to libraries are set during install
-set(CMAKE_SKIP_BUILD_RPATH  FALSE)
-set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
+#
+# Dependencies
+#
 
-#####################
-# required packages #
-#####################
+# depend on ament macros
+find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
+find_package(mpi_cmake_modules REQUIRED)
+find_package(pybind11 REQUIRED)
+find_package(yaml_utils REQUIRED)
+find_package(Eigen3 REQUIRED)
+# find_package(Boost REQUIRED COMPONENTS thread)
 
-set(CATKIN_PKGS ${CATKIN_PKGS}
-  # third party dependencies
+# local find package.
+set(CMAKE_MODULE_PATH cmake ${CMAKE_MODULE_PATH})
+find_package(solver REQUIRED)
+
+# export dependencies
+ament_export_dependencies(
+  ament_cmake
   mpi_cmake_modules
-  yaml_cpp_catkin
-  pybind11_catkin
-  # local dependencies
-  solver
-)
-find_package(catkin REQUIRED COMPONENTS ${CATKIN_PKGS})
+  pybind11
+  yaml_utils
+  Eigen3
+  Boost
+  solver)
 
-search_for_boost()
-search_for_eigen()
+# prepare the final export
+set(all_targets)
+ament_export_interfaces(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
-#######################
-# include directories #
-#######################
+# Some additionnal optimization for the code.
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -funroll-loops")
 
-catkin_package(
-  INCLUDE_DIRS include
-  CATKIN_DEPENDS ${CATKIN_PKGS}
-  LIBRARIES solverlqr
-)
+#
+# Add the main library
+#
 
-get_filename_component(TEST_PATH tests ABSOLUTE)
+# Source for main library
+set(solver_lqr_SRC_FILES
+    ${solver_lqr_SRC_FILES}
+    src/solver_lqr/SolverLqr.cpp
+    src/solver_lqr/ForwardPass.cpp
+    src/solver_lqr/BackwardPass.cpp
+    src/solver_lqr/LqrInfoPrinter.cpp
+    src/solver_lqr/OcpDescription.cpp
+    src/solver_lqr/SolverLqrSetting.cpp
+    src/solver_lqr/FiniteDifferences.cpp)
+
+# Source for Python bindings
+set(pysolverlqr_SRC_FILES
+    ${pysolverlqr_SRC_FILES}
+    srcpy/solver_lqr/PySolverLqr.cpp
+    srcpy/solver_lqr/PyParamsLqr.cpp
+    srcpy/solver_lqr/PySettingLqr.cpp
+    srcpy/solver_lqr/PyAlgorithmLqr.cpp
+    srcpy/solver_lqr/PyOcpDescriptionLqr.cpp)
+
+# Add Library
+add_library(solver_lqr SHARED ${solver_lqr_SRC_FILES})
+
+# Includes. Add the include dependencies
+target_include_directories(
+  solver_lqr PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+                    $<INSTALL_INTERFACE:include>)
+
+# Linking.
+target_link_libraries(solver_lqr yaml_utils::yaml_utils)
+target_link_libraries(solver_lqr Eigen3::Eigen)
+target_link_libraries(solver_lqr solver::solver)
+
+# Properties.
 get_filename_component(CONFIG_PATH config ABSOLUTE)
+target_compile_definitions(
+  solver_lqr
+  PUBLIC "${solver_DEFINITIONS}"
+  PRIVATE CFG_PATH="${CONFIG_PATH}/"
+  INTERFACE CFG_PATH="share/${PROJECT_NAME}/resource")
 
-include_directories(
-  tests
-  include
-  ${GTEST_INCLUDE_DIRS}
-  ${Boost_INCLUDE_DIRS}
-  ${catkin_INCLUDE_DIRS}
-)
+# Exporting.
+list(APPEND all_targets solver_lqr)
 
-################
-# source files #
-################
+#
+# Python wrappers.
+#
+add_library(pysolverlqr MODULE ${pysolverlqr_SRC_FILES})
+target_link_libraries(pysolverlqr PRIVATE pybind11::module)
+target_link_libraries(pysolverlqr PRIVATE ${PYTHON_LIBRARIES})
+target_link_libraries(pysolverlqr PRIVATE solver_lqr)
+set_target_properties(pysolverlqr
+                      PROPERTIES PREFIX "" SUFFIX "${PYTHON_MODULE_EXTENSION}")
+target_include_directories(
+  pysolverlqr
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+         $<INSTALL_INTERFACE:include>
+  PUBLIC ${PYTHON_INCLUDE_DIRS})
+_ament_cmake_python_get_python_install_dir()
+install(TARGETS pysolverlqr DESTINATION ${PYTHON_INSTALL_DIR})
+list(APPEND all_targets pysolverlqr)
 
-set(solverlqr_SRC_FILES ${solverlqr_SRC_FILES}
-  src/solver_lqr/SolverLqr.cpp
-  src/solver_lqr/ForwardPass.cpp
-  src/solver_lqr/BackwardPass.cpp
-  src/solver_lqr/LqrInfoPrinter.cpp
-  src/solver_lqr/OcpDescription.cpp
-  src/solver_lqr/SolverLqrSetting.cpp
-  src/solver_lqr/FiniteDifferences.cpp
-)
+#
+# tests
+#
+if(BUILD_TESTING)
 
-set(pysolverlqr_SRC_FILES ${pysolverlqr_SRC_FILES}
-  srcpy/solver_lqr/PySolverLqr.cpp
+  # C++ unit-tests
+  find_package(ament_cmake_gtest REQUIRED)
+  set(GTEST_FILES ${GTEST_FILES} tests/GtestMain.cpp tests/TestSolverLqr.cpp
+                  tests/TestSolverLqrHelpers.cpp)
+  ament_add_gtest(solver_lqr_tests ${GTEST_FILES})
+  target_link_libraries(solver_lqr_tests solver_lqr)
+  target_include_directories(
+    solver_lqr_tests
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/tests/>
+           $<INSTALL_INTERFACE:include>)
+  get_filename_component(TEST_PATH tests ABSOLUTE)
+  target_compile_definitions(
+    solver_lqr_tests PRIVATE TEST_PATH="${TEST_PATH}/yaml_config_files/")
 
-  srcpy/solver_lqr/PyParamsLqr.cpp
-  srcpy/solver_lqr/PySettingLqr.cpp
-  srcpy/solver_lqr/PyAlgorithmLqr.cpp
-  srcpy/solver_lqr/PyOcpDescriptionLqr.cpp
-)
+  # python unit tests find_package(ament_cmake_pytest REQUIRED)
+  # ament_add_pytest_test(test_${PROJECT_NAME}_python tests)
 
-#####################
-# linking libraries #
-#####################
+endif()
 
-set(solverlqr_LIBS
-  ${Boost_LIBRARIES}
-  ${catkin_LIBRARIES}
-)
-
-###################
-# build libraries #
-###################
-
-add_library(solverlqr ${solverlqr_SRC_FILES})
-target_link_libraries(solverlqr ${solverlqr_LIBS})
-set_target_properties(solverlqr PROPERTIES COMPILE_DEFINITIONS CFG_PATH="${CONFIG_PATH}/")
-
-###################
-# python bindings #
-###################
-
-pybind11_add_module(pysolverlqr ${pysolverlqr_SRC_FILES})
-target_link_libraries(pysolverlqr PRIVATE solverlqr)
-set_target_properties(pysolverlqr PROPERTIES
-         LIBRARY_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_PYTHON_DESTINATION})
-install(TARGETS pysolverlqr DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
-
-#########
-# tests #
-#########
-catkin_add_gtest(solverlqr_tests
-  tests/GtestMain.cpp
-  tests/TestSolverLqr.cpp
-  tests/TestSolverLqrHelpers.cpp
-)
-target_link_libraries(solverlqr_tests solverlqr)
-set_target_properties(solverlqr_tests PROPERTIES COMPILE_DEFINITIONS TEST_PATH="${TEST_PATH}/yaml_config_files/")
-
-##########################
-# building documentation #
-##########################
-build_doxygen_documentation()
+#
+# Install everything.
+#
+install(DIRECTORY include/ DESTINATION include)
+install(
+  TARGETS ${all_targets}
+  EXPORT export_${PROJECT_NAME}
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES
+  DESTINATION include)
+install(FILES config/default_solver_env.yaml
+        DESTINATION share/${PROJECT_NAME}/resource)
+#
+# export the package as a ament package
+#
+ament_package()

@@ -16,7 +16,7 @@ namespace momentumopt {
     planner_setting_ = &planner_setting;
   }
 
-  void ContactPlanInterface::fillDynamicsSequence(const DynamicsState& ini_state, DynamicsSequence& dynamics_sequence)
+  void ContactPlanInterface::fillDynamicsSequence(const DynamicsState& /*ini_state*/, DynamicsSequence& dynamics_sequence)
   {
 	// configuration of end-effectors during contact
     dynamics_sequence.activeEndeffectorSteps().setZero();

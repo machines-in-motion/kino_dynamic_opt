@@ -97,13 +97,13 @@ namespace momentumopt {
       ContactSequence(){}
       ~ContactSequence(){}
 
-      const int numOptimizationContacts() { return num_optimization_contacts_; }
-      const int numEndeffectorContacts(int eff_id) const { return endeffector_contacts_[eff_id].size(); }
+      const int& numOptimizationContacts() { return num_optimization_contacts_; }
+      int numEndeffectorContacts(int eff_id) const { return endeffector_contacts_[eff_id].size(); }
       void loadFromFile(const std::string cfg_file, const std::string contact_plan_name = "contact_plan");
       std::vector<ContactState>& endeffectorContacts(int eff_id) { return endeffector_contacts_[eff_id]; }
       const std::vector<ContactState>& endeffectorContacts(int eff_id) const { return endeffector_contacts_[eff_id]; }
       void endeffectorContacts(int eff_id, const std::vector<ContactState>& endeffector_contacts) { endeffector_contacts_[eff_id] = endeffector_contacts; }
-      const long endeffectorNum() { return endeffector_contacts_.size(); }
+      long endeffectorNum() { return endeffector_contacts_.size(); }
 
       std::string toString() const;
       friend std::ostream& operator<<(std::ostream &os, const ContactSequence& obj) { return os << obj.toString(); }
@@ -157,7 +157,7 @@ namespace momentumopt {
       ~ViapointSequence(){}
 
       const int& numOptimizationViapoints() const { return num_optimization_viapoints_; }
-      const int  numEndeffectorViapoints(int eff_id) const { return endeffector_viapoints_[eff_id].size(); }
+      int  numEndeffectorViapoints(int eff_id) const { return endeffector_viapoints_[eff_id].size(); }
       void loadFromFile(const std::string cfg_file, const std::string contact_plan_name = "contact_plan");
       std::vector<ViapointState>& endeffectorViapoints(int eff_id) { return endeffector_viapoints_[eff_id]; }
       const std::vector<ViapointState>& endeffectorViapoints(int eff_id) const { return endeffector_viapoints_[eff_id]; }

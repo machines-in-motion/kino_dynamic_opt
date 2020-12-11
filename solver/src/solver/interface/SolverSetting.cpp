@@ -70,6 +70,9 @@ namespace solver {
     }
     catch (YAML::ParserException &e)
     {
+      std::cout << "SolverSetting::initialize: "
+                << "something went wrong while parsing: " << cfg_file
+                << std:: endl;
       std::cout << e.what() << "\n";
     }
   }

@@ -10,7 +10,7 @@
 #include <fstream>
 #include <iostream>
 #include <gtest/gtest.h>
-#include <yaml_cpp_catkin/yaml_eigen.h>
+#include <yaml_utils/yaml_eigen.hpp>
 
 #include <solver_lqr/SolverLqr.hpp>
 #include <ocp_problems/TwoDofArm.hpp>

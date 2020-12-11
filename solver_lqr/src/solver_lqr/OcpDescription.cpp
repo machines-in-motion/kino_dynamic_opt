@@ -7,7 +7,7 @@
  */
 
 #include <iostream>
-#include <yaml_cpp_catkin/yaml_eigen.h>
+#include <yaml_utils/yaml_eigen.hpp>
 #include <solver_lqr/OcpDescription.hpp>
 
 namespace solverlqr
@@ -167,14 +167,14 @@ namespace solverlqr
     new_state = state + dstate;
   }
 
-  Eigen::MatrixXd OcpBase::processNoiseFilter(int time_id) const
+  Eigen::MatrixXd OcpBase::processNoiseFilter(int /*time_id*/) const
   {
     Eigen::MatrixXd process_noise_filter(this->xdim(),this->xdim());
     process_noise_filter.setIdentity();
     return process_noise_filter;
   }
 
-  Eigen::MatrixXd OcpBase::measurementNoiseFilter(int time_id) const
+  Eigen::MatrixXd OcpBase::measurementNoiseFilter(int /*time_id*/) const
   {
     Eigen::MatrixXd measurement_noise_filter(this->xdim(),this->xdim());
     measurement_noise_filter.setIdentity();

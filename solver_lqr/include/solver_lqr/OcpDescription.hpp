@@ -50,7 +50,7 @@ namespace solverlqr {
 
       void resize(int tdim, int xdim);
       void setRandom(double scaling = 1.0);
-      const int size() const { return stateseq_.size(); }
+      int size() const { return stateseq_.size(); }
       StateBase& state(int id) { return stateseq_[id]; }
       const StateBase& state(int id) const { return stateseq_[id]; }
 
@@ -94,7 +94,7 @@ namespace solverlqr {
 
       void setRandom(double scaling = 1.0);
       void resize(int tdim, int xdim, int udim);
-      const int size() const { return controlseq_.size(); }
+      int size() const { return controlseq_.size(); }
       ControlBase& control(int id) { return controlseq_[id]; }
       const ControlBase& control(int id) const { return controlseq_[id]; }
 

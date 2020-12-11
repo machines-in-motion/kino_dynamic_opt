@@ -31,7 +31,7 @@ namespace nlp_test_problems
       }
 
       // definition of problem box constraints
-      void getNlpBounds(int n_vars, int n_cons, double* x_l, double* x_u, double* g_l, double* g_u)
+      void getNlpBounds(int n_vars, int /*n_cons*/, double* x_l, double* x_u, double* /*g_l*/, double* /*g_u*/)
       {
         for (int i=0; i<n_vars; i++)
         {
@@ -63,7 +63,7 @@ namespace nlp_test_problems
       }
 
       // definition of constraints function
-      void evaluateConstraintsVector(int n_vars, int n_cons, const double* x, double* constraints)
+      void evaluateConstraintsVector(int /*n_vars*/, int /*n_cons*/, const double* /*x*/, double* /*constraints*/)
       {
       }
   };
