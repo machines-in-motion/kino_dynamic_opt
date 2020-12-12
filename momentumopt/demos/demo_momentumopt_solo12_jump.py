@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! python3
 
 '''
 @file demo_solo12_jump.py

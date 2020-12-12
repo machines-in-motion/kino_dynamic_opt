@@ -19,26 +19,9 @@
 
     <license>BSD 3-clause</license>
 
-    <!-- ROS2 build -->
-    <buildtool_depend>ament_cmake</buildtool_depend>
-    <buildtool_depend>ament_cmake_python</buildtool_depend>
-
-    <!-- CMake module containing helper to find the OS, boost, python, etc. -->
-    <buildtool_depend>mpi_cmake_modules</buildtool_depend>
-    <buildtool_depend>pybind11_vendor</buildtool_depend>
-    <buildtool_depend>pybind11</buildtool_depend>
-
     <!-- Run time dependencies -->
     <depend>yaml_utils</depend>
     <depend>Eigen3</depend>
     <depend>Boost</depend>
-
-    <!-- Unit tests -->
-    <test_depend>ament_cmake_gtest</test_depend>
-    <test_depend>ament_cmake_pytest</test_depend>
-
-    <export>
-        <build_type>ament_cmake</build_type>
-    </export>
 
 </package>
