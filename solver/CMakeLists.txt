@@ -121,9 +121,9 @@ install(TARGETS pysolver LIBRARY DESTINATION ${PYTHON_INSTALL_DIR})
 #
 # Tests
 #
-
-find_package(GTest QUIET)
-if(${GTEST_FOUND})
+include(CTest)
+if(BUILD_TESTING)
+  find_package(GTest REQUIRED)
   include(GoogleTest)
   # C++ unit-tests
   add_executable(solver_tests 
@@ -147,8 +147,6 @@ if(${GTEST_FOUND})
     solver_tests PROPERTIES COMPILE_DEFINITIONS
                             TEST_PATH="${TEST_PATH}/yaml_config_files/")
   gtest_add_tests(TARGET solver_tests)
-else()
-  message(WARNING "GTest NOT FOUND")
 endif()
 
 

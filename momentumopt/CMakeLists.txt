@@ -154,8 +154,9 @@ install(
 #
 # Tests.
 #
-find_package(GTest QUIET)
-if(${GTEST_FOUND})
+include(CTest)
+if(BUILD_TESTING)
+  find_package(GTest REQUIRED)
   include(GoogleTest)
   # C++ unit-tests
   add_executable(test_${PROJECT_NAME} 
@@ -171,8 +172,6 @@ if(${GTEST_FOUND})
     test_${PROJECT_NAME} PROPERTIES COMPILE_DEFINITIONS
                             TEST_PATH="${TEST_PATH}/yaml_config_files/")
   gtest_add_tests(TARGET test_${PROJECT_NAME})
-else()
-  message(WARNING "GTest NOT FOUND")
 endif()
 
 
