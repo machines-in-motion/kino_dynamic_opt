@@ -24,11 +24,11 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -funroll-loops")
 find_package(pybind11 CONFIG REQUIRED)
 # it is important to find python after we search for pybind11
 # otherwise this activates the new pybind way of compiling things
-find_package(Python)
 find_package(yaml_utils REQUIRED)
 find_package(Eigen3 REQUIRED)
 
 # local deps
+find_package(mpi_cmake_modules REQUIRED)
 find_package(solver REQUIRED)
 
 #
@@ -99,33 +99,7 @@ pybind11_add_module(pysolverlqr MODULE ${pysolverlqr_SRC_FILES})
 target_link_libraries(pysolverlqr PRIVATE pybind11::module)
 target_link_libraries(pysolverlqr PRIVATE solver_lqr)
 
-# code to find installation path for python libs
-set(_python_code
-      "from distutils.sysconfig import get_python_lib"
-      "import os"
-      "print(os.path.relpath(get_python_lib(prefix='${CMAKE_INSTALL_PREFIX}'), start='${CMAKE_INSTALL_PREFIX}').replace(os.sep, '/'))"
-)
-execute_process(
-  COMMAND
-  "${PYTHON_EXECUTABLE}"
-  "-c"
-  "${_python_code}"
-  OUTPUT_VARIABLE _output
-  RESULT_VARIABLE _result
-  OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-if(NOT _result EQUAL 0)
-  message(FATAL_ERROR
-    "execute_process(${PYTHON_EXECUTABLE} -c '${_python_code}') returned "
-    "error code ${_result}"
-    )
-endif()
-set(PYTHON_INSTALL_DIR
-      "${_output}"
-      CACHE INTERNAL
-      "The directory for Python library installation. This needs to be in PYTHONPATH when 'setup.py install' is called."
-)
-
+get_python_install_dir()
 install(TARGETS pysolverlqr LIBRARY DESTINATION ${PYTHON_INSTALL_DIR})
 
 
@@ -158,36 +132,9 @@ endif()
 #
 # create the cmake package
 #
-# we need this to create a nice exportable package
-include(CMakePackageConfigHelpers)
-
-# generate the necessary cmake file
-configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
-  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
-  INSTALL_DESTINATION share/${PROJECT_NAME}/cmake
-)
-write_basic_package_version_file(
-  ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
-  VERSION 1.0.0
-  COMPATIBILITY SameMajorVersion )
-
-# we copy the cmake files we would need to configure the project
-install(FILES
-          "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
-          "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
-        DESTINATION share/${PROJECT_NAME}/cmake
-)
-
-
-# we install the cmake package
-install(EXPORT ${PROJECT_NAME}Targets
-        FILE ${PROJECT_NAME}Targets.cmake
-        NAMESPACE ${PROJECT_NAME}::
-        DESTINATION share/${PROJECT_NAME}/cmake
-)
+generate_cmake_package(INSTALL_EXPORT)
 
 # #
 # # building documentation
 # #
-
-# add_documentation()
+add_documentation()

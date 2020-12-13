@@ -29,6 +29,7 @@ find_package(yaml_utils REQUIRED)
 find_package(Eigen3 REQUIRED)
 
 #local depends
+find_package(mpi_cmake_modules REQUIRED)
 find_package(solver REQUIRED)
 find_package(solver_lqr REQUIRED)
 
@@ -108,28 +109,8 @@ install(DIRECTORY include/ DESTINATION include)
 install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
 #install(DIRECTORY config DESTINATION share/${PROJECT_NAME}/resource/)
 
-function(install_scripts)
-    cmake_parse_arguments(
-        PARSE_ARGV
-        0
-        _args
-        ""  # options without arguments
-        "DESTINATION"  # options with single argument
-        ""  # options with multiple arguments
-    )
 
-    # based on https://stackoverflow.com/a/10321017
-    foreach(file ${_args_UNPARSED_ARGUMENTS})
-        get_filename_component(name_without_extension ${file} NAME_WE)
-        install(
-            PROGRAMS ${file}
-            DESTINATION ${_args_DESTINATION}
-            RENAME ${name_without_extension}
-        )
-    endforeach()
-endfunction()
-
-# Install the demo python files
+# Install the demo python files in bin
 install_scripts(
   demos/demo_momentumopt_biped_from_python.py
   demos/demo_momentumopt_solo12_jump.py
@@ -137,7 +118,6 @@ install_scripts(
   demos/demo_momentumopt_solo_jump.py
   DESTINATION
   bin)
-
 
 
 #
@@ -159,33 +139,8 @@ pybind11_add_module(pymomentum MODULE ${pymomentumopt_SRC_FILES})
 target_link_libraries(pymomentum PRIVATE pybind11::module)
 target_link_libraries(pymomentum PRIVATE momentumopt)
 
-# code to find installation path for python libs
-set(_python_code
-      "from distutils.sysconfig import get_python_lib"
-      "import os"
-      "print(os.path.relpath(get_python_lib(prefix='${CMAKE_INSTALL_PREFIX}'), start='${CMAKE_INSTALL_PREFIX}').replace(os.sep, '/'))"
-)
-execute_process(
-  COMMAND
-  "${PYTHON_EXECUTABLE}"
-  "-c"
-  "${_python_code}"
-  OUTPUT_VARIABLE _output
-  RESULT_VARIABLE _result
-  OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-if(NOT _result EQUAL 0)
-  message(FATAL_ERROR
-    "execute_process(${PYTHON_EXECUTABLE} -c '${_python_code}') returned "
-    "error code ${_result}"
-    )
-endif()
-set(PYTHON_INSTALL_DIR
-      "${_output}"
-      CACHE INTERNAL
-      "The directory for Python library installation. This needs to be in PYTHONPATH when 'setup.py install' is called."
-)
-
+# install the bindings
+get_python_install_dir()
 install(TARGETS pymomentum DESTINATION ${PYTHON_INSTALL_DIR})
 
 # install the python package too
@@ -199,7 +154,6 @@ install(
 #
 # Tests.
 #
-
 find_package(GTest QUIET)
 if(${GTEST_FOUND})
   include(GoogleTest)
@@ -225,33 +179,8 @@ endif()
 #
 # create the cmake package
 #
-# we need this to create a nice exportable package
-include(CMakePackageConfigHelpers)
+generate_cmake_package(INSTALL_EXPORT)
 
-# generate the necessary cmake file
-configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
-  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
-  INSTALL_DESTINATION share/${PROJECT_NAME}/cmake
-)
-write_basic_package_version_file(
-  ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
-  VERSION 1.0.0
-  COMPATIBILITY SameMajorVersion )
-
-# we copy the cmake files we would need to configure the project
-install(FILES
-          "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
-          "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
-        DESTINATION share/${PROJECT_NAME}/cmake
-)
-
-
-# we install the cmake package
-install(EXPORT ${PROJECT_NAME}Targets
-        FILE ${PROJECT_NAME}Targets.cmake
-        NAMESPACE ${PROJECT_NAME}::
-        DESTINATION share/${PROJECT_NAME}/cmake
-)
 
 # if(BUILD_TESTING)
 
@@ -275,13 +204,8 @@ install(EXPORT ${PROJECT_NAME}Targets
 
 # endif()
 
-
-
-# Python Native code.
-# ament_python_install_package(${PROJECT_NAME} PACKAGE_DIR python/${PROJECT_NAME})
-
 #
 # building documentation
 #
-# add_documentation()
+add_documentation()
 
