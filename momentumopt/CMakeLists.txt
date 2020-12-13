@@ -156,9 +156,9 @@ install(
 #
 include(CTest)
 if(BUILD_TESTING)
+  # C++ unit-tests
   find_package(GTest REQUIRED)
   include(GoogleTest)
-  # C++ unit-tests
   add_executable(test_${PROJECT_NAME} 
                     tests/gtest_main.cpp
                     tests/test_momentumopt.cpp)
@@ -172,6 +172,11 @@ if(BUILD_TESTING)
     test_${PROJECT_NAME} PROPERTIES COMPILE_DEFINITIONS
                             TEST_PATH="${TEST_PATH}/yaml_config_files/")
   gtest_add_tests(TARGET test_${PROJECT_NAME})
+
+  # Python tests
+  add_test (NAME test_${PROJECT_NAME}_python
+  COMMAND ${Python_EXECUTABLE} -m pytest ${CMAKE_CURRENT_SOURCE_DIR}/tests
+)
 endif()
 
 
@@ -180,28 +185,6 @@ endif()
 #
 generate_cmake_package(INSTALL_EXPORT)
 
-
-# if(BUILD_TESTING)
-
-#   # C++ unit-tests
-#   find_package(ament_cmake_gtest REQUIRED)
-#   ament_add_gtest(test_momentumopt tests/gtest_main.cpp
-#                   tests/test_momentumopt.cpp TIMEOUT 500)
-#   target_link_libraries(test_momentumopt momentumopt)
-#   target_include_directories(
-#     test_momentumopt
-#     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/tests/>
-#            $<INSTALL_INTERFACE:include>)
-#   get_filename_component(TEST_PATH tests ABSOLUTE)
-#   target_compile_definitions(
-#     test_momentumopt
-#     PRIVATE TEST_PATH="${TEST_PATH}/yaml_config_files/")
-
-#   # python unit tests
-#   find_package(ament_cmake_pytest REQUIRED)
-#   ament_add_pytest_test(test_${PROJECT_NAME}_python tests)
-
-# endif()
 
 #
 # building documentation
