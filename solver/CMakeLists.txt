@@ -23,8 +23,6 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -funroll-loops")
 # Dependencies
 #
 find_package(pybind11 CONFIG REQUIRED)
-# it is important to find python after we search for pybind11
-# otherwise this activates the new pybind way of compiling things
 find_package(yaml_utils REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS thread)

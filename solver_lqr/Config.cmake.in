@@ -6,6 +6,8 @@ include(CMakeFindDependencyMacro)
 
 # we do not add the other dependencies because these are header files lib
 find_dependency(solver)
+find_dependency(yaml-cpp CONFIG REQUIRED)
+find_dependency(Eigen3 REQUIRED)
 
 check_required_components(solver_lqr)
 
