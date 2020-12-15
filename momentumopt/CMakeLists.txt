@@ -141,7 +141,7 @@ install(TARGETS pymomentum DESTINATION ${python_install_dir})
 # install the python package too
 install(
     DIRECTORY python/${PROJECT_NAME}
-    DESTINATION "${PYTHON_INSTALL_DIR}"
+    DESTINATION "${python_install_dir}"
     PATTERN "*.pyc" EXCLUDE
     PATTERN "__pycache__" EXCLUDE
   )
