@@ -95,7 +95,7 @@ install(
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
   RUNTIME DESTINATION bin
-  INCLUDES 
+  INCLUDES
   DESTINATION include
 )
 
@@ -154,7 +154,7 @@ if(BUILD_TESTING)
   # C++ unit-tests
   find_package(GTest CONFIG REQUIRED)
   include(GoogleTest)
-  add_executable(test_${PROJECT_NAME} 
+  add_executable(test_${PROJECT_NAME}
                     tests/gtest_main.cpp
                     tests/test_momentumopt.cpp)
   target_link_libraries(test_${PROJECT_NAME} momentumopt)
