@@ -1,6 +1,6 @@
 {
     "dependencies": ["solver", "solver_lqr", "pybind11", "yaml_utils", "Eigen3"],
     "build-dependencies": ["mpi_cmake_modules"],
-    "run-dependencies": [],
+    "run-dependencies": ["robot_properties_solo", "robot_properties_bolt"],
     "test-dependencies": ["googletest-distribution"]
 }
