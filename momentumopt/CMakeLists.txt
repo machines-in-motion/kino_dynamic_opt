@@ -95,7 +95,7 @@ install(
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
   RUNTIME DESTINATION bin
-  INCLUDES 
+  INCLUDES
   DESTINATION include
 )
 
@@ -141,7 +141,7 @@ install(TARGETS pymomentum DESTINATION ${python_install_dir})
 # install the python package too
 install(
     DIRECTORY python/${PROJECT_NAME}
-    DESTINATION "${PYTHON_INSTALL_DIR}"
+    DESTINATION "${python_install_dir}"
     PATTERN "*.pyc" EXCLUDE
     PATTERN "__pycache__" EXCLUDE
   )
@@ -154,7 +154,7 @@ if(BUILD_TESTING)
   # C++ unit-tests
   find_package(GTest CONFIG REQUIRED)
   include(GoogleTest)
-  add_executable(test_${PROJECT_NAME} 
+  add_executable(test_${PROJECT_NAME}
                     tests/gtest_main.cpp
                     tests/test_momentumopt.cpp)
   target_link_libraries(test_${PROJECT_NAME} momentumopt)
