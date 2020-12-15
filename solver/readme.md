@@ -9,10 +9,15 @@ Numerical optimization routines.
 
 ### Authors
 
+Current maintainer:
+
+- Ludovic Righetti <ludovic.righetti@nyu.edu>
+- Maximilien Naveau <mnaveau@tuebingen.mpg.de>
+
+Authors:
 - Brahayam Ponton
-- Maximilien Naveau
 - Ludovic Righetti
-- others????
+- Alexander Herzog
 
 ### Copyrights
 

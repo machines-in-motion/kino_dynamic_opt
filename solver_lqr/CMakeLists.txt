@@ -99,16 +99,15 @@ pybind11_add_module(pysolverlqr MODULE ${pysolverlqr_SRC_FILES})
 target_link_libraries(pysolverlqr PRIVATE pybind11::module)
 target_link_libraries(pysolverlqr PRIVATE solver_lqr)
 
-get_python_install_dir()
-install(TARGETS pysolverlqr LIBRARY DESTINATION ${PYTHON_INSTALL_DIR})
-
+get_python_install_dir(python_install_dir)
+install(TARGETS pysolverlqr LIBRARY DESTINATION ${python_install_dir})
 
 #
 # tests
 #
 include(CTest)
 if(BUILD_TESTING)
-  find_package(GTest REQUIRED)
+  find_package(GTest CONFIG REQUIRED)
   include(GoogleTest)
   # C++ unit-tests
   add_executable(test_${PROJECT_NAME} 
@@ -117,7 +116,7 @@ if(BUILD_TESTING)
                   tests/TestSolverLqrHelpers.cpp)
 
   target_link_libraries(test_${PROJECT_NAME} solver_lqr)
-  target_link_libraries(test_${PROJECT_NAME} GTest::GTest)
+  target_link_libraries(test_${PROJECT_NAME} GTest::gtest)
   target_include_directories(
     test_${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/tests/>
   )

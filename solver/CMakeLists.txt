@@ -22,6 +22,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -funroll-loops")
 #
 # Dependencies
 #
+
 find_package(pybind11 CONFIG REQUIRED)
 # it is important to find python after we search for pybind11
 # otherwise this activates the new pybind way of compiling things
@@ -115,15 +116,15 @@ pybind11_add_module(pysolver MODULE srcpy/solver/PySolver.cpp
 target_link_libraries(pysolver PRIVATE pybind11::module)
 target_link_libraries(pysolver PRIVATE solver)
 
-get_python_install_dir()
-install(TARGETS pysolver LIBRARY DESTINATION ${PYTHON_INSTALL_DIR})
+get_python_install_dir(python_install_dir)
+install(TARGETS pysolver LIBRARY DESTINATION ${python_install_dir})
 
 #
 # Tests
 #
 include(CTest)
 if(BUILD_TESTING)
-  find_package(GTest REQUIRED)
+  find_package(GTest CONFIG REQUIRED)
   include(GoogleTest)
   # C++ unit-tests
   add_executable(solver_tests 
@@ -138,7 +139,7 @@ if(BUILD_TESTING)
   #   set(GTEST_FILES ${GTEST_FILES} tests/test_gurobi.cpp)
   # endif()
   target_link_libraries(solver_tests solver)
-  target_link_libraries(solver_tests GTest::GTest)
+  target_link_libraries(solver_tests GTest::gtest)
   target_include_directories(
     solver_tests PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/tests/>
   )
@@ -156,8 +157,7 @@ endif()
 generate_cmake_package(INSTALL_EXPORT)
 
 
-# #
-# # building documentation
-# #
-
-# add_documentation()
+#
+# building documentation
+#
+add_documentation()

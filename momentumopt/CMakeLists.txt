@@ -22,9 +22,6 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -funroll-loops -fPIC")
 # Dependencies
 #
 find_package(pybind11 CONFIG REQUIRED)
-# it is important to find python after we search for pybind11
-# otherwise this activates the new pybind way of compiling things
-find_package(Python)
 find_package(yaml_utils REQUIRED)
 find_package(Eigen3 REQUIRED)
 
@@ -107,8 +104,6 @@ install(DIRECTORY include/ DESTINATION include)
 
 # the config folder
 install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
-#install(DIRECTORY config DESTINATION share/${PROJECT_NAME}/resource/)
-
 
 # Install the demo python files in bin
 install_scripts(
@@ -140,8 +135,8 @@ target_link_libraries(pymomentum PRIVATE pybind11::module)
 target_link_libraries(pymomentum PRIVATE momentumopt)
 
 # install the bindings
-get_python_install_dir()
-install(TARGETS pymomentum DESTINATION ${PYTHON_INSTALL_DIR})
+get_python_install_dir(python_install_dir)
+install(TARGETS pymomentum DESTINATION ${python_install_dir})
 
 # install the python package too
 install(
@@ -157,13 +152,13 @@ install(
 include(CTest)
 if(BUILD_TESTING)
   # C++ unit-tests
-  find_package(GTest REQUIRED)
+  find_package(GTest CONFIG REQUIRED)
   include(GoogleTest)
   add_executable(test_${PROJECT_NAME} 
                     tests/gtest_main.cpp
                     tests/test_momentumopt.cpp)
   target_link_libraries(test_${PROJECT_NAME} momentumopt)
-  target_link_libraries(test_${PROJECT_NAME} GTest::GTest)
+  target_link_libraries(test_${PROJECT_NAME} GTest::gtest)
   target_include_directories(
     test_${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/tests/>
   )
