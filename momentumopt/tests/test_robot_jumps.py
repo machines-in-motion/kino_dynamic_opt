@@ -10,7 +10,6 @@ here we test all the functionalities of lqr_gain__manifold
 '''
 
 import eigenpy
-eigenpy.switchToNumpyMatrix()
 import numpy as np
 import unittest
 from nose.tools import nottest
