@@ -1,6 +1,3 @@
 {
-    "dependencies": ["pybind11", "yaml_utils", "Eigen3", "Boost"],
-    "build-dependencies": [],
-    "run-dependencies": [],
     "test-dependencies": ["googletest-distribution"]
 }

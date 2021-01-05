@@ -292,7 +292,7 @@ class MomentumKinematicsOptimizer(object):
                 'Got %d joints but robot expects %d joints.' % (
                     len(plan_joint_init_pos), self.robot.num_ctrl_joints))
 
-        q[7:] = np.matrix(plan_joint_init_pos).T
+        q[7:] = plan_joint_init_pos
         q[2] = self.robot.floor_height + 0.32
         dq = np.matrix(np.zeros(self.robot.robot.nv)).T
 
@@ -369,9 +369,9 @@ class MomentumKinematicsOptimizer(object):
         for it in range(self.num_time_steps):
             quad_goal = se3.Quaternion(se3.rpy.rpyToMatrix(np.matrix([0.0, 0, 0.]).T))
             quad_q = se3.Quaternion(float(q[6]), float(q[3]), float(q[4]), float(q[5]))
-            amom_ref = (self.reg_orientation * se3.log((quad_goal * quad_q.inverse()).matrix()).T + self.amom_dyn[it]).reshape(-1)
+            amom_ref = self.reg_orientation * se3.log((quad_goal * quad_q.inverse()).matrix()) + self.amom_dyn[it]
 
-            joint_regularization_ref = self.reg_joint_position * (np.matrix(self.joint_des[:,it]).T - q[7 : ])
+            joint_regularization_ref = self.reg_joint_position * (self.joint_des[:,it] - q[7 : ])
             # joint_regularization_ref = self.reg_joint_position * (self.q_init[7 : ] - q[7 : ])
 
             # Fill the kinematics results for it.
