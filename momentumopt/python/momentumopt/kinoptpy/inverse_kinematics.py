@@ -109,7 +109,7 @@ class PointContactInverseKinematics(object):
         self.robot.forwardKinematics(q, dq)
         self.robot.computeJointJacobians(q)
         self.robot.framesForwardKinematics(q)
-        self.robot.centroidalMomentum(q, dq)
+        se3.ccrba(self.robot.model, self.robot.data, q, dq)
 
         self.last_q = q.copy()
         self.last_dq = dq.copy()

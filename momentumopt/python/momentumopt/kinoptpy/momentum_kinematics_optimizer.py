@@ -293,7 +293,7 @@ class MomentumKinematicsOptimizer(object):
                     len(plan_joint_init_pos), self.robot.num_ctrl_joints))
 
         q[7:] = np.matrix(plan_joint_init_pos).T
-        q[2] = self.robot.floor_height + 0.32
+        q[2] = init_state.com[2]
         dq = np.matrix(np.zeros(self.robot.robot.nv)).T
 
         com_ref = init_state.com
