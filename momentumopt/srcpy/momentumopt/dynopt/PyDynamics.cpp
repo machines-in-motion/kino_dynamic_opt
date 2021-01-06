@@ -46,7 +46,6 @@ void init_dynamics(py::module &m)
     .def_property("amom", (const Eigen::Vector3d& (DynamicsState::*)(void) const) &DynamicsState::angularMomentum, (void (DynamicsState::*)(const Eigen::Vector3d&)) &DynamicsState::angularMomentum)
     .def_property("lmomd", (const Eigen::Vector3d& (DynamicsState::*)(void) const) &DynamicsState::linearMomentumRate, (void (DynamicsState::*)(const Eigen::Vector3d&)) &DynamicsState::linearMomentumRate)
     .def_property("amomd", (const Eigen::Vector3d& (DynamicsState::*)(void) const) &DynamicsState::angularMomentumRate, (void (DynamicsState::*)(const Eigen::Vector3d&)) &DynamicsState::angularMomentumRate)
-    .def_property("amomd", (const Eigen::Vector3d& (DynamicsState::*)(void) const) &DynamicsState::angularMomentumRate, (void (DynamicsState::*)(const Eigen::Vector3d&)) &DynamicsState::angularMomentumRate)
     .def("fillInitialRobotState", &DynamicsState::fillInitialRobotState, py::arg("cfg_file"), py::arg("robot_state") = "initial_robot_configuration")
 
     .def("eff", (const Eigen::Vector3d& (DynamicsState::*)(int) const) &DynamicsState::endeffectorPosition)
