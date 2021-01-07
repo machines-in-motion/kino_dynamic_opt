@@ -278,9 +278,9 @@ class MotionPlanner():
     def optimize_motion(self, plot_com_motion=True):
         dyn_optimizer = self.dyn_optimizer
         kin_optimizer = self.kin_optimizer
-        # dyn_optimizer.dynamicsSequence().dynamics_states[0].setCoM2(100, 100, 100)
-        # dyn_optimizer.dynamicsSequence().setCoMAtTime(np.ones(3), 0)
-        # print dyn_optimizer.dynamicsSequence().dynamics_states[0].com
+        #dyn_optimizer.dynamicsSequence().dynamics_states[0].setCoM2(100, 100, 100)
+        dyn_optimizer.dynamicsSequence().setCoMAtTime(np.ones(3), 0)
+        print dyn_optimizer.dynamicsSequence().dynamics_states[0].com
         #print dir(dyn_optimizer.dynamicsSequence().dynamics_states[0])
         # time.sleep(10)
         self.optimize_dynamics(0)
