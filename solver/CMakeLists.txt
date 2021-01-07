@@ -153,7 +153,7 @@ endif()
 #
 # create the cmake package
 #
-generate_cmake_package(INSTALL_EXPORT)
+generate_cmake_package()
 
 
 #
