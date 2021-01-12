@@ -14,7 +14,6 @@ from time import sleep, time
 import pybullet as p
 import pinocchio as se3
 from pinocchio.utils import zero
-import rospkg
 
 from pymomentum import *
 
@@ -222,6 +221,8 @@ def query_gain_from_user(K, gain_str, entered_joint_id):
 
 class MotionSimulator(object):
     def __init__(self, floor_height=0.3, bullet_direct=False):
+        import rospkg
+
         self.controlled_joints = 6
 
         self.tau_min = - 2.0
@@ -235,7 +236,7 @@ class MotionSimulator(object):
         urdf_base_string = str(os.path.dirname(os.path.abspath(__file__)))
         urdf_robot_string = (
                 os.path.join(rospkg.RosPack().get_path("robot_properties_solo"),
-                    "urdf", 
+                    "urdf",
                     "solo.urdf")
         )
         planeId = p.loadURDF(os.path.join(urdf_base_string, "urdf", "plane_with_restitution.urdf"))
