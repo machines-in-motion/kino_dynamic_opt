@@ -5,19 +5,16 @@ Readme
 
 ### What is it
 
-Numerical optimization routines.
+Numerical optimization routines for TV-LQR around trajectory.
 
 ### Authors
 
-Current maintainer:
-
+Current Maintainers:
 - Ludovic Righetti <ludovic.righetti@nyu.edu>
 - Maximilien Naveau <mnaveau@tuebingen.mpg.de>
 
 Authors:
-- Brahayam Ponton
-- Alexander Herzog
-- others????
+- Brahayam Ponton <bponton@tue.mpg.de>
 
 ### Copyrights
 

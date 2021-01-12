@@ -11,59 +11,34 @@ cmake_minimum_required(VERSION 3.10.2)
 
 project(momentumopt)
 
-# Using C++17
-if(NOT CMAKE_C_STANDARD)
-  set(CMAKE_C_STANDARD 99)
-endif()
-if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 17)
-endif()
-
-#
-# Dependencies
-#
-
-# depend on ament macros
-find_package(ament_cmake REQUIRED)
-find_package(ament_cmake_python REQUIRED)
-find_package(mpi_cmake_modules REQUIRED)
-find_package(solver REQUIRED COMPONENTS thread)
-find_package(solver_lqr REQUIRED COMPONENTS thread)
-find_package(pybind11 REQUIRED)
-find_package(yaml_utils REQUIRED)
-find_package(Eigen3 REQUIRED)
-
-# export de dependencies
-ament_export_dependencies(
-  ament_cmake
-  ament_cmake_python
-  mpi_cmake_modules
-  solver
-  solver_lqr
-  pybind11
-  yaml_utils
-  Eigen3
-  Boost)
-
-# prepare the final export
-set(all_targets)
-ament_export_interfaces(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+# specify the C++ 17 standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Some additionnal optimization for the code.
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -funroll-loops -fPIC")
 
 #
-# Definitions.
+# Dependencies
 #
-get_filename_component(CONFIG_PATH config ABSOLUTE)
+find_package(pybind11 CONFIG REQUIRED)
+find_package(yaml_utils REQUIRED)
+find_package(Eigen3 REQUIRED)
+
+# local depends
+find_package(mpi_cmake_modules REQUIRED)
+find_package(solver REQUIRED)
+find_package(solver_lqr REQUIRED)
 
 #
-# Build main library.
+# Build main library and binaries
 #
 
-# source
+# variable to store list of targets
+set(all_targets)
+
+# library source
 set(momentumopt_SRC_FILES
-    ${momentumopt_SRC_FILES}
     # files for contacts planning
     src/momentumopt/cntopt/ContactState.cpp
     src/momentumopt/cntopt/TerrainDescription.cpp
@@ -82,30 +57,65 @@ set(momentumopt_SRC_FILES
     # utilities
     src/momentumopt/utilities/OrientationUtils.cpp
     src/momentumopt/utilities/TrajectoryGenerator.cpp)
+
 # Add Library.
 add_library(momentumopt SHARED ${momentumopt_SRC_FILES})
-# Includes. Add the include dependencies
-target_include_directories(
-  momentumopt PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-                     $<INSTALL_INTERFACE:include>)
+list(APPEND all_targets momentumopt)
+
 # Linking.
 target_link_libraries(momentumopt solver::solver)
 target_link_libraries(momentumopt solver_lqr::solver_lqr)
 target_link_libraries(momentumopt yaml_utils::yaml_utils)
 target_link_libraries(momentumopt Eigen3::Eigen)
+
 # Properties.
+get_filename_component(CONFIG_PATH config ABSOLUTE)
 target_compile_definitions(
   momentumopt
   PRIVATE CFG_SRC_PATH="${CONFIG_PATH}/"
-  INTERFACE CFG_SRC_PATH="share/${PROJECT_NAME}/resource/")
-# Exporting.
-list(APPEND all_targets momentumopt)
+  INTERFACE CFG_SRC_PATH="../share/${PROJECT_NAME}/config/")
+
+# Includes. Add the include dependencies
+target_include_directories(
+  momentumopt PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+                     $<INSTALL_INTERFACE:include>)
 
 #
-# Python wrappers.
+# Demos. (binaries)
+#
+add_executable(demo_momentumopt demos/demo_momentumopt.cpp)
+target_link_libraries(demo_momentumopt momentumopt)
+list(APPEND all_targets demo_momentumopt)
+
+# command to install the library and binaries
+install(
+  TARGETS ${all_targets}
+  EXPORT ${PROJECT_NAME}Targets
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES
+  DESTINATION include)
+
+# we also need to install the header files
+install(DIRECTORY include/ DESTINATION include)
+
+# the config folder
+install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
+
+# Install the demo python files in bin
+install_scripts(
+  demos/demo_momentumopt_biped_from_python.py
+  demos/demo_momentumopt_solo12_jump.py
+  demos/demo_momentumopt_solo_jump_no_lqr.py
+  demos/demo_momentumopt_solo_jump.py
+  DESTINATION
+  bin)
+
+#
+# Python bindings
 #
 set(pymomentumopt_SRC_FILES
-    ${pymomentumopt_SRC_FILES}
     # files for contacts planning
     srcpy/momentumopt/cntopt/PyTerrain.cpp
     srcpy/momentumopt/cntopt/PyContacts.cpp
@@ -117,98 +127,54 @@ set(pymomentumopt_SRC_FILES
     srcpy/momentumopt/PyMomentumopt.cpp
     srcpy/momentumopt/setting/PyParams.cpp
     srcpy/momentumopt/setting/PySetting.cpp)
-add_library(pymomentum MODULE ${pymomentumopt_SRC_FILES})
+pybind11_add_module(pymomentum MODULE ${pymomentumopt_SRC_FILES})
 target_link_libraries(pymomentum PRIVATE pybind11::module)
-target_link_libraries(pymomentum PRIVATE ${PYTHON_LIBRARIES})
 target_link_libraries(pymomentum PRIVATE momentumopt)
-set_target_properties(pymomentum
-                      PROPERTIES PREFIX "" SUFFIX "${PYTHON_MODULE_EXTENSION}")
-target_include_directories(
-  pymomentum
-  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-         $<INSTALL_INTERFACE:include>
-  PUBLIC ${PYTHON_INCLUDE_DIRS})
-_ament_cmake_python_get_python_install_dir()
-install(TARGETS pymomentum DESTINATION ${PYTHON_INSTALL_DIR})
-list(APPEND all_targets pymomentum)
 
-# #
-# ##############################################################################
-# # linking libraries # #
-# ##############################################################################
+# install the bindings
+get_python_install_dir(python_install_dir)
+install(TARGETS pymomentum DESTINATION ${python_install_dir})
 
-# set(momentumopt_LIBS ${Boost_LIBRARIES} ${catkin_LIBRARIES})
-# if(${CMAKE_SYSTEM_NAME} MATCHES "Linux") set(momentumopt_LIBS
-# ${momentumopt_LIBS} rt) endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-
-#
-# Demos.
-#
-add_executable(demo_momentumopt demos/demo_momentumopt.cpp)
-target_link_libraries(demo_momentumopt momentumopt)
-list(APPEND all_targets demo_momentumopt)
+# install the python package too
+install(
+  DIRECTORY python/${PROJECT_NAME}
+  DESTINATION "${python_install_dir}"
+  PATTERN "*.pyc" EXCLUDE
+  PATTERN "__pycache__" EXCLUDE)
 
 #
 # Tests.
 #
-
+include(CTest)
 if(BUILD_TESTING)
-
   # C++ unit-tests
-  find_package(ament_cmake_gtest REQUIRED)
-  ament_add_gtest(test_momentumopt tests/gtest_main.cpp
-                  tests/test_momentumopt.cpp TIMEOUT 500)
-  target_link_libraries(test_momentumopt momentumopt)
+  find_package(GTest CONFIG REQUIRED)
+  include(GoogleTest)
+  add_executable(test_${PROJECT_NAME} tests/gtest_main.cpp
+                                      tests/test_momentumopt.cpp)
+  target_link_libraries(test_${PROJECT_NAME} momentumopt)
+  target_link_libraries(test_${PROJECT_NAME} GTest::gtest)
   target_include_directories(
-    test_momentumopt
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/tests/>
-           $<INSTALL_INTERFACE:include>)
+    test_${PROJECT_NAME}
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/tests/>)
   get_filename_component(TEST_PATH tests ABSOLUTE)
-  target_compile_definitions(
-    test_momentumopt
-    PRIVATE TEST_PATH="${TEST_PATH}/yaml_config_files/")
+  set_target_properties(
+    test_${PROJECT_NAME} PROPERTIES COMPILE_DEFINITIONS
+                                    TEST_PATH="${TEST_PATH}/yaml_config_files/")
+  gtest_add_tests(TARGET test_${PROJECT_NAME})
 
-  # python unit tests
-  find_package(ament_cmake_pytest REQUIRED)
-  ament_add_pytest_test(test_${PROJECT_NAME}_python tests)
-
+  # Python tests
+  add_test(NAME test_${PROJECT_NAME}_python
+           COMMAND ${Python_EXECUTABLE} -m pytest
+                   ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 endif()
 
 #
-# Install everything.
+# create the cmake package
 #
-install(DIRECTORY include/ DESTINATION include)
-install(
-  TARGETS ${all_targets}
-  EXPORT export_${PROJECT_NAME}
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-  RUNTIME DESTINATION bin
-  INCLUDES
-  DESTINATION include)
-
-# the config folder
-install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
-
-# Install the demo python files
-install_scripts(
-  demos/demo_momentumopt_biped_from_python.py
-  demos/demo_momentumopt_solo12_jump.py
-  demos/demo_momentumopt_solo_jump_no_lqr.py
-  demos/demo_momentumopt_solo_jump.py
-  DESTINATION
-  bin)
-install(DIRECTORY config DESTINATION share/${PROJECT_NAME}/resource/)
-
-# Python Native code.
-ament_python_install_package(${PROJECT_NAME} PACKAGE_DIR python/${PROJECT_NAME})
+generate_cmake_package()
 
 #
 # building documentation
 #
 add_documentation()
-
-#
-# export the package as a ament package
-#
-ament_package()

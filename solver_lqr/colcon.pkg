@@ -1,0 +1,3 @@
+{
+    "test-dependencies": ["googletest-distribution"]
+}

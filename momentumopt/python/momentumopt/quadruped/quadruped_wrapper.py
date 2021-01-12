@@ -13,7 +13,7 @@ import numpy as np
 import pinocchio
 from pinocchio.robot_wrapper import RobotWrapper
 from pinocchio.utils import zero
-from robot_properties_solo.config import SoloConfig, Solo12Config
+from robot_properties_solo.config import Solo8Config, Solo12Config
 
 class BasicRobotWrapper(object):
 
@@ -166,7 +166,7 @@ class QuadrupedWrapper(BasicRobotWrapper):
         self.joints_list = ["HFE", "KFE", "ANKLE"]
         self.floor_height = 0.
 
-        self.robot = SoloConfig.buildRobotWrapper()
+        self.robot = Solo8Config.buildRobotWrapper()
 
         self.num_ctrl_joints = 8
 
@@ -197,7 +197,7 @@ class QuadrupedWrapper(BasicRobotWrapper):
         q_dummy = np.zeros(self.num_ctrl_joints)
         q_dummy[:] = angle
         q_dummy[::2] = -0.5 * angle
-        self.q[7:] = q_dummy.reshape([self.num_ctrl_joints, 1])
+        self.q[7:] = q_dummy
 
         # print(self.q)
         self.set_configuration(self.q)
@@ -245,7 +245,7 @@ class Quadruped12Wrapper(BasicRobotWrapper):
         q_dummy[2::3] = angle
         q_dummy[1:3] = -0.5 * angle
 
-        self.q[7:] = np.reshape(q_dummy, (self.num_ctrl_joints, 1))
+        self.q[7:] = q_dummy
 
         # print(self.q)
         self.set_configuration(self.q)
