@@ -25,7 +25,7 @@ find_package(pybind11 CONFIG REQUIRED)
 find_package(yaml_utils REQUIRED)
 find_package(Eigen3 REQUIRED)
 
-#local depends
+# local depends
 find_package(mpi_cmake_modules REQUIRED)
 find_package(solver REQUIRED)
 find_package(solver_lqr REQUIRED)
@@ -56,8 +56,7 @@ set(momentumopt_SRC_FILES
     src/momentumopt/setting/PlannerSetting.cpp
     # utilities
     src/momentumopt/utilities/OrientationUtils.cpp
-    src/momentumopt/utilities/TrajectoryGenerator.cpp
-)
+    src/momentumopt/utilities/TrajectoryGenerator.cpp)
 
 # Add Library.
 add_library(momentumopt SHARED ${momentumopt_SRC_FILES})
@@ -96,8 +95,7 @@ install(
   ARCHIVE DESTINATION lib
   RUNTIME DESTINATION bin
   INCLUDES
-  DESTINATION include
-)
+  DESTINATION include)
 
 # we also need to install the header files
 install(DIRECTORY include/ DESTINATION include)
@@ -113,7 +111,6 @@ install_scripts(
   demos/demo_momentumopt_solo_jump.py
   DESTINATION
   bin)
-
 
 #
 # Python bindings
@@ -140,11 +137,10 @@ install(TARGETS pymomentum DESTINATION ${python_install_dir})
 
 # install the python package too
 install(
-    DIRECTORY python/${PROJECT_NAME}
-    DESTINATION "${python_install_dir}"
-    PATTERN "*.pyc" EXCLUDE
-    PATTERN "__pycache__" EXCLUDE
-  )
+  DIRECTORY python/${PROJECT_NAME}
+  DESTINATION "${python_install_dir}"
+  PATTERN "*.pyc" EXCLUDE
+  PATTERN "__pycache__" EXCLUDE)
 
 #
 # Tests.
@@ -154,35 +150,31 @@ if(BUILD_TESTING)
   # C++ unit-tests
   find_package(GTest CONFIG REQUIRED)
   include(GoogleTest)
-  add_executable(test_${PROJECT_NAME}
-                    tests/gtest_main.cpp
-                    tests/test_momentumopt.cpp)
+  add_executable(test_${PROJECT_NAME} tests/gtest_main.cpp
+                                      tests/test_momentumopt.cpp)
   target_link_libraries(test_${PROJECT_NAME} momentumopt)
   target_link_libraries(test_${PROJECT_NAME} GTest::gtest)
   target_include_directories(
-    test_${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/tests/>
-  )
+    test_${PROJECT_NAME}
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/tests/>)
   get_filename_component(TEST_PATH tests ABSOLUTE)
   set_target_properties(
     test_${PROJECT_NAME} PROPERTIES COMPILE_DEFINITIONS
-                            TEST_PATH="${TEST_PATH}/yaml_config_files/")
+                                    TEST_PATH="${TEST_PATH}/yaml_config_files/")
   gtest_add_tests(TARGET test_${PROJECT_NAME})
 
   # Python tests
-  add_test (NAME test_${PROJECT_NAME}_python
-  COMMAND ${Python_EXECUTABLE} -m pytest ${CMAKE_CURRENT_SOURCE_DIR}/tests
-)
+  add_test(NAME test_${PROJECT_NAME}_python
+           COMMAND ${Python_EXECUTABLE} -m pytest
+                   ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 endif()
-
 
 #
 # create the cmake package
 #
 generate_cmake_package()
 
-
 #
 # building documentation
 #
 add_documentation()
-
