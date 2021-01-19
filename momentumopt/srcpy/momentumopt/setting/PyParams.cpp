@@ -23,6 +23,7 @@ void init_params(py::module &m)
   .value("PlannerIntParam_NumTimesteps", PlannerIntParam_NumTimesteps)
   .value("PlannerIntParam_NumViapoints", PlannerIntParam_NumViapoints)
   .value("PlannerIntParam_NumJointViapoints", PlannerIntParam_NumJointViapoints)
+  .value("PlannerIntParam_NumBaseViapoints", PlannerIntParam_NumBaseViapoints)
 	.value("PlannerIntParam_NumActiveDofs", PlannerIntParam_NumActiveDofs)
 	.value("PlannerIntParam_NumSubsamples", PlannerIntParam_NumSubsamples)
 	.value("PlannerIntParam_KinDynIterations", PlannerIntParam_KinDynIterations)
@@ -69,6 +70,7 @@ void init_params(py::module &m)
   .value("PlannerDoubleParam_PGainComTracking", PlannerDoubleParam_PGainComTracking)
   .value("PlannerDoubleParam_WeightJointReg", PlannerDoubleParam_WeightJointReg)
   .value("PlannerDoubleParam_PGainOrientationTracking", PlannerDoubleParam_PGainOrientationTracking)
+  .value("PlannerDoubleParam_PGainPositionTracking", PlannerDoubleParam_PGainPositionTracking)
   .export_values();
 
   // binding string parameters
@@ -128,6 +130,7 @@ void init_params(py::module &m)
   // binding c-vector variables used by the planner
   py::enum_<PlannerCVectorParam>(m, "PlannerCVectorParam")
     .value("PlannerCVectorParam_JointViapoints", PlannerCVectorParam_JointViapoints)
+    .value("PlannerCVectorParam_BaseViapoints", PlannerCVectorParam_BaseViapoints)
     .value("PlannerCVectorParam_Viapoints", PlannerCVectorParam_Viapoints)
     .export_values();
   }
