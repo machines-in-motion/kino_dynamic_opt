@@ -172,11 +172,14 @@ class MotionPlanner():
         self._plot_show(plot_show)
 
 
-    def replay_kinematics(self, start=0, end=None):
-        self.kin_optimizer.robot.ensureDisplay()
+    def replay_kinematics(self, start=0, end=None, viz=None):
+        if not viz:
+            self.kin_optimizer.robot.ensureDisplay()
+            viz = self.kin_optimizer.robot
+
         for ks in self.kin_optimizer.kinematics_sequence.kinematics_states[start:end]:
             q = ks.robot_posture.generalized_joint_positions
-            self.kin_optimizer.robot.display(np.matrix(q).T)
+            viz.display(np.matrix(q).T)
             time.sleep(self.kin_optimizer.dt)
 
     def plot_base_trajecory(self, start=0, end=None):
