@@ -52,7 +52,7 @@ def parse_arguments(argv):
 
     if not os.path.exists(cfg_file):
         raise RuntimeError("The config file " + cfg_file + " does not exist.")
-    
+
     return cfg_file, RobotWrapper, with_lqr
 
 def build_optimization(cfg_file, RobotWrapper, with_lqr):
@@ -73,10 +73,11 @@ def build_optimization(cfg_file, RobotWrapper, with_lqr):
     motion_planner.kin_optimizer.inv_kin.p_com_tracking = motion_planner.planner_setting.get(PlannerDoubleParam_PGainComTracking)
     motion_planner.kin_optimizer.inv_kin.w_joint_regularization = motion_planner.planner_setting.get(PlannerDoubleParam_WeightJointReg)
     motion_planner.kin_optimizer.reg_orientation = motion_planner.planner_setting.get(PlannerDoubleParam_PGainOrientationTracking)
+    motion_planner.kin_optimizer.reg_joint_position = motion_planner.planner_setting.get(PlannerDoubleParam_PGainPositionTracking)
 
     return motion_planner
 
-def optimize_motion(motion_planner, plot_com_motion=True):
+def optimize_motion(motion_planner, plot_com_motion=False):
     """
     Optimize the motion using the kino-dyn optimizer.
     For the dynamics we use the centroidal dynamics solver from this package.
@@ -92,13 +93,13 @@ def optimize_motion(motion_planner, plot_com_motion=True):
            dynamics_feedback, planner_setting, time_vector
 
 
-def build_and_optimize_motion(cfg_file, RobotWrapper, with_lqr, plot_com_motion=True):
+def build_and_optimize_motion(cfg_file, RobotWrapper, with_lqr, plot_com_motion=False):
     """ Build the optimization problem and solve it in one go."""
     motion_planner = build_optimization(cfg_file, RobotWrapper, with_lqr)
     optimized_kin_plan, optimized_motion_eff, optimized_dyn_plan, \
       dynamics_feedback, planner_setting, time_vector = \
           optimize_motion(motion_planner, plot_com_motion)
-    
+
     return motion_planner, optimized_kin_plan, optimized_motion_eff, \
            optimized_dyn_plan, dynamics_feedback, planner_setting, time_vector
 
@@ -117,7 +118,7 @@ def main(argv):
      dynamics_feedback,
      planner_setting,
      time_vector) = build_and_optimize_motion(cfg_file, RobotWrapper, with_lqr)
-    
+
     # Display the motion
     display = True
     if(display): # Display the Center of mass motion

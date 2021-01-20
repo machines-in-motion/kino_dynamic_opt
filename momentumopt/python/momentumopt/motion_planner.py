@@ -18,7 +18,7 @@ from pysolver import *
 from pysolverlqr import *
 
 from pymomentum import *
-from momentumopt.kinoptpy.momentum_kinematics_optimizer import MomentumKinematicsOptimizer, EndeffectorTrajectoryGenerator, JointTrajectoryGenerator
+from momentumopt.kinoptpy.momentum_kinematics_optimizer import MomentumKinematicsOptimizer, EndeffectorTrajectoryGenerator
 from momentumopt.kinoptpy.create_data_file import create_file, create_qp_files, create_lqr_files
 
 def create_time_vector(dynamics_sequence):

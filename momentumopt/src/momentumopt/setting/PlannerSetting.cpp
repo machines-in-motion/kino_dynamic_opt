@@ -30,12 +30,12 @@ namespace momentumopt {
             "Error loading the yaml file " + cfg_file + " with error: " +
             e.what() );
       }
-      // load the local node	  
+      // load the local node
       YAML::Node planner_vars;
       try { planner_vars = planner_cfg[planner_vars_yaml.c_str()]; }
       catch (std::runtime_error& e) {
           throw std::runtime_error(
-            "Error getting the planner_vars_yaml [" + planner_vars_yaml + 
+            "Error getting the planner_vars_yaml [" + planner_vars_yaml +
             "] with error: " + e.what());
       }
 
@@ -153,11 +153,18 @@ namespace momentumopt {
         YAML::ReadParameter(planner_vars, "p_com_tracking", p_com_tracking_);
         YAML::ReadParameter(planner_vars, "w_joint_regularization", w_joint_regularization_);
         YAML::ReadParameter(planner_vars, "reg_orientation", reg_orientation_);
+        YAML::ReadParameter(planner_vars, "reg_joint_position", reg_joint_position_);
         YAML::ReadParameter(planner_vars, "num_joint_viapoints", num_joint_viapoints_);
+        YAML::ReadParameter(planner_vars, "num_base_viapoints", num_base_viapoints_);
         joint_viapoints_.clear();
+        base_viapoints_.clear();
         for (int via_id=0; via_id<num_joint_viapoints_; via_id++) {
-          joint_viapoints_.push_back(Eigen::Vector4d::Zero());
+          joint_viapoints_.push_back(Eigen::VectorXd::Zero(num_dofs_+1));
           YAML::ReadParameter(planner_vars["joint_viapoints"], "via"+std::to_string(via_id), joint_viapoints_[via_id]);
+        }
+        for (int via_id=0; via_id<num_base_viapoints_; via_id++) {
+          base_viapoints_.push_back(Eigen::VectorXd::Zero(4));
+          YAML::ReadParameter(planner_vars["base_viapoints"], "via"+std::to_string(via_id), base_viapoints_[via_id]);
         }
       }
 
@@ -201,6 +208,7 @@ namespace momentumopt {
 
       // Kinematic momentum user parameters
       case PlannerIntParam_NumJointViapoints : { return num_joint_viapoints_; }
+      case PlannerIntParam_NumBaseViapoints : { return num_base_viapoints_; }
 
       // Time optimization parameters
       case PlannerIntParam_MaxNumTimeIterations : { return max_time_iterations_; }
@@ -276,6 +284,7 @@ namespace momentumopt {
       case PlannerDoubleParam_PGainComTracking : { return p_com_tracking_; }
       case PlannerDoubleParam_WeightJointReg : { return w_joint_regularization_; }
       case PlannerDoubleParam_PGainOrientationTracking : { return reg_orientation_; }
+      case PlannerDoubleParam_PGainPositionTracking : { return reg_joint_position_; }
 
       // Not handled parameters
       default: { throw std::runtime_error("PlannerSetting::get PlannerDoubleParam invalid"); break; }
@@ -386,6 +395,7 @@ namespace momentumopt {
     // Configuration parameters
     case PlannerCVectorParam_Viapoints : { return com_viapoints_; }
     case PlannerCVectorParam_JointViapoints : { return joint_viapoints_; }
+    case PlannerCVectorParam_BaseViapoints : { return base_viapoints_; }
 
     // Not handled parameters
     default: { throw std::runtime_error("PlannerSetting::get PlannerCVectorParam invalid"); break; }
@@ -412,6 +422,7 @@ namespace momentumopt {
 
       // Kinematic momentum user parameters
       case PlannerIntParam_NumJointViapoints : { return num_joint_viapoints_; }
+      case PlannerIntParam_NumBaseViapoints : { return num_base_viapoints_; }
 
       // Time optimization parameters
       case PlannerIntParam_MaxNumTimeIterations : { return max_time_iterations_; }
@@ -487,6 +498,7 @@ namespace momentumopt {
       case PlannerDoubleParam_PGainComTracking : { return p_com_tracking_; }
       case PlannerDoubleParam_WeightJointReg : { return w_joint_regularization_; }
       case PlannerDoubleParam_PGainOrientationTracking : { return reg_orientation_; }
+      case PlannerDoubleParam_PGainPositionTracking : { return reg_joint_position_; }
 
       // Not handled parameters
       default: { throw std::runtime_error("PlannerSetting::set PlannerDoubleParam invalid"); break; }
@@ -597,6 +609,7 @@ namespace momentumopt {
     // Configuration parameters
     case PlannerCVectorParam_Viapoints : { return com_viapoints_; }
     case PlannerCVectorParam_JointViapoints : { return joint_viapoints_; }
+    case PlannerCVectorParam_BaseViapoints : { return base_viapoints_; }
 
     // Not handled parameters
     default: { throw std::runtime_error("PlannerSetting::get PlannerCVectorParam invalid"); break; }
