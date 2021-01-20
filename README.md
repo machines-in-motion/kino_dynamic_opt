@@ -12,22 +12,14 @@ Please make sure to install the following packages:
 pip install lightargs==1.22 quadprog treep
 ```
 
-And catkin: https://docs.ros.org/api/catkin/html/
+And colcon to build packages (more info about the build system https://design.ros2.org/articles/build_tool.html)
 - Ubuntu
 ```
-sudo apt-get install ros-[distro]-catkin
+sudo apt install python3-colcon-common-extensions
 ```
-- From source
+- MacOs
 ```
-mkdir devel
-cd devel
-git clone https://github.com/ros/catkin.git
-cd catkin
-mkdir _build
-cd _build
-cmake ..
-make
-sudo make install
+python3 -m pip install colcon-common-extensions
 ```
 
 ## Getting started
@@ -44,55 +36,38 @@ refered as the <work_folder>\
 Compile the code, by running the following commands in the <work_folder>
 ```
 cd workspace
-catkin_make -DCMAKE_BUILD_TYPE=Release `# or -DCMAKE_BUILD_TYPE=Debug if needed`
+colcon build
 ```
 
 Once the code has been compiled, you can source the setup.bash file in
-`devel/workspace/devel/setup.bash`
+`install/setup.bash`
 ```
-source ./devel/setup.bash
+. install/setup.bash
 ```
 
-## Running a demo 
+## Running a demo
 ```
-cd `rospack find momentumopt`/demos
+cd <work_folder>/kino_dynamic_opt/momentumopt/demos
 python3 ../nodes/kino_dyn_planner_solo -i <path_to_config_file>
 ```
 For example plan and execute a jumping motion with
 ```
 python3 ../nodes/kino_dyn_planner_solo -i ../config/cfg_solo_jump.yaml
 ```
-alternatives:
-
-```
-python2 ../nodes/kino_dyn_planner_solo -i ../config/cfg_solo_jump.yaml
-```
-```
-rosrun momentumopt kino_dyn_planner_solo -i ../config/cfg_solo_jump.yaml
-```
 
 #### Configuration overview
-The different configuration files are available in 
+The different configuration files are available in
 ```
 <work_folder>/kino_dynamic_opt/momentumopt/config
 ```
 The available motions are:
-* Squatting: cfg_quadruped_squatting.yaml
-* Lifting one leg: cfg_quadruped_lift_leg.yaml
-* Lifting rear legs: cfg_quadruped_lift_rear.yaml
-* Jump: cfg_solo_jump.yaml
+* cfg_solo_jump.yaml
+* cfg_solo12_jump.yaml
+* cfg_biped.yaml
 
-For an explanation of the different settings in the configuration files, refer to [cfg_solo_jump.yaml](/src/catkin/motion_planning/momentumopt/config/cfg_solo_jump.yaml).
+For an explanation of the different settings in the configuration files, refer to [cfg_solo_jump.yaml].
 
 ## Experimental Section
-Furthermore, there is a kinematic optimization over a horizon available, which allows for smoother trajectories, by running
-```
-cd <work_folder>/kino_dynamic_opt/momentumopt/demos
-python3 ./PyDemoMomentumoptNew.py -i <path_to_config_file>
-```
-For example plan and execute lifting the rear leg motion with
-```
-python3 ./PyDemoMomentumoptNew.py -i ../config/cfg_demo01_twofeet.yaml
 ```
 #### Configuration overview
 The available motions are:
