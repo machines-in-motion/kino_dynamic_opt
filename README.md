@@ -36,7 +36,7 @@ refered as the <work_folder>\
 Compile the code, by running the following commands in the <work_folder>
 ```
 cd workspace
-colcon build
+colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release
 ```
 
 Once the code has been compiled, you can source the setup.bash file in
