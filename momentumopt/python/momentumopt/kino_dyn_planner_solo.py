@@ -120,7 +120,7 @@ def main(argv):
      time_vector) = build_and_optimize_motion(cfg_file, RobotWrapper, with_lqr)
 
     # Display the motion
-    display = True
+    display = False
     if(display): # Display the Center of mass motion
         motion_planner.plot_com_motion(optimized_dyn_plan.dynamics_states, optimized_kin_plan.kinematics_states)
         # for i in range(len(time_vector)):
@@ -131,9 +131,11 @@ def main(argv):
     # Create configuration and velocity file from motion plan for dynamic graph
     try:
         print("Replay the kinematics.")
-        motion_planner.replay_kinematics()
+        # motion_planner.replay_kinematics()
+        motion_planner.replay_kinematics_meshcat()
     except:
         "gepetto not initialized..."
+
 
     # Dump the computed trajectory in a files (should follow the dynamic graph format)
     motion_planner.save_files()

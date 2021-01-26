@@ -155,6 +155,18 @@ class BasicRobotWrapper(object):
         pinocchio.updateFramePlacements(self.model,self.data)
         self.robot.viewer.gui.refresh()
 
+    def initMeshcat(self):
+        viz = pinocchio.visualize.MeshcatVisualizer(self.robot.model, self.robot.collision_model, self.robot.visual_model)
+
+        try:
+            viz.initViewer(open=True)
+        except ImportError as err:
+            print("Error while initializing the viewer. It seems you should install Python meshcat")
+            print(err)
+            sys.exit(0)
+
+        return viz
+
 
 class QuadrupedWrapper(BasicRobotWrapper):
 

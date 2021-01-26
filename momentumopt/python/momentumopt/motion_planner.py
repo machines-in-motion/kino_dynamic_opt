@@ -182,6 +182,15 @@ class MotionPlanner():
             viz.display(np.matrix(q).T)
             time.sleep(self.kin_optimizer.dt)
 
+    def replay_kinematics_meshcat(self, start=0, end=None):
+        viz = self.kin_optimizer.robot.initMeshcat()
+        viz.loadViewerModel()
+        for ks in self.kin_optimizer.kinematics_sequence.kinematics_states[start:end]:
+            q = ks.robot_posture.generalized_joint_positions
+            viz.display(np.matrix(q).T)
+            time.sleep(self.kin_optimizer.dt)
+
+
     def plot_base_trajecory(self, start=0, end=None):
         q_app = np.zeros([1,self.kin_optimizer.robot.model.nq])
         for ks in self.kin_optimizer.kinematics_sequence.kinematics_states[start:end]:
