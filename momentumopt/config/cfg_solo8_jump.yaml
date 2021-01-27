@@ -156,7 +156,7 @@ planner_variables:
   heuristic: TrustRegion  # Types: TrustRegion, SoftConstraint, TimeOptimization #
   n_act_eefs: 4
   # time step discretization
-  time_step: 0.01
+  time_step: 0.1
   time_horizon: 2.99
   external_force: [0.00, 0.00, 0.00]
   com_displacement: [0.00, 0.0, 0.00]
@@ -293,7 +293,7 @@ solverlqr_dynamics:
   ##########################
 
   problem_name: DynamicMomentumOptimization
-  time_step: 0.01
+  time_step: 0.1
   time_horizon: 2.99
   state_dimension: 9
   control_dimension: 12

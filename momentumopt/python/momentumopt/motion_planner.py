@@ -151,28 +151,8 @@ class MotionPlanner():
 
         return fig, axes
 
-    def plot_foot_traj(self, plot_show=True):
-        fig, ax = plt.subplots(4,1)
-        des_ee_traj = EndeffectorTrajectoryGenerator()
-        des_ee_traj.z_offset = self.planner_setting.get(PlannerDoubleParam_SwingTrajViaZ)
-        des_ee_pos = des_ee_traj(self.kin_optimizer)[0]
-        foot_traj = self.kin_optimizer.motion_eff['trajectory']
-        for i in range(4):
-            ax[i].plot(foot_traj[:,3*i+2], label = "act")
-            # ax[i].plot(foot_traj[:,3*i+1])
-            # ax[i].plot(foot_traj[:,3*i])
-            ax[i].plot(des_ee_pos[:,i,2], label = "des")
-            # ax[i].plot(des_ee_pos[:,i,1])
-            # ax[i].plot(des_ee_pos[:,i,0])
-            ax[i].set_ylabel("m")
-            ax[i].set_xlabel("t [ms]")
-            ax[i].legend()
-            ax[i].grid(True)
-        fig.suptitle('Desired and actual foot trajectory')
-        self._plot_show(plot_show)
 
-
-    def replay_kinematics(self, start=0, end=None, viz=None):
+    def replay_kinematics_gepetto(self, start=0, end=None, viz=None):
         if not viz:
             self.kin_optimizer.robot.ensureDisplay()
             viz = self.kin_optimizer.robot
@@ -208,19 +188,54 @@ class MotionPlanner():
 
     def plot_joint_trajecory(self, start=0, end=None,
                              plot_show=True, fig_suptitle=''):
+
+        fig, axes = plt.subplots(np.size(self.kin_optimizer.robot.effs),
+                                 np.size(self.kin_optimizer.robot.joints_list[:-1]),
+                                 figsize=(16, 10), sharex=True)
+
         q_app = np.zeros([1,self.kin_optimizer.robot.model.nq])
         for ks in self.kin_optimizer.kinematics_sequence.kinematics_states[start:end]:
             q = ks.robot_posture.generalized_joint_positions
             q_app = np.append(q_app,q.reshape(1,len(q)),axis=0)
-        fig, ax = plt.subplots(8,1)
-        for i in range(8):
-            ax[i].plot(q_app[1:end,i+7])
-            ax[i].plot(self.kin_optimizer.joint_des[i,:])
-            ax[i].set_ylabel("m")
-            ax[i].legend()
-            ax[i].grid(True)
+
+        for i in range(np.size(self.kin_optimizer.robot.effs)):
+            for j in range(np.size(self.kin_optimizer.robot.joints_list[:-1])):
+                axes[i,j].plot(q_app[1:end,i+j+7], label = "act")
+                axes[i,j].plot(self.kin_optimizer.joint_des[i+j,:], label = "des")
+                axes[i,j].grid(True)
+
+        for i, label in enumerate(self.kin_optimizer.robot.effs):
+            axes[i, 0].set_ylabel(label+ ' [rad]')
+        for j, title in enumerate(self.kin_optimizer.robot.joints_list[:-1]):
+            axes[np.size(self.kin_optimizer.robot.effs)-1, j].set_xlabel('time steps')
+            axes[0, j].set_title(title)
+
+        axes[0,np.size(self.kin_optimizer.robot.joints_list[:-1])-1].legend()
+
         self._plot_show(plot_show)
 
+    def plot_foot_traj(self, plot_show=True):
+        fig, axes = plt.subplots(np.size(self.kin_optimizer.robot.effs), 3, figsize=(16, 8), sharex=True)
+        des_ee_traj = EndeffectorTrajectoryGenerator()
+        des_ee_traj.z_offset = self.planner_setting.get(PlannerDoubleParam_SwingTrajViaZ)
+        des_ee_pos = des_ee_traj(self.kin_optimizer)[0]
+        foot_traj = self.kin_optimizer.motion_eff['trajectory']
+
+        for i in range(np.size(self.kin_optimizer.robot.effs)):
+            for j in range(3):
+                axes[i,j].plot(foot_traj[:,3*i+j], label = "act")
+                axes[i,j].plot(des_ee_pos[:,i,j], label = "des")
+                axes[i,j].grid(True)
+
+        for i, label in enumerate(self.kin_optimizer.robot.effs):
+            axes[i, 0].set_ylabel(label+ ' [m]')
+        for j, title in enumerate(['x', 'y', 'z']):
+            axes[np.size(self.kin_optimizer.robot.effs)-1, j].set_xlabel('time steps')
+            axes[0, j].set_title(title)
+
+        axes[0, 2].legend()
+        fig.suptitle('Desired and actual feet trajectories')
+        self._plot_show(plot_show)
 
     def plot_com_motion(self, dynamics_states, kinematics_states,
             plot_show=True, fig_suptitle=''):
@@ -293,7 +308,7 @@ class MotionPlanner():
         self.optimize_dynamics(0)
         for kd_iter in range(0, self.planner_setting.get(PlannerIntParam_KinDynIterations)):
             self.optimize_kinematics(kd_iter + 1, plotting=False)
-            self.optimize_dynamics(kd_iter + 1)
+            # self.optimize_dynamics(kd_iter + 1)
             optimized_kin_plan = self.kin_optimizer.kinematics_sequence
             optimized_dyn_plan = self.dyn_optimizer.dynamicsSequence()
 

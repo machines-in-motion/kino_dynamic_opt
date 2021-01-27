@@ -157,14 +157,7 @@ class BasicRobotWrapper(object):
 
     def initMeshcat(self):
         viz = pinocchio.visualize.MeshcatVisualizer(self.robot.model, self.robot.collision_model, self.robot.visual_model)
-
-        try:
-            viz.initViewer(open=True)
-        except ImportError as err:
-            print("Error while initializing the viewer. It seems you should install Python meshcat")
-            print(err)
-            sys.exit(0)
-
+        viz.initViewer(open=True)
         return viz
 
 
