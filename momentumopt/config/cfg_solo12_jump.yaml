@@ -87,7 +87,7 @@ planner_variables:
   min_joint_limits: [-2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5]
   max_joint_limits: [2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5]
   default_joint_positions: [0., 0.52, -1.04, 0., 0.52, -1.04, 0., 0.52, -1.04, 0., 0.52, -1.04]
-  
+
   #########################
   # Kinematics momentum parameters #
   #########################
@@ -101,16 +101,22 @@ planner_variables:
   p_com_tracking: .1
   w_joint_regularization: .05
   reg_orientation: 5.
+  reg_joint_position: 2.
   num_joint_viapoints: 0
-  # via point definition, Not implemented yet the binding properly
+  num_base_viapoints: 0
+  # joint via point definition
   #  [time,                      # activation time of the via point
-  # Front_left_hip, Front_left_knee,
-  # Front_right_hip, Front_right_knee,
-  # Back_left_hip, Back_left_knee,
-  # Back_right_hip, Back_right_knee ]        # desired joint position
+  # Front_left_hip_aa, Front_left_hip_fe, Front_left_knee,
+  # Front_right_hip_aa, Front_right_hip_fe, Front_right_knee,
+  # Back_left_hip_aa, Back_left_hip_fe, Back_left_knee,
+  # Back_right_hip_aa, Back_right_hip_fe, Back_right_knee ]        # desired joint position
   joint_viapoints:
-    via0: [1., 0.1, -0.2 ,0.1, -0.2 ,-0.1, 0.2 ,-0.1, 0.2]
-
+    via0: [1.4, 0., 1.57, -3.14, 0., 1.57, -3.14, 0., -1.57, 3.14, 0., -1.57, 3.14]
+  # base via point definition
+  #  [time,                      # activation time of the via point
+  # roll, pitch, yaw]        # desired base Euler angles in radian
+  base_viapoints:
+    via0: [1.4, 0., 0., 0.]
   #########################
   # Kinematics parameters #
   #########################

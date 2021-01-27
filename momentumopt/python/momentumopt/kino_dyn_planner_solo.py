@@ -121,7 +121,7 @@ def main(argv):
 
 
     # visualzing the motion using gepetto or meshcat
-    visualizer = "meshca"
+    visualizer = "meshcat"
     if (visualizer == "meshcat"):
         print("Replay the kinematics using Meshcat!")
         motion_planner.replay_kinematics_meshcat()
@@ -145,8 +145,8 @@ def main(argv):
     if(display): # plot trajectories
         motion_planner.plot_foot_traj()
         motion_planner.plot_joint_trajecory()
-        # motion_planner.plot_com_motion(optimized_dyn_plan.dynamics_states, optimized_kin_plan.kinematics_states)
-        #motion_planner.plot_base_trajecory()
+        motion_planner.plot_com_motion(optimized_dyn_plan.dynamics_states, optimized_kin_plan.kinematics_states)
+        motion_planner.plot_base_trajecory()
 
     # Potentially simulate the motion
     simulation = False

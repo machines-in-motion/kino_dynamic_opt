@@ -171,20 +171,22 @@ class MotionPlanner():
             time.sleep(self.kin_optimizer.dt)
 
 
-    def plot_base_trajecory(self, start=0, end=None):
+    def plot_base_trajecory(self, start=0, end=None, plot_show=True):
+        fig, axes = plt.subplots(3, 1, figsize=(16, 8), sharex=True)
         q_app = np.zeros([1,self.kin_optimizer.robot.model.nq])
         for ks in self.kin_optimizer.kinematics_sequence.kinematics_states[start:end]:
             q = ks.robot_posture.generalized_joint_positions
             q_app = np.append(q_app,q.reshape(1,len(q)),axis=0)
-        fig, ax = plt.subplots(3,1)
-        label = ["base_x","base_y","base_z"]
-        for i in range(3):
-            ax[i].plot(q_app[1:end,i], label = label[i])
-            ax[i].set_ylabel("m")
-            ax[i].set_xlabel("t [ms]")
-            ax[i].legend()
-            ax[i].grid(True)
-        plt.show()
+
+        for i, ylabel in enumerate(["x", "y", "z"]):
+            axes[i].plot(q_app[1:end,i])
+            axes[i].set_ylabel(ylabel + ' [m]')
+            axes[i].grid(True)
+
+        axes[2].set_xlabel('time steps')
+        axes[0].set_title('Base reference point trajectory')
+        self._plot_show(plot_show)
+
 
     def plot_joint_trajecory(self, start=0, end=None,
                              plot_show=True, fig_suptitle=''):
@@ -211,8 +213,9 @@ class MotionPlanner():
             axes[0, j].set_title(title)
 
         axes[0,np.size(self.kin_optimizer.robot.joints_list[:-1])-1].legend()
-
+        fig.suptitle('Desired and actual joint trajectories')
         self._plot_show(plot_show)
+
 
     def plot_foot_traj(self, plot_show=True):
         fig, axes = plt.subplots(np.size(self.kin_optimizer.robot.effs), 3, figsize=(16, 8), sharex=True)
@@ -237,6 +240,7 @@ class MotionPlanner():
         fig.suptitle('Desired and actual feet trajectories')
         self._plot_show(plot_show)
 
+
     def plot_com_motion(self, dynamics_states, kinematics_states,
             plot_show=True, fig_suptitle=''):
         fig, axes = plt.subplots(3, 3, figsize=(12, 8), sharex=True)
@@ -247,7 +251,6 @@ class MotionPlanner():
             lmom = np.vstack([s.lmom for s in states])
             amom = np.vstack([s.amom for s in states])
             return com, lmom, amom
-
 
         for i, (title, dyn, kin) in enumerate(zip(
             ['com', 'lmom', 'amom'],
@@ -273,6 +276,7 @@ class MotionPlanner():
 
         self._plot_show(plot_show)
 
+
     def save_files(self):
         time_vector = create_time_vector(self.dyn_optimizer.dynamicsSequence())
         create_file(time_vector,
@@ -289,6 +293,7 @@ class MotionPlanner():
                              self.dynamics_feedback,
                              self.planner_setting.get(PlannerDoubleParam_RobotWeight))
 
+
     def save_qp_files(self):
         time_vector = create_time_vector(self.dyn_optimizer.dynamicsSequence())
         create_qp_files(time_vector,
@@ -298,8 +303,10 @@ class MotionPlanner():
                     self.dynamics_feedback,
                     self.planner_setting.get(PlannerDoubleParam_RobotWeight))
 
+
     def time_vector(self):
         return create_time_vector(self.dyn_optimizer.dynamicsSequence())
+
 
     def optimize_motion(self, plot_com_motion=True):
         dyn_optimizer = self.dyn_optimizer
@@ -308,7 +315,7 @@ class MotionPlanner():
         self.optimize_dynamics(0)
         for kd_iter in range(0, self.planner_setting.get(PlannerIntParam_KinDynIterations)):
             self.optimize_kinematics(kd_iter + 1, plotting=False)
-            # self.optimize_dynamics(kd_iter + 1)
+            self.optimize_dynamics(kd_iter + 1)
             optimized_kin_plan = self.kin_optimizer.kinematics_sequence
             optimized_dyn_plan = self.dyn_optimizer.dynamicsSequence()
 
