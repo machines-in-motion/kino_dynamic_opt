@@ -51,7 +51,7 @@ class PointContactInverseKinematics(object):
         # Using two entires for the linear and angular velocity of the base.
         # (self.nv - 6) is the number of jointss for posture regularization
         self.J = np.zeros(((self.ne + 2) * 3 + (self.nv - 6), self.nv))
-        self.vel_des = np.zeros(((self.ne + 2) * 3 + (self.nv - 6), 1))
+        self.vel_des = np.zeros(((self.ne + 2) * 3 + (self.nv - 6), ))
 
         self.qp_solver = QpSolver()
 
@@ -76,17 +76,17 @@ class PointContactInverseKinematics(object):
 
 
     def fill_vel_des(self, q, dq, com_ref, lmom_ref, amom_ref, endeff_pos_ref, endeff_vel_ref, joint_regularization_ref):
-        self.vel_des[:3] = (lmom_ref + self.p_com_tracking * (com_ref - self.robot.com(q).T)).T
-        self.vel_des[3:6] = amom_ref.reshape(3, 1)
+        self.vel_des[:3] = (lmom_ref + self.p_com_tracking * (com_ref - self.robot.com(q)))
+        self.vel_des[3:6] = amom_ref
 
         for i, idx in enumerate(self.endeff_ids):
             if self.is_init_time:
-                self.vel_des[6 + 3*i: 6 + 3*(i + 1)] = endeff_vel_ref[i].reshape((3, 1)) + \
-                    1. * (endeff_pos_ref[i] - self.robot.data.oMf[idx].translation.T).T
+                self.vel_des[6 + 3*i: 6 + 3*(i + 1)] = endeff_vel_ref[i] + \
+                    1. * (endeff_pos_ref[i] - self.robot.data.oMf[idx].translation)
             else:
-                self.vel_des[6 + 3*i: 6 + 3*(i + 1)] = endeff_vel_ref[i].reshape((3, 1)) + \
+                self.vel_des[6 + 3*i: 6 + 3*(i + 1)] = endeff_vel_ref[i] + \
                     self.p_endeff_tracking * (
-                        endeff_pos_ref[i] - self.robot.data.oMf[idx].translation.T).T
+                        endeff_pos_ref[i] - self.robot.data.oMf[idx].translation)
         if joint_regularization_ref is None:
             self.vel_des[(self.ne + 2) * 3:] = zero(self.nv - 6)
         else:
@@ -142,4 +142,4 @@ class PointContactInverseKinematics(object):
         w,v=np.linalg.eig(hessian)
         # np.set_printoptions(precision=6)
         # print w,"\n"
-        return np.matrix(self.qp_solver.quadprog_solve_qp(hessian, gradient)).T
+        return self.qp_solver.quadprog_solve_qp(hessian, gradient)

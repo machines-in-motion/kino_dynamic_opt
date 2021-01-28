@@ -245,7 +245,7 @@ class Quadruped12Wrapper(BasicRobotWrapper):
         q_dummy[2::3] = angle
         q_dummy[1:3] = -0.5 * angle
 
-        self.q[7:] = np.reshape(q_dummy, (self.num_ctrl_joints, 1))
+        self.q[7:] = np.reshape(q_dummy, (self.num_ctrl_joints))
 
         # print(self.q)
         self.set_configuration(self.q)

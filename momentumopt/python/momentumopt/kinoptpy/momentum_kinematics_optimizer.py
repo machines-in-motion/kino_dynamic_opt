@@ -169,7 +169,7 @@ class JointTrajectoryGenerator(object):
         q = np.zeros((1,len(self.q_init)),float)
         for j in range(len(self.q_init)):
             q[0,j] = self.poly_traj[j].eval(t)
-        return np.matrix(q)
+        return q
 
 
 class MomentumKinematicsOptimizer(object):
@@ -292,17 +292,17 @@ class MomentumKinematicsOptimizer(object):
                 'Got %d joints but robot expects %d joints.' % (
                     len(plan_joint_init_pos), self.robot.num_ctrl_joints))
 
-        q[7:] = np.matrix(plan_joint_init_pos).T
+        q[7:] = np.array(plan_joint_init_pos)
         q[2] = self.robot.floor_height + 0.32
-        dq = np.matrix(np.zeros(self.robot.robot.nv)).T
+        dq = np.zeros([self.robot.robot.nv,])
 
         com_ref = init_state.com
         lmom_ref = np.zeros(3)
         amom_ref = np.zeros(3)
         endeff_pos_ref = np.array([init_state.effPosition(i) for i in range(init_state.effNum())])
-        endeff_vel_ref = np.matrix(np.zeros((init_state.effNum(), 3)))
+        endeff_vel_ref = np.zeros((init_state.effNum(), 3))
         endeff_contact = np.ones(init_state.effNum())
-        quad_goal = se3.Quaternion(se3.rpy.rpyToMatrix(np.matrix([0.0, 0, 0.]).T))
+        quad_goal = se3.Quaternion(se3.rpy.rpyToMatrix(np.zeros([3,])))
         q[3:7] = quad_goal.coeffs()
 
         for iters in range(self.max_iterations):
@@ -366,12 +366,13 @@ class MomentumKinematicsOptimizer(object):
         # Compute inverse kinematics over the full trajectory.
         self.inv_kin.is_init_time = 0
         q, dq = self.q_init.copy(), self.dq_init.copy()
+        
         for it in range(self.num_time_steps):
-            quad_goal = se3.Quaternion(se3.rpy.rpyToMatrix(np.matrix([0.0, 0, 0.]).T))
+            quad_goal = se3.Quaternion(se3.rpy.rpyToMatrix(np.zeros([3,1])))
             quad_q = se3.Quaternion(float(q[6]), float(q[3]), float(q[4]), float(q[5]))
             amom_ref = (self.reg_orientation * se3.log((quad_goal * quad_q.inverse()).matrix()).T + self.amom_dyn[it]).reshape(-1)
 
-            joint_regularization_ref = self.reg_joint_position * (np.matrix(self.joint_des[:,it]).T - q[7 : ])
+            joint_regularization_ref = self.reg_joint_position * ((self.joint_des[:,it]).T - q[7 : ])
             # joint_regularization_ref = self.reg_joint_position * (self.q_init[7 : ] - q[7 : ])
 
             # Fill the kinematics results for it.

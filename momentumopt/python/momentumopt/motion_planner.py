@@ -277,24 +277,19 @@ class MotionPlanner():
     def optimize_motion(self, plot_com_motion=True):
         dyn_optimizer = self.dyn_optimizer
         kin_optimizer = self.kin_optimizer
-
         self.optimize_dynamics(0)
         for kd_iter in range(0, self.planner_setting.get(PlannerIntParam_KinDynIterations)):
             self.optimize_kinematics(kd_iter + 1, plotting=False)
             self.optimize_dynamics(kd_iter + 1)
             optimized_kin_plan = self.kin_optimizer.kinematics_sequence
             optimized_dyn_plan = self.dyn_optimizer.dynamicsSequence()
-
             if plot_com_motion:
                 self.plot_com_motion(optimized_dyn_plan.dynamics_states,
                         optimized_kin_plan.kinematics_states, plot_show=False,
                         fig_suptitle='kd_iter={}'.format(kd_iter))
-
         optimized_kin_plan = kin_optimizer.kinematics_sequence
         optimized_dyn_plan = dyn_optimizer.dynamicsSequence()
-
         time_vector = create_time_vector(dyn_optimizer.dynamicsSequence())
-
         if self.with_lqr:
             self.optimize_dynamics_feedback()
         return optimized_kin_plan, kin_optimizer.motion_eff, \
