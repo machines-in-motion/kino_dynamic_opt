@@ -16,8 +16,8 @@ Current maintainer:
 
 Authors:
 - Brahayam Ponton
-- Ludovic Righetti
 - Alexander Herzog
+- others????
 
 ### Copyrights
 

@@ -1,6 +1,3 @@
 {
-    "dependencies": ["solver", "pybind11", "yaml_utils", "Eigen3"],
-    "build-dependencies": ["mpi_cmake_modules"],
-    "run-dependencies": [],
     "test-dependencies": ["googletest-distribution"]
 }

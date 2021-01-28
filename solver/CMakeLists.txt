@@ -23,12 +23,13 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -funroll-loops")
 # Dependencies
 #
 
+unset(PYBIND11_CPP_STANDARD CACHE)
 find_package(pybind11 CONFIG REQUIRED)
 find_package(yaml_utils REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS thread)
 
-#local deps
+# local deps
 find_package(mpi_cmake_modules REQUIRED)
 
 #
@@ -152,7 +153,7 @@ endif()
 #
 # create the cmake package
 #
-generate_cmake_package(INSTALL_EXPORT)
+generate_cmake_package()
 
 
 #

@@ -37,9 +37,7 @@ namespace momentumopt {
   {
     public:
       ContactPlanInterface(){}
-      ~ContactPlanInterface() {
-          // printf("planner_setting_=%p\n", (void*)planner_setting_);
-      }
+      virtual ~ContactPlanInterface() {}
 
       void initialize(const PlannerSetting& planner_setting);
       virtual void optimize(const DynamicsState& ini_state, const TerrainDescription& terrain) = 0;
