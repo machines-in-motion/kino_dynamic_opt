@@ -152,23 +152,28 @@ class MotionPlanner():
         return fig, axes
 
 
-    def replay_kinematics_gepetto(self, start=0, end=None, viz=None):
-        if not viz:
-            self.kin_optimizer.robot.ensureDisplay()
-            viz = self.kin_optimizer.robot
+    def replay_kinematics(self, start=0, end=None, viz="meshcat"):
+        if (viz=="meshcat"):
+            viz = self.kin_optimizer.robot.initMeshcat()
+            viz.loadViewerModel()
+            print("Replay the kinematics using Meshcat!")
+        elif (viz=="gepetto"):
+            try:
+                self.kin_optimizer.robot.ensureDisplay()
+                viz = self.kin_optimizer.robot
+                print("Replay the kinematics using geppeto_viewer!")
+            except:
+                "Check whether gepetto-viewer is properly started"
+        else:
+            print ("You need to specify either meshcat or gepetto as visualizer...")
 
-        for ks in self.kin_optimizer.kinematics_sequence.kinematics_states[start:end]:
-            q = ks.robot_posture.generalized_joint_positions
-            viz.display(np.matrix(q).T)
-            time.sleep(self.kin_optimizer.dt)
-
-    def replay_kinematics_meshcat(self, start=0, end=None):
-        viz = self.kin_optimizer.robot.initMeshcat()
-        viz.loadViewerModel()
-        for ks in self.kin_optimizer.kinematics_sequence.kinematics_states[start:end]:
-            q = ks.robot_posture.generalized_joint_positions
-            viz.display(np.matrix(q).T)
-            time.sleep(self.kin_optimizer.dt)
+        try:
+            for ks in self.kin_optimizer.kinematics_sequence.kinematics_states[start:end]:
+                q = ks.robot_posture.generalized_joint_positions
+                viz.display(np.matrix(q).T)
+                time.sleep(self.kin_optimizer.dt)
+        except:
+            "Check whether gepetto-viewer is properly started"
 
 
     def plot_base_trajecory(self, start=0, end=None, plot_show=True):

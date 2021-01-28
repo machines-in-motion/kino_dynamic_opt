@@ -120,25 +120,12 @@ def main(argv):
      time_vector) = build_and_optimize_motion(cfg_file, RobotWrapper, with_lqr)
 
 
-    # visualzing the motion using gepetto or meshcat
-    visualizer = "meshcat"
-    if (visualizer == "meshcat"):
-        print("Replay the kinematics using Meshcat!")
-        motion_planner.replay_kinematics_meshcat()
-    elif(visualizer == "gepetto"):
-        try:
-            print("Replay the kinematics using geppeto_viewer!")
-            motion_planner.replay_kinematics_gepetto()
-        except:
-            "gepetto_viewer is not initialized, please launch geppeto_viewer first..."
-    else:
-        print ("You need to specify either meshcat or gepetto as visualizer...")
-
-
+    # The default visualizer is Meshcat, if you wanna use geppeto_viewer
+    # pass viz="gepetto" as an argument.
+    motion_planner.replay_kinematics(viz="meshcat")
 
     # Dump the computed trajectory in a files (should follow the dynamic graph format)
     motion_planner.save_files()
-
 
     # Display the motion
     display = True
