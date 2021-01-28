@@ -51,7 +51,7 @@ class PointContactInverseKinematics(object):
         # Using two entires for the linear and angular velocity of the base.
         # (self.nv - 6) is the number of jointss for posture regularization
         self.J = np.zeros(((self.ne + 2) * 3 + (self.nv - 6), self.nv))
-        self.vel_des = np.zeros(((self.ne + 2) * 3 + (self.nv - 6), ))
+        self.vel_des = zero( (self.ne + 2) * 3 + (self.nv - 6) )
 
         self.qp_solver = QpSolver()
 

@@ -56,7 +56,7 @@ namespace momentumopt {
 	  std::string cfg_file_, save_dynamics_file_, save_kinematics_file_, default_solver_setting_file_;
 
 	  /*! helper integer variables for the optimization problem */
-      int num_com_viapoints_, num_joint_viapoints_, num_act_eefs_, num_timesteps_, max_time_iterations_, num_dofs_,
+      int num_com_viapoints_, num_joint_viapoints_, num_base_viapoints_, num_act_eefs_, num_timesteps_, max_time_iterations_, num_dofs_,
           num_act_dofs_, num_extended_act_dofs_, max_convergence_iters_, num_subsamples_,
 		  kd_iterations_, max_trajectory_iters_;
 
@@ -69,7 +69,8 @@ namespace momentumopt {
              min_time_residual_improvement_, mass_times_gravity_, w_trq_arm_, w_trq_leg_, w_time_penalty_, w_time_,
              convergence_tolerance_, min_rel_height_, floor_height_, kin_integration_step_, kin_slacks_penalty_,
              lambda_regularization_,swing_traj_via_z_,w_lin_mom_tracking_,w_ang_mom_tracking_,w_endeff_contact_,
-             w_endeff_tracking_,p_endeff_tracking_,p_com_tracking_,w_joint_regularization_,reg_orientation_;
+             w_endeff_tracking_,p_endeff_tracking_,p_com_tracking_,w_joint_regularization_,reg_orientation_,
+             reg_joint_position_;
 
       /*! helper vector variables for the optimization problem */
       Eigen::Vector2d time_range_, torque_range_;
@@ -88,6 +89,9 @@ namespace momentumopt {
 
       /*! via points for joints */
       std::vector<Eigen::VectorXd> joint_viapoints_;
+
+      /*! via points for joints */
+      std::vector<Eigen::VectorXd> base_viapoints_;
 
       /*! region of support for end-effectors */
       std::array<Eigen::VectorXd, Problem::n_endeffs_> cop_range_;

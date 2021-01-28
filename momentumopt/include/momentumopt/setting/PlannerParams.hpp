@@ -16,7 +16,8 @@ namespace momentumopt {
     PlannerIntParam_NumDofs,
 	PlannerIntParam_NumTimesteps,
 	PlannerIntParam_NumViapoints,
-  PlannerIntParam_NumJointViapoints,
+    PlannerIntParam_NumJointViapoints,
+    PlannerIntParam_NumBaseViapoints,
     PlannerIntParam_NumActiveDofs,
 	PlannerIntParam_MaxNumTimeIterations,
 	PlannerIntParam_NumExtendedActiveDofs,
@@ -83,6 +84,7 @@ namespace momentumopt {
   PlannerDoubleParam_PGainComTracking,
   PlannerDoubleParam_WeightJointReg,
   PlannerDoubleParam_PGainOrientationTracking,
+  PlannerDoubleParam_PGainPositionTracking,
   };
 
   /*! Available string variables used by the planner */
@@ -160,6 +162,7 @@ namespace momentumopt {
   enum PlannerCVectorParam {
     PlannerCVectorParam_Viapoints,
     PlannerCVectorParam_JointViapoints,
+    PlannerCVectorParam_BaseViapoints,
   };
 
 }
