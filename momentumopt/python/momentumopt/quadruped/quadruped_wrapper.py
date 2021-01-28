@@ -155,6 +155,11 @@ class BasicRobotWrapper(object):
         pinocchio.updateFramePlacements(self.model,self.data)
         self.robot.viewer.gui.refresh()
 
+    def initMeshcat(self):
+        viz = pinocchio.visualize.MeshcatVisualizer(self.robot.model, self.robot.collision_model, self.robot.visual_model)
+        viz.initViewer(open=True)
+        return viz
+
 
 class QuadrupedWrapper(BasicRobotWrapper):
 

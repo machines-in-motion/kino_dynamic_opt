@@ -56,17 +56,17 @@ contact_plan:
 
   effcnt_rf:
   - [0.0, 1.0, 0.20, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
-  - [1.7, 3.0, 0.20, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [1.8, 3.0, 0.20, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
 
   effcnt_lf:
   - [0.0, 1.0, 0.20, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
-  - [1.7, 3.0, 0.20, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [1.8, 3.0, 0.20, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
   effcnt_rh:
   - [0.0, 1.0, -0.20, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
-  - [1.7, 3.0, -0.20, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [1.8, 3.0, -0.20, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
   effcnt_lh:
   - [0.0, 1.0, -0.20, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
-  - [1.7, 3.0, -0.20, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [1.8, 3.0, -0.20, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
   effvia_rf: []
   effvia_lf: []
   effvia_rh: []
@@ -79,26 +79,28 @@ planner_variables:
   #########################
 
   load_kinematics: true
+
   display_motion: true
-  num_dofs: 12
-  kd_iterations: 2 # Number of dynamic and kinematic optimization iterations
+  num_dofs: 8
+  # Number of dynamic and kinematic optimization iterations
+  kd_iterations: 1
   num_subsamples: 3
   active_dofs: [0, 1, 2, 3, 4, 5, 6, 7]
-  min_joint_limits: [-2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5]
-  max_joint_limits: [2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5]
-  default_joint_positions: [0., 0.52, -1.04, 0., 0.52, -1.04, 0., 0.52, -1.04, 0., 0.52, -1.04]
+  min_joint_limits: [-1.5, -2.5, -1.5, -2.5, -1.5, -2.5, -1.5, -2.5]
+  max_joint_limits: [1.5, 2.5, 1.5, 2.5, 1.5, 2.5, 1.5, 2.5]
+  default_joint_positions: [0.52, -1.04, 0.52, -1.04, -0.52, 1.04, -0.52, 1.04]
 
   #########################
   # Kinematics momentum parameters #
   #########################
 
-  swing_traj_via_z: .4
-  w_lin_mom_tracking: 20.
+  swing_traj_via_z: .8
+  w_lin_mom_tracking: 30.
   w_ang_mom_tracking: 1.
   w_endeff_contact: 30.
   w_endeff_tracking: 0.1
   p_endeff_tracking: 0.
-  p_com_tracking: .1
+  p_com_tracking: 1.
   w_joint_regularization: .05
   reg_orientation: 5.
   reg_joint_position: 2.
@@ -106,12 +108,12 @@ planner_variables:
   num_base_viapoints: 0
   # joint via point definition
   #  [time,                      # activation time of the via point
-  # Front_left_hip_aa, Front_left_hip_fe, Front_left_knee,
-  # Front_right_hip_aa, Front_right_hip_fe, Front_right_knee,
-  # Back_left_hip_aa, Back_left_hip_fe, Back_left_knee,
-  # Back_right_hip_aa, Back_right_hip_fe, Back_right_knee ]        # desired joint position
+  # Front_left_hip, Front_left_knee,
+  # Front_right_hip, Front_right_knee,
+  # Back_left_hip, Back_left_knee,
+  # Back_right_hip, Back_right_knee ]        # desired joint position
   joint_viapoints:
-    via0: [1.4, 0., 1.57, -3.14, 0., 1.57, -3.14, 0., -1.57, 3.14, 0., -1.57, 3.14]
+    via0: [1.4, 1.57, -3.14, 1.57, -3.14, -1.57, 3.14, -1.57, 3.14]
   # base via point definition
   #  [time,                      # activation time of the via point
   # roll, pitch, yaw]        # desired base Euler angles in radian
