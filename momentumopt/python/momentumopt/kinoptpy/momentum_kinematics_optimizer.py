@@ -12,6 +12,7 @@ import numpy as np
 
 from momentumopt.kinoptpy.qp import QpSolver
 from momentumopt.kinoptpy.inverse_kinematics import PointContactInverseKinematics
+from momentumopt.kinoptpy.second_order_ik import SecondOrderInverseKinematics
 from pinocchio import RobotWrapper
 import pinocchio as se3
 from pinocchio.utils import zero
@@ -219,7 +220,10 @@ class MomentumKinematicsOptimizer(object):
         self.hip_names = ['{}_HFE'.format(eff) for eff in self.robot.effs]
         self.hip_ids = [self.robot.model.getFrameId(name) for name in self.hip_names]
         self.eff_names = ['{}_{}'.format(eff, self.robot.joints_list[-1]) for eff in self.robot.effs]
+
         self.inv_kin = PointContactInverseKinematics(self.robot.model, self.eff_names)
+        self.snd_order_inv_kin = SecondOrderInverseKinematics(self.robot.model, self.eff_names)
+        self.use_second_order_inv_kin = True
 
         self.motion_eff = {
             'trajectory': np.zeros((self.num_time_steps, 3 * self.inv_kin.ne)),
@@ -296,7 +300,7 @@ class MomentumKinematicsOptimizer(object):
 
         q[7:] = plan_joint_init_pos
         q[2] = init_state.com[2]
-        dq = np.matrix(np.zeros(self.robot.robot.nv)).T
+        dq = np.zeros(self.robot.robot.nv)
 
         com_ref = init_state.com
         lmom_ref = np.zeros(3)
@@ -380,23 +384,34 @@ class MomentumKinematicsOptimizer(object):
         # Compute inverse kinematics over the full trajectory.
         self.inv_kin.is_init_time = 0
         q, dq = self.q_init.copy(), self.dq_init.copy()
-        
-        for it in range(self.num_time_steps):
-            quad_goal = se3.Quaternion(se3.rpy.rpyToMatrix(np.matrix(self.base_des[:,it]).T))
-            quad_q = se3.Quaternion(float(q[6]), float(q[3]), float(q[4]), float(q[5]))
-            amom_ref = self.reg_orientation * se3.log((quad_goal * quad_q.inverse()).matrix()) + self.amom_dyn[it]
 
-            joint_regularization_ref = self.reg_joint_position * (self.joint_des[:,it] - q[7 : ])
+        if self.use_second_order_inv_kin:
+            q_kin, dq_kin, com_kin, lmom_kin, amom_kin, endeff_pos_kin, endeff_vel_kin = \
+                self.snd_order_inv_kin.solve(self.dt, q, dq, self.com_dyn, self.lmom_dyn,
+                    self.amom_dyn, self.endeff_pos_ref, self.endeff_vel_ref,
+                    self.endeff_contact, self.joint_des.T, self.base_des.T
+                )
+
+            for it, (q, dq) in enumerate(zip(q_kin, dq_kin)):
+                self.inv_kin.forward_robot(q, dq)
+                self.fill_kinematic_result(it, q, dq)
+        else:
+            for it in range(self.num_time_steps):
+                quad_goal = se3.Quaternion(se3.rpy.rpyToMatrix(np.matrix(self.base_des[:,it]).T))
+                quad_q = se3.Quaternion(float(q[6]), float(q[3]), float(q[4]), float(q[5]))
+                amom_ref = self.reg_orientation * se3.log((quad_goal * quad_q.inverse()).matrix()) + self.amom_dyn[it]
+
+                joint_regularization_ref = self.reg_joint_position * (self.joint_des[:,it] - q[7 : ])
 
 
-            # Fill the kinematics results for it.
-            self.inv_kin.forward_robot(q, dq)
-            self.fill_kinematic_result(it, q, dq)
+                # Fill the kinematics results for it.
+                self.inv_kin.forward_robot(q, dq)
+                self.fill_kinematic_result(it, q, dq)
 
-            dq = self.inv_kin.compute(
-                    q, dq, self.com_dyn[it], self.lmom_dyn[it], amom_ref,
-                    self.endeff_pos_ref[it], self.endeff_vel_ref[it],
-                    self.endeff_contact[it], joint_regularization_ref)
+                dq = self.inv_kin.compute(
+                        q, dq, self.com_dyn[it], self.lmom_dyn[it], amom_ref,
+                        self.endeff_pos_ref[it], self.endeff_vel_ref[it],
+                        self.endeff_contact[it], joint_regularization_ref)
 
-            # Integrate to the next state.
-            q = se3.integrate(self.robot.model, q, dq * self.dt)
+                # Integrate to the next state.
+                q = se3.integrate(self.robot.model, q, dq * self.dt)
