@@ -21,20 +21,20 @@ from momentumopt.motion_execution import MotionExecutor
 from momentumopt.kinoptpy.create_data_file import create_file, create_qp_files, create_lqr_files
 
 from momentumopt.motion_planner import MotionPlanner
-from .quadruped.quadruped_wrapper import QuadrupedWrapper, Quadruped12Wrapper
+from .robots.blmc_robot_wrapper import QuadrupedWrapper, Quadruped12Wrapper, BipedWrapper
 
 import matplotlib.pyplot as plt
 
 def parse_arguments(argv):
     cfg_file = ''
     try:
-        opts, args = getopt.getopt(argv,"hi:m",["ifile=", "solo12", "disable_lqr"])
+        opts, args = getopt.getopt(argv,"hi:m",["ifile=", "solo12", "bolt", "disable_lqr"])
     except getopt.GetoptError:
         print ('python kino_dyn_planner.py -i <path_to_datafile>')
         sys.exit(2)
 
     RobotWrapper = QuadrupedWrapper
-    with_lqr = True
+    with_lqr = False
 
     for opt, arg in opts:
         if opt == '-h':
@@ -44,6 +44,8 @@ def parse_arguments(argv):
             cfg_file = arg
         elif opt in ("--solo12"):
             RobotWrapper = Quadruped12Wrapper
+        elif opt in ("--bolt"):
+            RobotWrapper = BipedWrapper
         elif opt in ("--disable_lqr"):
             with_lqr = False
 

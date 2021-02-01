@@ -17,7 +17,7 @@ import pinocchio as se3
 from pinocchio.utils import zero
 from pymomentum import *
 
-from momentumopt.quadruped.quadruped_wrapper import QuadrupedWrapper
+from momentumopt.robots.blmc_robot_wrapper import QuadrupedWrapper
 from momentumopt.kinoptpy.min_jerk_traj import *
 
 from pymomentum import \
@@ -301,10 +301,11 @@ class MomentumKinematicsOptimizer(object):
         com_ref = init_state.com
         lmom_ref = np.zeros(3)
         amom_ref = np.zeros(3)
-        endeff_pos_ref = np.array([init_state.effPosition(i) for i in range(init_state.effNum())])
-        endeff_vel_ref = np.matrix(np.zeros((init_state.effNum(), 3)))
-        endeff_contact = np.ones(init_state.effNum())
-        quad_goal = se3.Quaternion(se3.rpy.rpyToMatrix(np.matrix([0.0, 0, 0.]).T))
+        num_eff = len(self.eff_names)
+        endeff_pos_ref = np.array([init_state.effPosition(i) for i in range(num_eff)])
+        endeff_vel_ref = np.matrix(np.zeros((num_eff, 3)))
+        endeff_contact = np.ones(num_eff)
+        quad_goal = se3.Quaternion(se3.rpy.rpyToMatrix(np.matrix([0., 0., 0.]).T))
         q[3:7] = quad_goal.coeffs()
 
         for iters in range(self.max_iterations):
