@@ -303,8 +303,3 @@ class BipedWrapper(BasicRobotWrapper):
 
         # print(self.q)
         self.set_configuration(self.q)
-
-
-############################ For debugging ##########################################
-
-# robot = BipedWrapper()
