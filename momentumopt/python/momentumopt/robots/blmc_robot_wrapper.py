@@ -264,7 +264,7 @@ class BipedWrapper(BasicRobotWrapper):
 
         self.effs = ["FL", "FR"]
         # self.colors = {"L": "r", "R": "y"}
-        self.joints_list = ["HAA", "HFE", "KFE"]
+        self.joints_list = ["HAA", "HFE", "KFE", "ANKLE"]
         self.floor_height = 0.
 
         self.robot = BoltConfig.buildRobotWrapper()

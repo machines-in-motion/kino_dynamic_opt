@@ -35,7 +35,7 @@ def create_time_vector(dynamics_sequence):
 class MotionPlanner():
 
     def __init__(self, cfg_file, KinOpt=MomentumKinematicsOptimizer,
-                 RobotWrapper=QuadrupedWrapper, with_lqr=True):
+                 RobotWrapper=QuadrupedWrapper, with_lqr=False):
         'define problem configuration'
         self.planner_setting = PlannerSetting()
         self.planner_setting.initialize(cfg_file)
