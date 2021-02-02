@@ -21,20 +21,20 @@ from momentumopt.motion_execution import MotionExecutor
 from momentumopt.kinoptpy.create_data_file import create_file, create_qp_files, create_lqr_files
 
 from momentumopt.motion_planner import MotionPlanner
-from momentumopt.quadruped.quadruped_wrapper import QuadrupedWrapper, Quadruped12Wrapper
+from .robots.blmc_robot_wrapper import QuadrupedWrapper, Quadruped12Wrapper, BipedWrapper
 
 import matplotlib.pyplot as plt
 
 def parse_arguments(argv):
     cfg_file = ''
     try:
-        opts, args = getopt.getopt(argv,"hi:m",["ifile=", "solo12", "disable_lqr"])
+        opts, args = getopt.getopt(argv,"hi:m",["ifile=", "solo12", "bolt", "disable_lqr"])
     except getopt.GetoptError:
         print ('python kino_dyn_planner.py -i <path_to_datafile>')
         sys.exit(2)
 
     RobotWrapper = QuadrupedWrapper
-    with_lqr = True
+    with_lqr = False
 
     for opt, arg in opts:
         if opt == '-h':
@@ -44,6 +44,8 @@ def parse_arguments(argv):
             cfg_file = arg
         elif opt in ("--solo12"):
             RobotWrapper = Quadruped12Wrapper
+        elif opt in ("--bolt"):
+            RobotWrapper = BipedWrapper
         elif opt in ("--disable_lqr"):
             with_lqr = False
 
@@ -119,30 +121,21 @@ def main(argv):
      planner_setting,
      time_vector) = build_and_optimize_motion(cfg_file, RobotWrapper, with_lqr)
 
-    # Display the motion
-    display = True
-    if(display): # Display the Center of mass motion
-        motion_planner.plot_com_motion(optimized_dyn_plan.dynamics_states, optimized_kin_plan.kinematics_states)
-        # for i in range(len(time_vector)):
-        #     print "\n t:",time_vector[i],"\n"
-        #     print dynamics_feedback.forceGain(i)
-        # motion_planner.plot_centroidal()
-    
-    # Create configuration and velocity file from motion plan for dynamic graph
-    try:
-        print("Replay the kinematics.")
-        motion_planner.replay_kinematics()
-    except:
-        "gepetto not initialized..."
+
+    # The default visualizer is Meshcat, if you wanna use geppeto_viewer
+    # pass viz="gepetto" as an argument.
+    motion_planner.replay_kinematics(viz="meshcat")
 
     # Dump the computed trajectory in a files (should follow the dynamic graph format)
     motion_planner.save_files()
 
+    # Display the motion
+    display = True
     if(display): # plot trajectories
         motion_planner.plot_foot_traj()
         motion_planner.plot_joint_trajecory()
         motion_planner.plot_com_motion(optimized_dyn_plan.dynamics_states, optimized_kin_plan.kinematics_states)
-        #motion_planner.plot_base_trajecory()
+        motion_planner.plot_base_trajecory()
 
     # Potentially simulate the motion
     simulation = False

@@ -102,7 +102,7 @@ class PointContactInverseKinematics(object):
                 w.append(self.w_endeff_tracking * np.ones(3))
         w.append(self.w_joint_regularization * np.ones(self.nv - 6))
         self.w = np.diag(np.hstack(w))
-        #print "w:\n",self.w,"\n\n"
+        # print("w:",w,"\n\n")
 
     def forward_robot(self, q, dq):
         # Update the pinocchio model.
@@ -133,8 +133,9 @@ class PointContactInverseKinematics(object):
         self.fill_weights(endeff_contact)
 
         self.forwarded_robot = False
-        # print np.shape(self.w)
-        # print np.shape(self.J),"\n"
+        # print("weighting matrix shape:",np.shape(self.w))
+        # print("Jacobian shape:",np.shape(self.J))
+        # print("desired vel shape:",np.shape(self.vel_des))
         hessian = self.J.T.dot(self.w).dot(self.J)
         # print hessian, "\n"
         hessian += 1e-6 * np.identity(len(hessian))

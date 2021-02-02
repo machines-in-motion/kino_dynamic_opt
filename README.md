@@ -52,7 +52,9 @@ python3 ../nodes/kino_dyn_planner_solo -i <path_to_config_file>
 ```
 For example plan and execute a jumping motion with
 ```
-python3 ../nodes/kino_dyn_planner_solo -i ../config/cfg_solo_jump.yaml
+python3 ../nodes/kino_dyn_planner -i ../config/cfg_solo8_jump.yaml
+python3 ../nodes/kino_dyn_planner -i ../config/cfg_solo12_jump.yaml --solo12
+python3 ../nodes/kino_dyn_planner -i ../config/cfg_bolt_jump.yaml --bolt
 ```
 
 #### Configuration overview
@@ -61,9 +63,12 @@ The different configuration files are available in
 <work_folder>/kino_dynamic_opt/momentumopt/config
 ```
 The available motions are:
-* cfg_solo_jump.yaml
+
 * cfg_solo12_jump.yaml
-* cfg_biped.yaml
+* cfg_bolt_jump.yaml
+* cfg_solo8_jump.yaml
+* cfg_solo8_fast_short_trot.yaml
+* cfg_solo8_trot.yaml
 
 For an explanation of the different settings in the configuration files, refer to [cfg_solo_jump.yaml].
 
@@ -77,7 +82,7 @@ The available motions are:
 
 Executing
 ```
-python3 ../nodes/kino_dyn_planner_solo -i <path_to_config_file>
+python3 ../nodes/kino_dyn_planner -i <path_to_config_file>
 ```
 automatically saves the `quadruped_positions.dat` and the `quadruped_velocities.dat` files in the `<work_folder>/kino-dynamic-opt/src/catkin/motion_planning/momentumopt/demos` directory. These files can then be supplied to dynamic graph and for example executed on the real robot.
 

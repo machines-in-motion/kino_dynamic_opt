@@ -1,5 +1,5 @@
 '''
-@file quadruped_wrapper.py
+@file blmc_robot_wrapper.py
 @package momentumopt
 @author Brahayam Ponton (brahayam.ponton@tuebingen.mpg.de)
 @license License BSD-3-Clause
@@ -14,6 +14,7 @@ import pinocchio
 from pinocchio.robot_wrapper import RobotWrapper
 from pinocchio.utils import zero
 from robot_properties_solo.config import Solo8Config, Solo12Config
+from robot_properties_bolt.config import BoltConfig
 
 class BasicRobotWrapper(object):
 
@@ -155,6 +156,11 @@ class BasicRobotWrapper(object):
         pinocchio.updateFramePlacements(self.model,self.data)
         self.robot.viewer.gui.refresh()
 
+    def initMeshcat(self):
+        viz = pinocchio.visualize.MeshcatVisualizer(self.robot.model, self.robot.collision_model, self.robot.visual_model)
+        viz.initViewer(open=True)
+        return viz
+
 
 class QuadrupedWrapper(BasicRobotWrapper):
 
@@ -251,6 +257,49 @@ class Quadruped12Wrapper(BasicRobotWrapper):
         self.set_configuration(self.q)
 
 
-############################ For debugging ##########################################
+class BipedWrapper(BasicRobotWrapper):
 
-# robot = QuadrupedWrapper()
+    def __init__(self, q=None):
+        super(BipedWrapper, self).__init__()
+
+        self.effs = ["FL", "FR"]
+        # self.colors = {"L": "r", "R": "y"}
+        self.joints_list = ["HAA", "HFE", "KFE", "ANKLE"]
+        self.floor_height = 0.
+
+        self.robot = BoltConfig.buildRobotWrapper()
+
+        self.num_ctrl_joints = 6
+
+        # Create data again after setting frames
+        self.model = self.robot.model
+        self.data = self.robot.data
+        q = pinocchio.neutral(self.robot.model)
+        if not q is None:
+            self.set_configuration(q)
+        else:
+            self.q = None
+        self.M_com = None
+        self.mass = sum([i.mass for i in self.model.inertias[1:]])
+        self.set_init_config()
+
+    def set_init_config(self):
+        model = self.model
+        data = self.data
+        NQ = model.nq
+        NV = model.nv
+        self.q, self.dq, self.ddq, tau = zero(NQ), zero(NV), zero(NV), zero(NV)
+
+        self.q = pinocchio.neutral(self.robot.model)
+        self.q[2] = self.floor_height
+
+        # Set initial configuration
+        angle = np.deg2rad(60.0)
+        q_dummy = np.zeros(self.num_ctrl_joints)
+        q_dummy[2::3] = angle
+        q_dummy[1:3] = -0.5 * angle
+
+        self.q[7:] = q_dummy
+
+        # print(self.q)
+        self.set_configuration(self.q)
