@@ -309,7 +309,7 @@ class MomentumKinematicsOptimizer(object):
         endeff_pos_ref = np.array([init_state.effPosition(i) for i in range(num_eff)])
         endeff_vel_ref = np.matrix(np.zeros((num_eff, 3)))
         endeff_contact = np.ones(num_eff)
-        quad_goal = se3.Quaternion(se3.rpy.rpyToMatrix(np.zeros([3,]))
+        quad_goal = se3.Quaternion(se3.rpy.rpyToMatrix(np.zeros([3,])))
         q[3:7] = quad_goal.coeffs()
 
         for iters in range(self.max_iterations):
