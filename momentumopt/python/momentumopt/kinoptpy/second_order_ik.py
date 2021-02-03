@@ -60,7 +60,7 @@ class SecondOrderInverseKinematics(object):
         self.drift_terms = np.zeros_like(self.desired_acceleration) #i.e. dJ * dq
         self.measured_velocities = np.zeros((self.J.shape[0], )) # i.e. J * dq
 
-        self.use_hierarchy = True
+        self.use_hierarchy = False
         self.qp_solver = QpSolver()
 
     def framesPos(self, frames):
@@ -226,10 +226,10 @@ class SecondOrderInverseKinematics(object):
         lmom_kin[0] = hg.linear.T
         amom_kin[0] = hg.angular.T
         endeff_pos_kin[0] = self.framesPos(self.endeff_ids)
-        endeff_vel_kin[0] = (self.J[6:(self.ne + 2) * 3].dot(dq).T).reshape([4,3])
+        endeff_vel_kin[0] = (self.J[6:(self.ne + 2) * 3].dot(dq).T).reshape([self.ne,3])
 
         dmom_ref = np.zeros([6,])
-        endeff_acc_ref = np.zeros([4,3])
+        endeff_acc_ref = np.zeros([self.ne,3])
         t = 0.
         for it in range(1,num_time_steps):
             for inner in range(inner_steps):
@@ -238,7 +238,7 @@ class SecondOrderInverseKinematics(object):
                 # endeff_acc_ref = (endeff_vel_ref[it] - endeff_vel_ref[it-1])/dt
                 dmom_ref = np.hstack((splined_lmom_ref(t, nu=1),
                                    splined_amom_ref(t, nu=1)))#np.zeros([6,])
-                endeff_acc_ref = splined_endeff_vel_ref(t, nu=1)#np.zeros([4,3])
+                endeff_acc_ref = splined_endeff_vel_ref(t, nu=1)#np.zeros([self.ne,3])
                 orien_ref = pin.Quaternion(pin.rpy.rpyToMatrix(splined_base_ori_ref(t)))
                 ddq = self.step(
                         q, dq, splined_com_ref(t), orien_ref,
@@ -265,6 +265,6 @@ class SecondOrderInverseKinematics(object):
             lmom_kin[it] = hg.linear.T
             amom_kin[it] = hg.angular.T
             endeff_pos_kin[it] = self.framesPos(self.endeff_ids)
-            endeff_vel_kin[it] = (self.J[6:(self.ne + 2) * 3].dot(dq).T).reshape([4,3])
+            endeff_vel_kin[it] = (self.J[6:(self.ne + 2) * 3].dot(dq).T).reshape([self.ne,3])
 
         return q_kin, dq_kin, com_kin, lmom_kin, amom_kin, endeff_pos_kin, endeff_vel_kin
