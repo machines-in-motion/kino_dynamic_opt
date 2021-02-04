@@ -63,7 +63,7 @@ namespace momentumopt {
 
       /*! helper boolean variables for the optimization problem */
       bool store_data_, is_time_horizon_fixed_, is_friction_cone_linear_, use_default_solver_setting_,
-           load_kinematics_, display_motion_;
+           load_kinematics_, display_motion_, use_second_order_inv_kin_;
 
       /*! helper double variables for the optimization problem */
       double gravity_, time_step_, robot_mass_, time_horizon_, friction_coeff_, max_time_residual_tolerance_,

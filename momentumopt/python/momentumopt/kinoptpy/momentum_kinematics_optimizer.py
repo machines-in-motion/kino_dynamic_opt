@@ -383,8 +383,8 @@ class MomentumKinematicsOptimizer(object):
         q, dq = self.q_init.copy(), self.dq_init.copy()
 
         if self.use_second_order_inv_kin:
-            print("\n Second order IK solver is used, set use_second_order_inv_kin to False "
-                  "if you wanna use first order IK \n")
+            print("\n Second order IK formulation is used, set use_second_order_inv_kin to False "
+                  "in the config file if you wanna use first order IK \n")
             q_kin, dq_kin, com_kin, lmom_kin, amom_kin, endeff_pos_kin, endeff_vel_kin = \
                 self.snd_order_inv_kin.solve(self.dt, q, dq, self.com_dyn, self.lmom_dyn,
                     self.amom_dyn, self.endeff_pos_ref, self.endeff_vel_ref,
@@ -394,8 +394,8 @@ class MomentumKinematicsOptimizer(object):
                 self.inv_kin.forward_robot(q, dq)
                 self.fill_kinematic_result(it, q, dq)
         else:
-            print("\n First order IK solver is used, set use_second_order_inv_kin to True "
-                  "if you wanna use second order IK \n")
+            print("\n First order IK formulation is used, set use_second_order_inv_kin to True "
+                  "in the config file if you wanna use second order IK \n")
             for it in range(self.num_time_steps):
                 quad_goal = se3.Quaternion(se3.rpy.rpyToMatrix(np.matrix(self.base_des[:,it]).T))
                 quad_q = se3.Quaternion(float(q[6]), float(q[3]), float(q[4]), float(q[5]))

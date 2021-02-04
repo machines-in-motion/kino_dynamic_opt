@@ -47,6 +47,9 @@ namespace momentumopt {
 
 	// Solver setting
 	PlannerBoolParam_UseDefaultSolverSetting,
+
+  // Inverse kinematics (python)
+  PlannerBoolParam_UseSecondOrderInverseKinematics
   };
 
   /*! Available double variables used by the planner */

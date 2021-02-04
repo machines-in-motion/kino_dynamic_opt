@@ -124,6 +124,7 @@ planner_variables:
   # Second Order IK parameters #
   #########################
 
+  use_second_order_inv_kin: False
   swing_traj_via_z_second: 0.8
   w_lin_mom_tracking_second: 1e2
   w_ang_mom_tracking_second: 1e1
@@ -155,7 +156,7 @@ planner_variables:
   # roll, pitch, yaw]        # desired base Euler angles in radian
   base_viapoints_second:
     via0: [1.4, 0., 0., 0.]
-    
+
   #######################
   # Dynamics parameters #
   #######################

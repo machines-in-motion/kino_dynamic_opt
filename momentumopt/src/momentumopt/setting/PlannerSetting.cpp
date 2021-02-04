@@ -173,6 +173,8 @@ namespace momentumopt {
         YAML::ReadParameter(planner_vars, "mom_tracking_second", mom_tracking_second_);
         YAML::ReadParameter(planner_vars, "num_joint_viapoints_second", num_joint_viapoints_second_);
         YAML::ReadParameter(planner_vars, "num_base_viapoints_second", num_base_viapoints_second_);
+        YAML::ReadParameter(planner_vars, "use_second_order_inv_kin", use_second_order_inv_kin_); 
+
         joint_viapoints_.clear();
         base_viapoints_.clear();
         joint_viapoints_second_.clear();
@@ -266,6 +268,9 @@ namespace momentumopt {
 
       // Solver setting
       case PlannerBoolParam_UseDefaultSolverSetting : { return use_default_solver_setting_; }
+
+      // Inverse kinematics (python)
+      case PlannerBoolParam_UseSecondOrderInverseKinematics : { return use_second_order_inv_kin_; }
 
       // Not handled parameters
       default: { throw std::runtime_error("PlannerSetting::get PlannerBoolParam invalid"); break; }
@@ -503,6 +508,9 @@ namespace momentumopt {
 
       // Solver setting
       case PlannerBoolParam_UseDefaultSolverSetting : { return use_default_solver_setting_; }
+
+      // Inverse kinematics (python)
+      case PlannerBoolParam_UseSecondOrderInverseKinematics : { return use_second_order_inv_kin_; }
 
       // Not handled parameters
       default: { throw std::runtime_error("PlannerSetting::set PlannerBoolParam invalid"); break; }

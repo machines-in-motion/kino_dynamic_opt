@@ -43,6 +43,7 @@ void init_params(py::module &m)
   .value("PlannerBoolParam_IsTimeHorizonFixed", PlannerBoolParam_IsTimeHorizonFixed)
   .value("PlannerBoolParam_IsFrictionConeLinear", PlannerBoolParam_IsFrictionConeLinear)
 	.value("PlannerBoolParam_UseDefaultSolverSetting", PlannerBoolParam_UseDefaultSolverSetting)
+  .value("PlannerBoolParam_UseSecondOrderInverseKinematics", PlannerBoolParam_UseSecondOrderInverseKinematics)
   .export_values();
 
   // binding double parameters

@@ -77,6 +77,7 @@ class MotionPlanner():
         inv_kin = kin_optimizer.inv_kin
         snd_order_inv_kin = kin_optimizer.snd_order_inv_kin
         etg = kin_optimizer.endeff_traj_generator
+        kin_optimizer.use_second_order_inv_kin = self.planner_setting.get(PlannerBoolParam_UseSecondOrderInverseKinematics)
         if self.kin_optimizer.use_second_order_inv_kin:
             etg.z_offset = self.planner_setting.get(PlannerDoubleParam_SwingTrajViaZ_Second)
             snd_order_inv_kin.w_lin_mom_tracking = self.planner_setting.get(PlannerDoubleParam_WeightLinMomentumTracking_Second)
@@ -344,7 +345,7 @@ class MotionPlanner():
         self.optimize_dynamics(0)
         for kd_iter in range(0, self.planner_setting.get(PlannerIntParam_KinDynIterations)):
             self.optimize_kinematics(kd_iter + 1, plotting=False)
-            # self.optimize_dynamics(kd_iter + 1)
+            self.optimize_dynamics(kd_iter + 1)
             optimized_kin_plan = self.kin_optimizer.kinematics_sequence
             optimized_dyn_plan = self.dyn_optimizer.dynamicsSequence()
             if plot_com_motion:
