@@ -65,17 +65,7 @@ def build_optimization(cfg_file, RobotWrapper, with_lqr):
     motion_planner = MotionPlanner(cfg_file, MomentumKinematicsOptimizer, RobotWrapper, with_lqr)
 
     # load all the parameters of the planner
-    etg = motion_planner.kin_optimizer.endeff_traj_generator
-    etg.z_offset = motion_planner.planner_setting.get(PlannerDoubleParam_SwingTrajViaZ)
-    motion_planner.kin_optimizer.inv_kin.w_lin_mom_tracking = motion_planner.planner_setting.get(PlannerDoubleParam_WeightLinMomentumTracking)
-    motion_planner.kin_optimizer.inv_kin.w_ang_mom_tracking = motion_planner.planner_setting.get(PlannerDoubleParam_WeightAngMomentumTracking)
-    motion_planner.kin_optimizer.inv_kin.w_endeff_contact = motion_planner.planner_setting.get(PlannerDoubleParam_WeightEndEffContact)
-    motion_planner.kin_optimizer.inv_kin.w_endeff_tracking = motion_planner.planner_setting.get(PlannerDoubleParam_WeightEndEffTracking)
-    motion_planner.kin_optimizer.inv_kin.p_endeff_tracking = motion_planner.planner_setting.get(PlannerDoubleParam_PGainEndEffTracking)
-    motion_planner.kin_optimizer.inv_kin.p_com_tracking = motion_planner.planner_setting.get(PlannerDoubleParam_PGainComTracking)
-    motion_planner.kin_optimizer.inv_kin.w_joint_regularization = motion_planner.planner_setting.get(PlannerDoubleParam_WeightJointReg)
-    motion_planner.kin_optimizer.reg_orientation = motion_planner.planner_setting.get(PlannerDoubleParam_PGainOrientationTracking)
-    motion_planner.kin_optimizer.reg_joint_position = motion_planner.planner_setting.get(PlannerDoubleParam_PGainPositionTracking)
+    motion_planner._init_from_settings()
 
     return motion_planner
 

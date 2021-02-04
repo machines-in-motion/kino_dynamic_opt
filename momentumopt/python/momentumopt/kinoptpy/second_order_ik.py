@@ -43,7 +43,7 @@ class SecondOrderInverseKinematics(object):
         self.d_endeff_tracking = 200
 
         self.p_com_tracking = 100.
-        self.p_orient_tracking = 1.
+        self.p_orient_tracking = 10.
         self.d_orient_tracking = 1.
         self.mom_tracking = 10. * np.array([1., 1., 1., .01, .01, .01])
 
@@ -100,7 +100,6 @@ class SecondOrderInverseKinematics(object):
             # we add some damping
             self.desired_acceleration[(self.ne + 2) * 3:] = self.p_joint_regularization * (joint_regularization_ref - q[7:])
             self.desired_acceleration[(self.ne + 2) * 3:] += - self.d_joint_regularization * dq[6:]
-            # print "vel:\n",self.vel_des,"\n\n"
 
     def fill_weights(self, endeff_contact):
         w = [self.w_lin_mom_tracking * np.ones(3), self.w_ang_mom_tracking * np.ones(3)]
@@ -111,7 +110,6 @@ class SecondOrderInverseKinematics(object):
                 w.append(self.w_endeff_tracking * np.ones(3))
         w.append(self.w_joint_regularization * np.ones(self.nv - 6))
         self.w = np.diag(np.hstack(w))
-        #print "w:\n",self.w,"\n\n"
 
     def update_kinematics(self, q, dq):
         # Update the pinocchio model.
@@ -176,15 +174,9 @@ class SecondOrderInverseKinematics(object):
             return ddq_feet + J_rest_pinv @ rest_acc
 
         else:
-            # print np.shape(self.w)
-            # print np.shape(self.J),"\n"
             hessian = self.J.T @ self.w @ self.J
-            # print hessian, "\n"
             hessian += 1e-6 * np.identity(len(hessian))
             gradient = - self.J.T.dot(self.w).dot(self.desired_acceleration - self.drift_terms).reshape(-1)
-            # w,v=np.linalg.eig(hessian)
-            # np.set_printoptions(precision=6)
-            # print w,"\n"
             return self.qp_solver.quadprog_solve_qp(hessian, gradient)
 
     def solve(self, dt, q_init, dq_init, com_ref, lmom_ref, amom_ref,

@@ -143,7 +143,7 @@ namespace momentumopt {
 	      YAML::ReadParameter(planner_vars, "max_convergence_iters", max_convergence_iters_);
 	      YAML::ReadParameter(planner_vars, "convergence_tolerance", convergence_tolerance_);
         YAML::ReadParameter(planner_vars, "lambda_regularization", lambda_regularization_);
-        // Kinematics solver python paramters
+        // Kinematic paramters of first order IK (python)
         YAML::ReadParameter(planner_vars, "swing_traj_via_z", swing_traj_via_z_);
         YAML::ReadParameter(planner_vars, "w_lin_mom_tracking", w_lin_mom_tracking_);
         YAML::ReadParameter(planner_vars, "w_ang_mom_tracking", w_ang_mom_tracking_);
@@ -156,8 +156,27 @@ namespace momentumopt {
         YAML::ReadParameter(planner_vars, "reg_joint_position", reg_joint_position_);
         YAML::ReadParameter(planner_vars, "num_joint_viapoints", num_joint_viapoints_);
         YAML::ReadParameter(planner_vars, "num_base_viapoints", num_base_viapoints_);
+        // Kinematic paramters of second order IK (python)
+        YAML::ReadParameter(planner_vars, "swing_traj_via_z_second", swing_traj_via_z_second_);
+        YAML::ReadParameter(planner_vars, "w_lin_mom_tracking_second", w_lin_mom_tracking_second_);
+        YAML::ReadParameter(planner_vars, "w_ang_mom_tracking_second", w_ang_mom_tracking_second_);
+        YAML::ReadParameter(planner_vars, "w_endeff_contact_second", w_endeff_contact_second_);
+        YAML::ReadParameter(planner_vars, "w_endeff_tracking_second", w_endeff_tracking_second_);
+        YAML::ReadParameter(planner_vars, "p_endeff_tracking_second", p_endeff_tracking_second_);
+        YAML::ReadParameter(planner_vars, "p_com_tracking_second", p_com_tracking_second_);
+        YAML::ReadParameter(planner_vars, "w_joint_regularization_second", w_joint_regularization_second_);
+        YAML::ReadParameter(planner_vars, "d_endeff_tracking_second", d_endeff_tracking_second_);
+        YAML::ReadParameter(planner_vars, "p_orient_tracking_second", p_orient_tracking_second_);
+        YAML::ReadParameter(planner_vars, "d_orient_tracking_second", d_orient_tracking_second_);
+        YAML::ReadParameter(planner_vars, "p_joint_regularization_second", p_joint_regularization_second_);
+        YAML::ReadParameter(planner_vars, "d_joint_regularization_second", d_joint_regularization_second_);
+        YAML::ReadParameter(planner_vars, "mom_tracking_second", mom_tracking_second_);
+        YAML::ReadParameter(planner_vars, "num_joint_viapoints_second", num_joint_viapoints_second_);
+        YAML::ReadParameter(planner_vars, "num_base_viapoints_second", num_base_viapoints_second_);
         joint_viapoints_.clear();
         base_viapoints_.clear();
+        joint_viapoints_second_.clear();
+        base_viapoints_second_.clear();
         for (int via_id=0; via_id<num_joint_viapoints_; via_id++) {
           joint_viapoints_.push_back(Eigen::VectorXd::Zero(num_dofs_+1));
           YAML::ReadParameter(planner_vars["joint_viapoints"], "via"+std::to_string(via_id), joint_viapoints_[via_id]);
@@ -165,6 +184,14 @@ namespace momentumopt {
         for (int via_id=0; via_id<num_base_viapoints_; via_id++) {
           base_viapoints_.push_back(Eigen::VectorXd::Zero(4));
           YAML::ReadParameter(planner_vars["base_viapoints"], "via"+std::to_string(via_id), base_viapoints_[via_id]);
+        }
+        for (int via_id=0; via_id<num_joint_viapoints_second_; via_id++) {
+          joint_viapoints_second_.push_back(Eigen::VectorXd::Zero(num_dofs_+1));
+          YAML::ReadParameter(planner_vars["joint_viapoints_second"], "via"+std::to_string(via_id), joint_viapoints_second_[via_id]);
+        }
+        for (int via_id=0; via_id<num_base_viapoints_second_; via_id++) {
+          base_viapoints_second_.push_back(Eigen::VectorXd::Zero(4));
+          YAML::ReadParameter(planner_vars["base_viapoints_second"], "via"+std::to_string(via_id), base_viapoints_second_[via_id]);
         }
       }
 
@@ -206,9 +233,13 @@ namespace momentumopt {
       case PlannerIntParam_NumViapoints : { return num_com_viapoints_; }
       case PlannerIntParam_NumActiveEndeffectors : { return num_act_eefs_; }
 
-      // Kinematic momentum user parameters
+      // First order IK (python) parameters
       case PlannerIntParam_NumJointViapoints : { return num_joint_viapoints_; }
       case PlannerIntParam_NumBaseViapoints : { return num_base_viapoints_; }
+
+      // Second order IK (python) parameters
+      case PlannerIntParam_NumJointViapoints_Second : { return num_joint_viapoints_second_; }
+      case PlannerIntParam_NumBaseViapoints_Second : { return num_base_viapoints_second_; }
 
       // Time optimization parameters
       case PlannerIntParam_MaxNumTimeIterations : { return max_time_iterations_; }
@@ -274,7 +305,7 @@ namespace momentumopt {
       case PlannerDoubleParam_WeightTimeRegularization : { return w_time_;}
       case PlannerDoubleParam_WeightTimePenalty : { return w_time_penalty_; }
 
-      // Kinematics momentum optimization weights
+      // weights of first order IK (python)
       case PlannerDoubleParam_SwingTrajViaZ : { return swing_traj_via_z_; }
       case PlannerDoubleParam_WeightLinMomentumTracking : { return w_lin_mom_tracking_; }
       case PlannerDoubleParam_WeightAngMomentumTracking : { return w_ang_mom_tracking_; }
@@ -286,6 +317,20 @@ namespace momentumopt {
       case PlannerDoubleParam_PGainOrientationTracking : { return reg_orientation_; }
       case PlannerDoubleParam_PGainPositionTracking : { return reg_joint_position_; }
 
+      // weights of second order IK (python)
+      case PlannerDoubleParam_SwingTrajViaZ_Second : { return swing_traj_via_z_second_; }
+      case PlannerDoubleParam_WeightLinMomentumTracking_Second : { return w_lin_mom_tracking_second_; }
+      case PlannerDoubleParam_WeightAngMomentumTracking_Second : { return w_ang_mom_tracking_second_; }
+      case PlannerDoubleParam_WeightEndEffContact_Second : { return w_endeff_contact_second_; }
+      case PlannerDoubleParam_WeightEndEffTracking_Second : { return w_endeff_tracking_second_; }
+      case PlannerDoubleParam_PGainEndEffTracking_Second : { return p_endeff_tracking_second_; }
+      case PlannerDoubleParam_PGainComTracking_Second : { return p_com_tracking_second_; }
+      case PlannerDoubleParam_WeightJointReg_Second : { return w_joint_regularization_second_; }
+      case PlannerDoubleParam_DGainEndEffTracking_Second : { return d_endeff_tracking_second_; }
+      case PlannerDoubleParam_PGainBaseOrientationTracking_Second : { return p_orient_tracking_second_; }
+      case PlannerDoubleParam_DGainBaseOrientationTracking_Second : { return d_orient_tracking_second_; }
+      case PlannerDoubleParam_PGainJointRegularization_Second : { return p_joint_regularization_second_; }
+      case PlannerDoubleParam_DGainJointRegularization_Second : { return d_joint_regularization_second_; }
       // Not handled parameters
       default: { throw std::runtime_error("PlannerSetting::get PlannerDoubleParam invalid"); break; }
     }
@@ -370,6 +415,9 @@ namespace momentumopt {
       case PlannerVectorParam_WeightKinematicDefaultJointPositions: { return w_kin_default_joints_; }
       case PlannerVectorParam_WeightKinematicTrackingNonActiveEndeffectorPosition : { return w_kin_eff_pos_nonact_; }
 
+      //Second order IK (python)
+      case PlannerVectorParam_MomentumTracking_Second : { return mom_tracking_second_; }
+
       // Not handled parameters
       default: { throw std::runtime_error("PlannerSetting::get PlannerVectorParam invalid"); break; }
 	}
@@ -396,6 +444,8 @@ namespace momentumopt {
     case PlannerCVectorParam_Viapoints : { return com_viapoints_; }
     case PlannerCVectorParam_JointViapoints : { return joint_viapoints_; }
     case PlannerCVectorParam_BaseViapoints : { return base_viapoints_; }
+    case PlannerCVectorParam_JointViapoints_Second : { return joint_viapoints_second_; }
+    case PlannerCVectorParam_BaseViapoints_Second : { return base_viapoints_second_; }
 
     // Not handled parameters
     default: { throw std::runtime_error("PlannerSetting::get PlannerCVectorParam invalid"); break; }
@@ -420,9 +470,13 @@ namespace momentumopt {
       case PlannerIntParam_NumViapoints : { return num_com_viapoints_; }
       case PlannerIntParam_NumActiveEndeffectors : { return num_act_eefs_; }
 
-      // Kinematic momentum user parameters
+      // First order IK (python) parameters
       case PlannerIntParam_NumJointViapoints : { return num_joint_viapoints_; }
       case PlannerIntParam_NumBaseViapoints : { return num_base_viapoints_; }
+
+      // Second order IK (python) parameters
+      case PlannerIntParam_NumJointViapoints_Second : { return num_joint_viapoints_second_; }
+      case PlannerIntParam_NumBaseViapoints_Second : { return num_base_viapoints_second_; }
 
       // Time optimization parameters
       case PlannerIntParam_MaxNumTimeIterations : { return max_time_iterations_; }
@@ -488,7 +542,7 @@ namespace momentumopt {
       case PlannerDoubleParam_WeightTimeRegularization : { return w_time_;}
       case PlannerDoubleParam_WeightTimePenalty : { return w_time_penalty_; }
 
-      // Kinematics momentum optimization weights
+      // weights of first order IK (python)
       case PlannerDoubleParam_SwingTrajViaZ : { return swing_traj_via_z_; }
       case PlannerDoubleParam_WeightLinMomentumTracking : { return w_lin_mom_tracking_; }
       case PlannerDoubleParam_WeightAngMomentumTracking : { return w_ang_mom_tracking_; }
@@ -499,6 +553,15 @@ namespace momentumopt {
       case PlannerDoubleParam_WeightJointReg : { return w_joint_regularization_; }
       case PlannerDoubleParam_PGainOrientationTracking : { return reg_orientation_; }
       case PlannerDoubleParam_PGainPositionTracking : { return reg_joint_position_; }
+
+      // weights of second order IK (python)
+      case PlannerDoubleParam_SwingTrajViaZ_Second : { return swing_traj_via_z_second_; }
+      case PlannerDoubleParam_WeightLinMomentumTracking_Second : { return w_lin_mom_tracking_second_; }
+      case PlannerDoubleParam_WeightAngMomentumTracking_Second : { return w_ang_mom_tracking_second_; }
+      case PlannerDoubleParam_WeightEndEffContact_Second : { return w_endeff_contact_second_; }
+      case PlannerDoubleParam_WeightEndEffTracking_Second : { return w_endeff_tracking_second_; }
+      case PlannerDoubleParam_PGainEndEffTracking_Second : { return p_endeff_tracking_second_; }
+      case PlannerDoubleParam_PGainComTracking_Second : { return p_com_tracking_second_; }
 
       // Not handled parameters
       default: { throw std::runtime_error("PlannerSetting::set PlannerDoubleParam invalid"); break; }
@@ -584,6 +647,9 @@ namespace momentumopt {
       case PlannerVectorParam_WeightKinematicDefaultJointPositions: { return w_kin_default_joints_; }
       case PlannerVectorParam_WeightKinematicTrackingNonActiveEndeffectorPosition : { return w_kin_eff_pos_nonact_; }
 
+      //Second order IK (python)
+      case PlannerVectorParam_MomentumTracking_Second : { return mom_tracking_second_; }
+
       // Not handled parameters
       default: { throw std::runtime_error("PlannerSetting::get PlannerVectorParam invalid"); break; }
 	}
@@ -610,6 +676,9 @@ namespace momentumopt {
     case PlannerCVectorParam_Viapoints : { return com_viapoints_; }
     case PlannerCVectorParam_JointViapoints : { return joint_viapoints_; }
     case PlannerCVectorParam_BaseViapoints : { return base_viapoints_; }
+    case PlannerCVectorParam_JointViapoints_Second : { return joint_viapoints_second_; }
+    case PlannerCVectorParam_BaseViapoints_Second : { return base_viapoints_second_; }
+
 
     // Not handled parameters
     default: { throw std::runtime_error("PlannerSetting::get PlannerCVectorParam invalid"); break; }

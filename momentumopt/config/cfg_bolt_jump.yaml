@@ -93,7 +93,7 @@ planner_variables:
   default_joint_positions: [0., 0.52, -1.04, 0., 0.52, -1.04]
 
   #########################
-  # Kinematics momentum parameters #
+  # First Order IK parameters #
   #########################
 
   swing_traj_via_z: .2
@@ -121,6 +121,43 @@ planner_variables:
   # roll, pitch, yaw]        # desired base Euler angles in radian
   base_viapoints:
     via0: [1.4, 0., 0., 0.]
+
+  #########################
+  # Second Order IK parameters #
+  #########################
+
+  swing_traj_via_z_second: 0.8
+  w_lin_mom_tracking_second: 1e2
+  w_ang_mom_tracking_second: 1e1
+  w_endeff_contact_second: 1e5
+  w_endeff_tracking_second: 1e5
+  w_joint_regularization_second: 1e-1
+  p_endeff_tracking_second: 1e4
+  d_endeff_tracking_second: 2e2
+  p_com_tracking_second: 1e2
+  p_orient_tracking_second: 1e1
+  d_orient_tracking_second: 1e0
+  p_joint_regularization_second: 1e0
+  d_joint_regularization_second: 5e-1
+  mom_tracking_second: [10., 10., 10., 0.1, 0.1, 0.1]
+  num_joint_viapoints_second: 0
+  num_base_viapoints_second: 0
+
+  # joint via point definition
+  #  [time,                      # activation time of the via point
+  # Front_left_hip, Front_left_knee,
+  # Front_right_hip, Front_right_knee,
+  # Back_left_hip, Back_left_knee,
+  # Back_right_hip, Back_right_knee ]        # desired joint position
+  joint_viapoints_second:
+    via0: [0., 0.52, -1.04, 0., 0.52, -1.04]
+
+  # base via point definition
+  #  [time,                      # activation time of the via point
+  # roll, pitch, yaw]        # desired base Euler angles in radian
+  base_viapoints_second:
+    via0: [1.4, 0., 0., 0.]
+
   #########################
   # Kinematics parameters #
   #########################

@@ -72,7 +72,6 @@ class PointContactInverseKinematics(object):
             self.J[6 + 3 * i: 6 + 3 * (i + 1), :] = self.get_world_oriented_frame_jacobian(q, idx)[:3]
         # this is joint regularization part
         self.J[(self.ne + 2) * 3:,6:] = np.identity(self.nv - 6)
-        #print "jac:\n",self.J,"\n\n"
 
 
     def fill_vel_des(self, q, dq, com_ref, lmom_ref, amom_ref, endeff_pos_ref, endeff_vel_ref, joint_regularization_ref):
@@ -91,7 +90,6 @@ class PointContactInverseKinematics(object):
             self.vel_des[(self.ne + 2) * 3:] = zero(self.nv - 6)
         else:
             self.vel_des[(self.ne + 2) * 3:] = joint_regularization_ref
-            # print "vel:\n",self.vel_des,"\n\n"
 
     def fill_weights(self, endeff_contact):
         w = [self.w_lin_mom_tracking * np.ones(3), self.w_ang_mom_tracking * np.ones(3)]
@@ -102,7 +100,6 @@ class PointContactInverseKinematics(object):
                 w.append(self.w_endeff_tracking * np.ones(3))
         w.append(self.w_joint_regularization * np.ones(self.nv - 6))
         self.w = np.diag(np.hstack(w))
-        # print("w:",w,"\n\n")
 
     def forward_robot(self, q, dq):
         # Update the pinocchio model.
@@ -142,5 +139,4 @@ class PointContactInverseKinematics(object):
         gradient = -self.J.T.dot(self.w).dot(self.vel_des).reshape(-1)
         w,v=np.linalg.eig(hessian)
         # np.set_printoptions(precision=6)
-        # print w,"\n"
         return self.qp_solver.quadprog_solve_qp(hessian, gradient)

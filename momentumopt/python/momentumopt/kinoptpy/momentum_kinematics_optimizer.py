@@ -182,6 +182,10 @@ class MomentumKinematicsOptimizer(object):
         self.reg_orientation = 1e-2
         self.reg_joint_position = 2.
         self.joint_des = None
+        self.n_via_joint = 0
+        self.n_via_base = 0
+        self.via_joint = None
+        self.via_base = None
 
     def reset(self):
         self.kinematics_sequence = KinematicsSequence()
@@ -223,7 +227,7 @@ class MomentumKinematicsOptimizer(object):
 
         self.inv_kin = PointContactInverseKinematics(self.robot.model, self.eff_names)
         self.snd_order_inv_kin = SecondOrderInverseKinematics(self.robot.model, self.eff_names)
-        self.use_second_order_inv_kin = True
+        self.use_second_order_inv_kin = False
 
         self.motion_eff = {
             'trajectory': np.zeros((self.num_time_steps, 3 * self.inv_kin.ne)),
@@ -338,7 +342,6 @@ class MomentumKinematicsOptimizer(object):
         self.init_state = init_state
         self.contact_sequence = contact_sequence
         self.dynamic_sequence = dynamic_sequence
-
         # Create array with centroidal and endeffector informations.
         self.fill_data_from_dynamics()
         self.fill_endeffector_trajectory()
@@ -347,12 +350,9 @@ class MomentumKinematicsOptimizer(object):
         if self.q_init is None:
             self.optimize_initial_position(init_state)
 
-        # Get the desired joint trajectory
-        n_via_joint = self.planner_setting.get(PlannerIntParam_NumJointViapoints)
-        via_joint = self.planner_setting.get(PlannerCVectorParam_JointViapoints)
-
+        # Generate smooth joint trajectory for regularization
         self.joint_des = np.zeros((len(self.q_init[7:]),self.num_time_steps), float)
-        if n_via_joint == 0:
+        if self.n_via_joint == 0:
             for i in range (self.num_time_steps):
                 self.joint_des[:,i] = self.q_init[7 : ].T
         else:
@@ -360,17 +360,13 @@ class MomentumKinematicsOptimizer(object):
             joint_traj_gen.num_time_steps = self.num_time_steps
             joint_traj_gen.init = self.q_init[7:]
             joint_traj_gen.end = self.q_init[7:]
-            joint_traj_gen.generate_trajectory(n_via_joint, via_joint, self.dt)
+            joint_traj_gen.generate_trajectory(self.n_via_joint, self.via_joint, self.dt)
             for it in range(self.num_time_steps):
                 self.joint_des[:,it] = joint_traj_gen.evaluate_trajecory(it)
 
-        # Get the desired base viapoints
-        n_via_base = self.planner_setting.get(PlannerIntParam_NumBaseViapoints)
-        via_base = self.planner_setting.get(PlannerCVectorParam_BaseViapoints)
-
         # Generate smooth base trajectory for regularization
         self.base_des = np.zeros((3,self.num_time_steps), float)
-        if n_via_base == 0:
+        if self.n_via_base == 0:
             for it in range(self.num_time_steps):
                 self.base_des[:,it] = np.array([0., 0., 0.]).reshape(-1)
         else:
@@ -378,7 +374,7 @@ class MomentumKinematicsOptimizer(object):
             base_traj_gen.num_time_steps = self.num_time_steps
             base_traj_gen.init = np.array([0.0, 0.0, 0.0])
             base_traj_gen.end = np.array([0.0, 0.0, 0.0])
-            base_traj_gen.generate_trajectory(n_via_base, via_base, self.dt)
+            base_traj_gen.generate_trajectory(self.n_via_base, self.via_base, self.dt)
             for it in range(self.num_time_steps):
                 self.base_des[:,it] = base_traj_gen.evaluate_trajecory(it)
 
@@ -387,23 +383,25 @@ class MomentumKinematicsOptimizer(object):
         q, dq = self.q_init.copy(), self.dq_init.copy()
 
         if self.use_second_order_inv_kin:
+            print("\n Second order IK solver is used, set use_second_order_inv_kin to False "
+                  "if you wanna use first order IK \n")
             q_kin, dq_kin, com_kin, lmom_kin, amom_kin, endeff_pos_kin, endeff_vel_kin = \
                 self.snd_order_inv_kin.solve(self.dt, q, dq, self.com_dyn, self.lmom_dyn,
                     self.amom_dyn, self.endeff_pos_ref, self.endeff_vel_ref,
-                    self.endeff_contact, self.joint_des.T, self.base_des.T
-                )
+                    self.endeff_contact, self.joint_des.T, self.base_des.T)
 
             for it, (q, dq) in enumerate(zip(q_kin, dq_kin)):
                 self.inv_kin.forward_robot(q, dq)
                 self.fill_kinematic_result(it, q, dq)
         else:
+            print("\n First order IK solver is used, set use_second_order_inv_kin to True "
+                  "if you wanna use second order IK \n")
             for it in range(self.num_time_steps):
                 quad_goal = se3.Quaternion(se3.rpy.rpyToMatrix(np.matrix(self.base_des[:,it]).T))
                 quad_q = se3.Quaternion(float(q[6]), float(q[3]), float(q[4]), float(q[5]))
                 amom_ref = self.reg_orientation * se3.log((quad_goal * quad_q.inverse()).matrix()) + self.amom_dyn[it]
 
                 joint_regularization_ref = self.reg_joint_position * (self.joint_des[:,it] - q[7 : ])
-
 
                 # Fill the kinematics results for it.
                 self.inv_kin.forward_robot(q, dq)
