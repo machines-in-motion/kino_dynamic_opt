@@ -72,12 +72,12 @@ The available motions are:
 
 For an explanation of the different settings in the configuration files, refer to [cfg_solo_jump.yaml].
 
-#### Configuration overview
+#### Select your desired inverse kinematics formulation
 We have two different inverse kinematics formulations implemented, you can choose
-which one you would like to use. The default version is a first order inverse kinematic
+which one you would like to use. The default version is a first order inverse kinematics
 that optimizes for generalized velocities. If you wanna use second order inverse
-kinematics, you would need to change the boolean 'use_second_order_inv_kin to `True`
-in your config file.
+kinematics, you would need to change the boolean `use_second_order_inv_kin` to `True`
+in your config (.yaml) file.
 
 ## Experimental Section
 ```
