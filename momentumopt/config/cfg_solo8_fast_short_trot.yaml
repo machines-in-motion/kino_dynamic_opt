@@ -110,12 +110,13 @@ planner_variables:
   # Second Order IK parameters #
   #########################
 
-  swing_traj_via_z_second: 0.8
+  use_second_order_inv_kin: True
+  swing_traj_via_z_second: 0.1
   w_lin_mom_tracking_second: 1e2
   w_ang_mom_tracking_second: 1e1
   w_endeff_contact_second: 1e5
   w_endeff_tracking_second: 1e5
-  w_joint_regularization_second: 1e-1
+  w_joint_regularization_second: 0.
   p_endeff_tracking_second: 1e4
   d_endeff_tracking_second: 2e2
   p_com_tracking_second: 1e2

@@ -99,6 +99,7 @@ class SecondOrderInverseKinematics(object):
         else:
             # we add some damping
             self.desired_acceleration[(self.ne + 2) * 3:] = self.p_joint_regularization * (joint_regularization_ref - q[7:])
+            # REVIEW(mkhadiv): I am not sure if the negative sign makes sense here!
             self.desired_acceleration[(self.ne + 2) * 3:] += - self.d_joint_regularization * dq[6:]
 
     def fill_weights(self, endeff_contact):
