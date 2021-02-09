@@ -222,8 +222,10 @@ class MotionPlanner():
     def plot_joint_trajecory(self, start=0, end=None,
                              plot_show=True, fig_suptitle=''):
 
-        fig, axes = plt.subplots(np.size(self.kin_optimizer.robot.effs),
-                                 np.size(self.kin_optimizer.robot.joints_list[:-1]),
+        n_eff = np.size(self.kin_optimizer.robot.effs)
+        n_joints = np.size(self.kin_optimizer.robot.joints_list[:-1])
+        fig, axes = plt.subplots(n_eff,
+                                 n_joints,
                                  figsize=(16, 10), sharex=True)
 
         q_app = np.zeros([1,self.kin_optimizer.robot.model.nq])
@@ -231,19 +233,19 @@ class MotionPlanner():
             q = ks.robot_posture.generalized_joint_positions
             q_app = np.append(q_app,q.reshape(1,len(q)),axis=0)
 
-        for i in range(np.size(self.kin_optimizer.robot.effs)):
-            for j in range(np.size(self.kin_optimizer.robot.joints_list[:-1])):
-                axes[i,j].plot(q_app[1:end,i+j+7], label = "act")
-                axes[i,j].plot(self.kin_optimizer.joint_des[i+j,:], label = "des")
+        for i in range(n_eff):
+            for j in range(n_joints):
+                axes[i,j].plot(q_app[1:end,i*n_joints+j+7], label = "act")
+                axes[i,j].plot(self.kin_optimizer.joint_des[i*n_joints+j,:], label = "des")
                 axes[i,j].grid(True)
 
         for i, label in enumerate(self.kin_optimizer.robot.effs):
             axes[i, 0].set_ylabel(label+ ' [rad]')
         for j, title in enumerate(self.kin_optimizer.robot.joints_list[:-1]):
-            axes[np.size(self.kin_optimizer.robot.effs)-1, j].set_xlabel('time steps')
+            axes[n_eff-1, j].set_xlabel('time steps')
             axes[0, j].set_title(title)
 
-        axes[0,np.size(self.kin_optimizer.robot.joints_list[:-1])-1].legend()
+        axes[0,n_joints-1].legend()
         fig.suptitle('Desired and actual joint trajectories')
         self._plot_show(plot_show)
 
