@@ -77,6 +77,12 @@ planner_variables:
   default_joint_positions: [0.52, -1.04, 0.52, -1.04, 0.52, -1.04, 0.52, -1.04]
 
   #########################
+  # IK formulation #
+  #########################
+
+  use_second_order_inv_kin: True # True: Second order IK,  False: First order IK,
+
+  #########################
   # First Order IK parameters #
   #########################
 
@@ -110,7 +116,6 @@ planner_variables:
   # Second Order IK parameters #
   #########################
 
-  use_second_order_inv_kin: True
   swing_traj_via_z_second: 0.1
   w_lin_mom_tracking_second: 1e2
   w_ang_mom_tracking_second: 1e1
@@ -124,7 +129,7 @@ planner_variables:
   d_orient_tracking_second: 1e0
   p_joint_regularization_second: 1e0
   d_joint_regularization_second: 5e-1
-  mom_tracking_second: [10., 10., 10., 0.1, 0.1, 0.1]
+  p_mom_tracking_second: [10., 10., 10., 0.1, 0.1, 0.1]
   num_joint_viapoints_second: 0
   num_base_viapoints_second: 0
 

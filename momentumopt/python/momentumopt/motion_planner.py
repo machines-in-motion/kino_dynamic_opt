@@ -72,7 +72,7 @@ class MotionPlanner():
         self.dynamics_feedback = None
         self.with_lqr = with_lqr
 
-    def _init_from_settings(self):
+    def init_from_settings(self):
         kin_optimizer = self.kin_optimizer
         inv_kin = kin_optimizer.inv_kin
         snd_order_inv_kin = kin_optimizer.snd_order_inv_kin
@@ -97,7 +97,7 @@ class MotionPlanner():
             snd_order_inv_kin.d_orient_tracking = self.planner_setting.get(PlannerDoubleParam_DGainBaseOrientationTracking_Second)
             snd_order_inv_kin.p_joint_regularization = self.planner_setting.get(PlannerDoubleParam_PGainJointRegularization_Second)
             snd_order_inv_kin.d_joint_regularization =self.planner_setting.get(PlannerDoubleParam_DGainJointRegularization_Second)
-            snd_order_inv_kin.mom_tracking = self.planner_setting.get(PlannerVectorParam_MomentumTracking_Second)
+            snd_order_inv_kin.p_mom_tracking = self.planner_setting.get(PlannerVectorParam_PGainMomentumTracking_Second)
         else:
             etg.z_offset = self.planner_setting.get(PlannerDoubleParam_SwingTrajViaZ)
             inv_kin.w_lin_mom_tracking = self.planner_setting.get(PlannerDoubleParam_WeightLinMomentumTracking)

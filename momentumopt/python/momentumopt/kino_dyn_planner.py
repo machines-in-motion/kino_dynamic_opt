@@ -65,7 +65,7 @@ def build_optimization(cfg_file, RobotWrapper, with_lqr):
     motion_planner = MotionPlanner(cfg_file, MomentumKinematicsOptimizer, RobotWrapper, with_lqr)
 
     # load all the parameters of the planner
-    motion_planner._init_from_settings()
+    motion_planner.init_from_settings()
 
     return motion_planner
 

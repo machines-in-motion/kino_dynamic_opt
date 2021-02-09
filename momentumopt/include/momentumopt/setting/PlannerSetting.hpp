@@ -85,7 +85,7 @@ namespace momentumopt {
                       w_kin_com_, w_kin_lmom_, w_kin_amom_, w_kin_lmomd_, w_kin_amomd_, w_kin_eff_pos_,
 					  w_kin_eff_pos_nonact_;
       Eigen::VectorXd default_joint_positions_, w_kin_default_joints_, w_kin_joint_vel_, w_kin_joint_acc_,
-                      min_joint_limits_, max_joint_limits_, mom_tracking_second_;
+                      min_joint_limits_, max_joint_limits_, p_mom_tracking_second_;
       Eigen::VectorXi active_dofs_, extended_active_dofs_;
 
       /*! via points for center of mass motion */

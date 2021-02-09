@@ -142,7 +142,7 @@ void init_params(py::module &m)
 	.value("PlannerVectorParam_WeightKinematicTrackingAngularMomentumRate", PlannerVectorParam_WeightKinematicTrackingAngularMomentumRate)
 	.value("PlannerVectorParam_WeightKinematicTrackingEndeffectorPosition", PlannerVectorParam_WeightKinematicTrackingEndeffectorPosition)
 
-  .value("PlannerVectorParam_MomentumTracking_Second", PlannerVectorParam_MomentumTracking_Second)
+  .value("PlannerVectorParam_PGainMomentumTracking_Second", PlannerVectorParam_PGainMomentumTracking_Second)
   .export_values();
 
   // binding c-vector variables used by the planner

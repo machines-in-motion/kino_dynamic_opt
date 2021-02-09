@@ -45,7 +45,7 @@ class SecondOrderInverseKinematics(object):
         self.p_com_tracking = 100.
         self.p_orient_tracking = 10.
         self.d_orient_tracking = 1.
-        self.mom_tracking = 10. * np.array([1., 1., 1., .01, .01, .01])
+        self.p_mom_tracking = 10. * np.array([1., 1., 1., .01, .01, .01])
 
         self.p_joint_regularization = 1.
         self.d_joint_regularization = .5
@@ -77,7 +77,7 @@ class SecondOrderInverseKinematics(object):
         measured_op_space_velocities = self.J @ dq
 
         # get the ref momentum acc
-        self.desired_acceleration[:6] = dmom_ref + np.diag(self.mom_tracking) @ (mom_ref - self.robot.data.hg)
+        self.desired_acceleration[:6] = dmom_ref + np.diag(self.p_mom_tracking) @ (mom_ref - self.robot.data.hg)
 
         # com part
         self.desired_acceleration[:3] += self.p_com_tracking * (com_ref - self.robot.com(q))
@@ -167,10 +167,10 @@ class SecondOrderInverseKinematics(object):
             J_feet_pinv = scipy.linalg.pinv(J_feet, cond=0.00001)
             ddq_feet = J_feet_pinv @ (self.desired_acceleration[6:6+12] - self.drift_terms[6:6+12])
             N_feet = np.eye(self.nv) - J_feet_pinv @ J_feet
-            J_rest = self.J[:6,:]#np.vstack((self.J[:6,:], self.J[18:,:]))
+            J_rest = self.J[:6,:]
             J_rest_pinv = scipy.linalg.pinv(J_rest @ N_feet, cond=0.00001)
-            rest_acc = self.desired_acceleration[:6]#np.hstack((self.desired_acceleration[:6], self.desired_acceleration[18:]))
-            rest_acc = rest_acc - self.drift_terms[:6]#np.hstack((self.drift_terms[:6], self.drift_terms[18:]))
+            rest_acc = self.desired_acceleration[:6]
+            rest_acc = rest_acc - self.drift_terms[:6]
             rest_acc = rest_acc - J_rest @ ddq_feet
             return ddq_feet + J_rest_pinv @ rest_acc
 
@@ -226,23 +226,15 @@ class SecondOrderInverseKinematics(object):
         t = 0.
         for it in range(1,num_time_steps):
             for inner in range(inner_steps):
-                # dmom_ref = np.hstack((lmom_ref[it], amom_ref[it])) - np.hstack((lmom_ref[it-1], amom_ref[it-1]))
-                # dmom_ref = dmom_ref / dt
-                # endeff_acc_ref = (endeff_vel_ref[it] - endeff_vel_ref[it-1])/dt
                 dmom_ref = np.hstack((splined_lmom_ref(t, nu=1),
-                                   splined_amom_ref(t, nu=1)))#np.zeros([6,])
-                endeff_acc_ref = splined_endeff_vel_ref(t, nu=1)#np.zeros([self.ne,3])
+                                   splined_amom_ref(t, nu=1)))
+                endeff_acc_ref = splined_endeff_vel_ref(t, nu=1)
                 orien_ref = pin.Quaternion(pin.rpy.rpyToMatrix(splined_base_ori_ref(t)))
                 ddq = self.step(
                         q, dq, splined_com_ref(t), orien_ref,
                         np.hstack((splined_lmom_ref(t), splined_amom_ref(t))), dmom_ref,
                         splined_endeff_pos_ref(t), splined_endeff_vel_ref(t), endeff_acc_ref,
                         endeff_contact[it], splined_joint_pos_ref(t))
-                # ddq = self.step(
-                #         q, dq, com_ref[it], orien_ref,
-                #         np.hstack((lmom_ref[it], amom_ref[it])), dmom_ref,
-                #         endeff_pos_ref[it], endeff_vel_ref[it], endeff_acc_ref,
-                #         endeff_contact[it], joint_pos_ref[it])
 
                 # Integrate to the next state.
                 dq += ddq * inner_dt

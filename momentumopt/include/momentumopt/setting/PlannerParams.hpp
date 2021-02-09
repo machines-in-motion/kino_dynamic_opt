@@ -172,7 +172,7 @@ namespace momentumopt {
 	PlannerVectorParam_WeightKinematicTrackingNonActiveEndeffectorPosition,
 
   // Second order IK (python)
-  PlannerVectorParam_MomentumTracking_Second,
+  PlannerVectorParam_PGainMomentumTracking_Second,
   };
 
 
