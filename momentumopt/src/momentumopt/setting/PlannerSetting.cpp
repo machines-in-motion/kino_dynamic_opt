@@ -143,22 +143,11 @@ namespace momentumopt {
 	      YAML::ReadParameter(planner_vars, "max_convergence_iters", max_convergence_iters_);
 	      YAML::ReadParameter(planner_vars, "convergence_tolerance", convergence_tolerance_);
         YAML::ReadParameter(planner_vars, "lambda_regularization", lambda_regularization_);
-        // Kinematic paramters of first order IK (python)
-        YAML::ReadParameter(planner_vars, "swing_traj_via_z", swing_traj_via_z_);
-        YAML::ReadParameter(planner_vars, "w_lin_mom_tracking", w_lin_mom_tracking_);
-        YAML::ReadParameter(planner_vars, "w_ang_mom_tracking", w_ang_mom_tracking_);
-        YAML::ReadParameter(planner_vars, "w_endeff_contact", w_endeff_contact_);
-        YAML::ReadParameter(planner_vars, "w_endeff_tracking", w_endeff_tracking_);
-        YAML::ReadParameter(planner_vars, "p_endeff_tracking", p_endeff_tracking_);
-        YAML::ReadParameter(planner_vars, "p_com_tracking", p_com_tracking_);
-        YAML::ReadParameter(planner_vars, "w_joint_regularization", w_joint_regularization_);
-        YAML::ReadParameter(planner_vars, "reg_orientation", reg_orientation_);
-        YAML::ReadParameter(planner_vars, "reg_joint_position", reg_joint_position_);
-        YAML::ReadParameter(planner_vars, "num_joint_viapoints", num_joint_viapoints_);
-        YAML::ReadParameter(planner_vars, "num_base_viapoints", num_base_viapoints_);
-        // Kinematic paramters of second order IK (python)
+        // IK version to be used in python
         YAML::ReadParameter(planner_vars, "use_second_order_inv_kin", use_second_order_inv_kin_);
+
         if (use_second_order_inv_kin_) {
+          // Kinematic paramters of second order IK (python)
           YAML::ReadParameter(planner_vars, "swing_traj_via_z_second", swing_traj_via_z_second_);
           YAML::ReadParameter(planner_vars, "w_lin_mom_tracking_second", w_lin_mom_tracking_second_);
           YAML::ReadParameter(planner_vars, "w_ang_mom_tracking_second", w_ang_mom_tracking_second_);
@@ -176,30 +165,50 @@ namespace momentumopt {
           YAML::ReadParameter(planner_vars, "num_joint_viapoints_second", num_joint_viapoints_second_);
           YAML::ReadParameter(planner_vars, "num_base_viapoints_second", num_base_viapoints_second_);
         }
+        else{
+          // Kinematic paramters of first order IK (python)
+          YAML::ReadParameter(planner_vars, "swing_traj_via_z", swing_traj_via_z_);
+          YAML::ReadParameter(planner_vars, "w_lin_mom_tracking", w_lin_mom_tracking_);
+          YAML::ReadParameter(planner_vars, "w_ang_mom_tracking", w_ang_mom_tracking_);
+          YAML::ReadParameter(planner_vars, "w_endeff_contact", w_endeff_contact_);
+          YAML::ReadParameter(planner_vars, "w_endeff_tracking", w_endeff_tracking_);
+          YAML::ReadParameter(planner_vars, "p_endeff_tracking", p_endeff_tracking_);
+          YAML::ReadParameter(planner_vars, "p_com_tracking", p_com_tracking_);
+          YAML::ReadParameter(planner_vars, "w_joint_regularization", w_joint_regularization_);
+          YAML::ReadParameter(planner_vars, "reg_orientation", reg_orientation_);
+          YAML::ReadParameter(planner_vars, "reg_joint_position", reg_joint_position_);
+          YAML::ReadParameter(planner_vars, "num_joint_viapoints", num_joint_viapoints_);
+          YAML::ReadParameter(planner_vars, "num_base_viapoints", num_base_viapoints_);
+      }
 
-        joint_viapoints_.clear();
-        base_viapoints_.clear();
+
         if (use_second_order_inv_kin_) {
           joint_viapoints_second_.clear();
           base_viapoints_second_.clear();
         }
-        for (int via_id=0; via_id<num_joint_viapoints_; via_id++) {
-          joint_viapoints_.push_back(Eigen::VectorXd::Zero(num_dofs_+1));
-          YAML::ReadParameter(planner_vars["joint_viapoints"], "via"+std::to_string(via_id), joint_viapoints_[via_id]);
+        else{
+          joint_viapoints_.clear();
+          base_viapoints_.clear();
         }
-          for (int via_id=0; via_id<num_base_viapoints_; via_id++) {
-            base_viapoints_.push_back(Eigen::VectorXd::Zero(4));
-            YAML::ReadParameter(planner_vars["base_viapoints"], "via"+std::to_string(via_id), base_viapoints_[via_id]);
+        if (use_second_order_inv_kin_) {
+          for (int via_id=0; via_id<num_joint_viapoints_second_; via_id++) {
+            joint_viapoints_second_.push_back(Eigen::VectorXd::Zero(num_dofs_+1));
+            YAML::ReadParameter(planner_vars["joint_viapoints_second"], "via"+std::to_string(via_id), joint_viapoints_second_[via_id]);
           }
-          if (use_second_order_inv_kin_) {
-            for (int via_id=0; via_id<num_joint_viapoints_second_; via_id++) {
-              joint_viapoints_second_.push_back(Eigen::VectorXd::Zero(num_dofs_+1));
-              YAML::ReadParameter(planner_vars["joint_viapoints_second"], "via"+std::to_string(via_id), joint_viapoints_second_[via_id]);
-            }
-            for (int via_id=0; via_id<num_base_viapoints_second_; via_id++) {
-              base_viapoints_second_.push_back(Eigen::VectorXd::Zero(4));
-              YAML::ReadParameter(planner_vars["base_viapoints_second"], "via"+std::to_string(via_id), base_viapoints_second_[via_id]);
-            }
+          for (int via_id=0; via_id<num_base_viapoints_second_; via_id++) {
+            base_viapoints_second_.push_back(Eigen::VectorXd::Zero(4));
+            YAML::ReadParameter(planner_vars["base_viapoints_second"], "via"+std::to_string(via_id), base_viapoints_second_[via_id]);
+          }
+        }
+        else{
+          for (int via_id=0; via_id<num_joint_viapoints_; via_id++) {
+            joint_viapoints_.push_back(Eigen::VectorXd::Zero(num_dofs_+1));
+            YAML::ReadParameter(planner_vars["joint_viapoints"], "via"+std::to_string(via_id), joint_viapoints_[via_id]);
+          }
+            for (int via_id=0; via_id<num_base_viapoints_; via_id++) {
+              base_viapoints_.push_back(Eigen::VectorXd::Zero(4));
+              YAML::ReadParameter(planner_vars["base_viapoints"], "via"+std::to_string(via_id), base_viapoints_[via_id]);
+          }
         }
       }
 
