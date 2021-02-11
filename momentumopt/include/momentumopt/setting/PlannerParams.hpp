@@ -16,9 +16,11 @@ namespace momentumopt {
     PlannerIntParam_NumDofs,
 	PlannerIntParam_NumTimesteps,
 	PlannerIntParam_NumViapoints,
-    PlannerIntParam_NumJointViapoints,
-    PlannerIntParam_NumBaseViapoints,
-    PlannerIntParam_NumActiveDofs,
+  PlannerIntParam_NumJointViapoints,
+  PlannerIntParam_NumBaseViapoints,
+  PlannerIntParam_NumJointViapoints_Second,
+  PlannerIntParam_NumBaseViapoints_Second,
+  PlannerIntParam_NumActiveDofs,
 	PlannerIntParam_MaxNumTimeIterations,
 	PlannerIntParam_NumExtendedActiveDofs,
 	PlannerIntParam_NumActiveEndeffectors,
@@ -45,6 +47,9 @@ namespace momentumopt {
 
 	// Solver setting
 	PlannerBoolParam_UseDefaultSolverSetting,
+
+  // Inverse kinematics (python)
+  PlannerBoolParam_UseSecondOrderInverseKinematics
   };
 
   /*! Available double variables used by the planner */
@@ -74,7 +79,7 @@ namespace momentumopt {
 	PlannerDoubleParam_LambdaRegularization,
     PlannerDoubleParam_KinConvergenceTolerance,
 
-  //kinematics momentum optimization
+  // First order IK (python)
   PlannerDoubleParam_SwingTrajViaZ,
   PlannerDoubleParam_WeightLinMomentumTracking,
   PlannerDoubleParam_WeightAngMomentumTracking,
@@ -85,6 +90,21 @@ namespace momentumopt {
   PlannerDoubleParam_WeightJointReg,
   PlannerDoubleParam_PGainOrientationTracking,
   PlannerDoubleParam_PGainPositionTracking,
+
+  // Second order IK (python)
+  PlannerDoubleParam_SwingTrajViaZ_Second,
+  PlannerDoubleParam_WeightLinMomentumTracking_Second,
+  PlannerDoubleParam_WeightAngMomentumTracking_Second,
+  PlannerDoubleParam_WeightEndEffContact_Second,
+  PlannerDoubleParam_WeightEndEffTracking_Second,
+  PlannerDoubleParam_PGainEndEffTracking_Second,
+  PlannerDoubleParam_PGainComTracking_Second,
+  PlannerDoubleParam_WeightJointReg_Second,
+  PlannerDoubleParam_DGainEndEffTracking_Second,
+  PlannerDoubleParam_PGainBaseOrientationTracking_Second,
+  PlannerDoubleParam_DGainBaseOrientationTracking_Second,
+  PlannerDoubleParam_PGainJointRegularization_Second,
+  PlannerDoubleParam_DGainJointRegularization_Second,
   };
 
   /*! Available string variables used by the planner */
@@ -150,7 +170,11 @@ namespace momentumopt {
     PlannerVectorParam_WeightKinematicTrackingAngularMomentumRate,
 	PlannerVectorParam_WeightKinematicTrackingEndeffectorPosition,
 	PlannerVectorParam_WeightKinematicTrackingNonActiveEndeffectorPosition,
+
+  // Second order IK (python)
+  PlannerVectorParam_PGainMomentumTracking_Second,
   };
+
 
   /*! Available array variables used by the planner */
   enum PlannerArrayParam {
@@ -163,6 +187,8 @@ namespace momentumopt {
     PlannerCVectorParam_Viapoints,
     PlannerCVectorParam_JointViapoints,
     PlannerCVectorParam_BaseViapoints,
+    PlannerCVectorParam_JointViapoints_Second,
+    PlannerCVectorParam_BaseViapoints_Second,
   };
 
 }

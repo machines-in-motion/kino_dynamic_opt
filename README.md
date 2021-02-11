@@ -7,7 +7,7 @@ It contains a list of solvers and optimization problem for robotics optimal cont
 
 Please make sure to install the following packages:
 
-- the qp solver quadprog and the code manager
+- the qp solver quadprog and the code manager treep
 ```
 pip install lightargs==1.22 quadprog treep
 ```
@@ -58,7 +58,7 @@ python3 ../nodes/kino_dyn_planner -i ../config/cfg_bolt_jump.yaml --bolt
 ```
 
 #### Configuration overview
-The different configuration files are available in
+Different configuration files are available in
 ```
 <work_folder>/kino_dynamic_opt/momentumopt/config
 ```
@@ -71,6 +71,13 @@ The available motions are:
 * cfg_solo8_trot.yaml
 
 For an explanation of the different settings in the configuration files, refer to [cfg_solo_jump.yaml].
+
+#### Select your desired inverse kinematics formulation
+We have two different inverse kinematics formulations implemented, you can choose
+which one you would like to use. The default version is a first order inverse kinematics
+that optimizes for generalized velocities. If you wanna use second order inverse
+kinematics, you would need to change the boolean `use_second_order_inv_kin` to `True`
+in your config (.yaml) file.
 
 ## Experimental Section
 ```

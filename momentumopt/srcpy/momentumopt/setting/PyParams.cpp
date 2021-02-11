@@ -24,6 +24,8 @@ void init_params(py::module &m)
   .value("PlannerIntParam_NumViapoints", PlannerIntParam_NumViapoints)
   .value("PlannerIntParam_NumJointViapoints", PlannerIntParam_NumJointViapoints)
   .value("PlannerIntParam_NumBaseViapoints", PlannerIntParam_NumBaseViapoints)
+  .value("PlannerIntParam_NumJointViapoints_Second", PlannerIntParam_NumJointViapoints_Second)
+  .value("PlannerIntParam_NumBaseViapoints_Second", PlannerIntParam_NumBaseViapoints_Second)
 	.value("PlannerIntParam_NumActiveDofs", PlannerIntParam_NumActiveDofs)
 	.value("PlannerIntParam_NumSubsamples", PlannerIntParam_NumSubsamples)
 	.value("PlannerIntParam_KinDynIterations", PlannerIntParam_KinDynIterations)
@@ -41,6 +43,7 @@ void init_params(py::module &m)
   .value("PlannerBoolParam_IsTimeHorizonFixed", PlannerBoolParam_IsTimeHorizonFixed)
   .value("PlannerBoolParam_IsFrictionConeLinear", PlannerBoolParam_IsFrictionConeLinear)
 	.value("PlannerBoolParam_UseDefaultSolverSetting", PlannerBoolParam_UseDefaultSolverSetting)
+  .value("PlannerBoolParam_UseSecondOrderInverseKinematics", PlannerBoolParam_UseSecondOrderInverseKinematics)
   .export_values();
 
   // binding double parameters
@@ -71,6 +74,19 @@ void init_params(py::module &m)
   .value("PlannerDoubleParam_WeightJointReg", PlannerDoubleParam_WeightJointReg)
   .value("PlannerDoubleParam_PGainOrientationTracking", PlannerDoubleParam_PGainOrientationTracking)
   .value("PlannerDoubleParam_PGainPositionTracking", PlannerDoubleParam_PGainPositionTracking)
+  .value("PlannerDoubleParam_SwingTrajViaZ_Second", PlannerDoubleParam_SwingTrajViaZ_Second)
+  .value("PlannerDoubleParam_WeightLinMomentumTracking_Second", PlannerDoubleParam_WeightLinMomentumTracking_Second)
+  .value("PlannerDoubleParam_WeightAngMomentumTracking_Second", PlannerDoubleParam_WeightAngMomentumTracking_Second)
+  .value("PlannerDoubleParam_WeightEndEffContact_Second", PlannerDoubleParam_WeightEndEffContact_Second)
+  .value("PlannerDoubleParam_WeightEndEffTracking_Second", PlannerDoubleParam_WeightEndEffTracking_Second)
+  .value("PlannerDoubleParam_PGainEndEffTracking_Second", PlannerDoubleParam_PGainEndEffTracking_Second)
+  .value("PlannerDoubleParam_PGainComTracking_Second", PlannerDoubleParam_PGainComTracking_Second)
+  .value("PlannerDoubleParam_WeightJointReg_Second", PlannerDoubleParam_WeightJointReg_Second)
+  .value("PlannerDoubleParam_DGainEndEffTracking_Second", PlannerDoubleParam_DGainEndEffTracking_Second)
+  .value("PlannerDoubleParam_PGainBaseOrientationTracking_Second", PlannerDoubleParam_PGainBaseOrientationTracking_Second)
+  .value("PlannerDoubleParam_DGainBaseOrientationTracking_Second", PlannerDoubleParam_DGainBaseOrientationTracking_Second)
+  .value("PlannerDoubleParam_PGainJointRegularization_Second", PlannerDoubleParam_PGainJointRegularization_Second)
+  .value("PlannerDoubleParam_DGainJointRegularization_Second", PlannerDoubleParam_DGainJointRegularization_Second)
   .export_values();
 
   // binding string parameters
@@ -125,12 +141,16 @@ void init_params(py::module &m)
 	.value("PlannerVectorParam_WeightKinematicTrackingLinearMomentumRate", PlannerVectorParam_WeightKinematicTrackingLinearMomentumRate)
 	.value("PlannerVectorParam_WeightKinematicTrackingAngularMomentumRate", PlannerVectorParam_WeightKinematicTrackingAngularMomentumRate)
 	.value("PlannerVectorParam_WeightKinematicTrackingEndeffectorPosition", PlannerVectorParam_WeightKinematicTrackingEndeffectorPosition)
+
+  .value("PlannerVectorParam_PGainMomentumTracking_Second", PlannerVectorParam_PGainMomentumTracking_Second)
   .export_values();
 
   // binding c-vector variables used by the planner
   py::enum_<PlannerCVectorParam>(m, "PlannerCVectorParam")
     .value("PlannerCVectorParam_JointViapoints", PlannerCVectorParam_JointViapoints)
     .value("PlannerCVectorParam_BaseViapoints", PlannerCVectorParam_BaseViapoints)
+    .value("PlannerCVectorParam_JointViapoints_Second", PlannerCVectorParam_JointViapoints_Second)
+    .value("PlannerCVectorParam_BaseViapoints_Second", PlannerCVectorParam_BaseViapoints_Second)
     .value("PlannerCVectorParam_Viapoints", PlannerCVectorParam_Viapoints)
     .export_values();
   }

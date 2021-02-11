@@ -72,22 +72,48 @@ class MotionPlanner():
         self.dynamics_feedback = None
         self.with_lqr = with_lqr
 
-        self._init_from_settings()
-
-    def _init_from_settings(self):
+    def init_from_settings(self):
         kin_optimizer = self.kin_optimizer
         inv_kin = kin_optimizer.inv_kin
+        snd_order_inv_kin = kin_optimizer.snd_order_inv_kin
         etg = kin_optimizer.endeff_traj_generator
-        etg.z_offset = self.planner_setting.get(PlannerDoubleParam_SwingTrajViaZ)
+        kin_optimizer.use_second_order_inv_kin = self.planner_setting.get(PlannerBoolParam_UseSecondOrderInverseKinematics)
+        if self.kin_optimizer.use_second_order_inv_kin:
+            etg.z_offset = self.planner_setting.get(PlannerDoubleParam_SwingTrajViaZ_Second)
+            snd_order_inv_kin.w_lin_mom_tracking = self.planner_setting.get(PlannerDoubleParam_WeightLinMomentumTracking_Second)
+            snd_order_inv_kin.w_ang_mom_tracking = self.planner_setting.get(PlannerDoubleParam_WeightAngMomentumTracking_Second)
+            snd_order_inv_kin.w_endeff_contact = self.planner_setting.get(PlannerDoubleParam_WeightEndEffContact_Second)
+            snd_order_inv_kin.w_endeff_tracking = self.planner_setting.get(PlannerDoubleParam_WeightEndEffTracking_Second)
+            snd_order_inv_kin.w_joint_regularization = self.planner_setting.get(PlannerDoubleParam_WeightJointReg_Second)
+            snd_order_inv_kin.p_endeff_tracking = self.planner_setting.get(PlannerDoubleParam_PGainEndEffTracking_Second)
+            snd_order_inv_kin.p_com_tracking = self.planner_setting.get(PlannerDoubleParam_PGainComTracking_Second)
+            kin_optimizer.n_via_joint = self.planner_setting.get(PlannerIntParam_NumJointViapoints_Second)
+            kin_optimizer.via_joint = self.planner_setting.get(PlannerCVectorParam_JointViapoints_Second)
+            kin_optimizer.n_via_base = self.planner_setting.get(PlannerIntParam_NumBaseViapoints_Second)
+            kin_optimizer.via_base = self.planner_setting.get(PlannerCVectorParam_BaseViapoints_Second)
+            # parameters specific to second order IK
+            snd_order_inv_kin.d_endeff_tracking = self.planner_setting.get(PlannerDoubleParam_DGainEndEffTracking_Second)
+            snd_order_inv_kin.p_orient_tracking = self.planner_setting.get(PlannerDoubleParam_PGainBaseOrientationTracking_Second)
+            snd_order_inv_kin.d_orient_tracking = self.planner_setting.get(PlannerDoubleParam_DGainBaseOrientationTracking_Second)
+            snd_order_inv_kin.p_joint_regularization = self.planner_setting.get(PlannerDoubleParam_PGainJointRegularization_Second)
+            snd_order_inv_kin.d_joint_regularization =self.planner_setting.get(PlannerDoubleParam_DGainJointRegularization_Second)
+            snd_order_inv_kin.p_mom_tracking = self.planner_setting.get(PlannerVectorParam_PGainMomentumTracking_Second)
+        else:
+            etg.z_offset = self.planner_setting.get(PlannerDoubleParam_SwingTrajViaZ)
+            inv_kin.w_lin_mom_tracking = self.planner_setting.get(PlannerDoubleParam_WeightLinMomentumTracking)
+            inv_kin.w_ang_mom_tracking = self.planner_setting.get(PlannerDoubleParam_WeightAngMomentumTracking)
+            inv_kin.w_endeff_contact = self.planner_setting.get(PlannerDoubleParam_WeightEndEffContact)
+            inv_kin.w_endeff_tracking = self.planner_setting.get(PlannerDoubleParam_WeightEndEffTracking)
+            inv_kin.w_joint_regularization = self.planner_setting.get(PlannerDoubleParam_WeightJointReg)
+            inv_kin.p_endeff_tracking = self.planner_setting.get(PlannerDoubleParam_PGainEndEffTracking)
+            inv_kin.p_com_tracking = self.planner_setting.get(PlannerDoubleParam_PGainComTracking)
+            kin_optimizer.reg_orientation = self.planner_setting.get(PlannerDoubleParam_PGainOrientationTracking)
+            kin_optimizer.reg_joint_position = self.planner_setting.get(PlannerDoubleParam_PGainPositionTracking)
+            kin_optimizer.n_via_joint = self.planner_setting.get(PlannerIntParam_NumJointViapoints)
+            kin_optimizer.via_joint = self.planner_setting.get(PlannerCVectorParam_JointViapoints)
+            kin_optimizer.n_via_base = self.planner_setting.get(PlannerIntParam_NumBaseViapoints)
+            kin_optimizer.via_base = self.planner_setting.get(PlannerCVectorParam_BaseViapoints)
 
-        inv_kin.w_lin_mom_tracking = self.planner_setting.get(PlannerDoubleParam_WeightLinMomentumTracking)
-        inv_kin.w_ang_mom_tracking = self.planner_setting.get(PlannerDoubleParam_WeightAngMomentumTracking)
-        inv_kin.w_endeff_contact = self.planner_setting.get(PlannerDoubleParam_WeightEndEffContact)
-        inv_kin.w_endeff_tracking = self.planner_setting.get(PlannerDoubleParam_WeightEndEffTracking)
-        inv_kin.p_endeff_tracking = self.planner_setting.get(PlannerDoubleParam_PGainEndEffTracking)
-        inv_kin.p_com_tracking = self.planner_setting.get(PlannerDoubleParam_PGainComTracking)
-        inv_kin.w_joint_regularization = self.planner_setting.get(PlannerDoubleParam_WeightJointReg)
-        kin_optimizer.reg_orientation = self.planner_setting.get(PlannerDoubleParam_PGainOrientationTracking)
 
     def optimize_dynamics(self, kd_iter):
         print("DynOpt", kd_iter)
@@ -196,8 +222,10 @@ class MotionPlanner():
     def plot_joint_trajecory(self, start=0, end=None,
                              plot_show=True, fig_suptitle=''):
 
-        fig, axes = plt.subplots(np.size(self.kin_optimizer.robot.effs),
-                                 np.size(self.kin_optimizer.robot.joints_list[:-1]),
+        n_eff = np.size(self.kin_optimizer.robot.effs)
+        n_joints = np.size(self.kin_optimizer.robot.joints_list[:-1])
+        fig, axes = plt.subplots(n_eff,
+                                 n_joints,
                                  figsize=(16, 10), sharex=True)
 
         q_app = np.zeros([1,self.kin_optimizer.robot.model.nq])
@@ -205,19 +233,19 @@ class MotionPlanner():
             q = ks.robot_posture.generalized_joint_positions
             q_app = np.append(q_app,q.reshape(1,len(q)),axis=0)
 
-        for i in range(np.size(self.kin_optimizer.robot.effs)):
-            for j in range(np.size(self.kin_optimizer.robot.joints_list[:-1])):
-                axes[i,j].plot(q_app[1:end,i+j+7], label = "act")
-                axes[i,j].plot(self.kin_optimizer.joint_des[i+j,:], label = "des")
+        for i in range(n_eff):
+            for j in range(n_joints):
+                axes[i,j].plot(q_app[1:end,i*n_joints+j+7], label = "act")
+                axes[i,j].plot(self.kin_optimizer.joint_des[i*n_joints+j,:], label = "des")
                 axes[i,j].grid(True)
 
         for i, label in enumerate(self.kin_optimizer.robot.effs):
             axes[i, 0].set_ylabel(label+ ' [rad]')
         for j, title in enumerate(self.kin_optimizer.robot.joints_list[:-1]):
-            axes[np.size(self.kin_optimizer.robot.effs)-1, j].set_xlabel('time steps')
+            axes[n_eff-1, j].set_xlabel('time steps')
             axes[0, j].set_title(title)
 
-        axes[0,np.size(self.kin_optimizer.robot.joints_list[:-1])-1].legend()
+        axes[0,n_joints-1].legend()
         fig.suptitle('Desired and actual joint trajectories')
         self._plot_show(plot_show)
 
@@ -316,24 +344,19 @@ class MotionPlanner():
     def optimize_motion(self, plot_com_motion=True):
         dyn_optimizer = self.dyn_optimizer
         kin_optimizer = self.kin_optimizer
-
         self.optimize_dynamics(0)
         for kd_iter in range(0, self.planner_setting.get(PlannerIntParam_KinDynIterations)):
             self.optimize_kinematics(kd_iter + 1, plotting=False)
             self.optimize_dynamics(kd_iter + 1)
             optimized_kin_plan = self.kin_optimizer.kinematics_sequence
             optimized_dyn_plan = self.dyn_optimizer.dynamicsSequence()
-
             if plot_com_motion:
                 self.plot_com_motion(optimized_dyn_plan.dynamics_states,
                         optimized_kin_plan.kinematics_states, plot_show=False,
                         fig_suptitle='kd_iter={}'.format(kd_iter))
-
         optimized_kin_plan = kin_optimizer.kinematics_sequence
         optimized_dyn_plan = dyn_optimizer.dynamicsSequence()
-
         time_vector = create_time_vector(dyn_optimizer.dynamicsSequence())
-
         if self.with_lqr:
             self.optimize_dynamics_feedback()
         return optimized_kin_plan, kin_optimizer.motion_eff, \
