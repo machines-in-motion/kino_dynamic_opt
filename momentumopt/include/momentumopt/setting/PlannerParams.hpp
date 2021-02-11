@@ -98,7 +98,6 @@ namespace momentumopt {
   PlannerDoubleParam_WeightEndEffContact_Second,
   PlannerDoubleParam_WeightEndEffTracking_Second,
   PlannerDoubleParam_PGainEndEffTracking_Second,
-  PlannerDoubleParam_PGainComTracking_Second,
   PlannerDoubleParam_WeightJointReg_Second,
   PlannerDoubleParam_DGainEndEffTracking_Second,
   PlannerDoubleParam_PGainBaseOrientationTracking_Second,
@@ -173,6 +172,7 @@ namespace momentumopt {
 
   // Second order IK (python)
   PlannerVectorParam_PGainMomentumTracking_Second,
+  PlannerVectorParam_PGainComTracking_Second,
   };
 
 

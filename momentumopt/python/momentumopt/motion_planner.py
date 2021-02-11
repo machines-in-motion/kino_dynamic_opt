@@ -79,6 +79,8 @@ class MotionPlanner():
         etg = kin_optimizer.endeff_traj_generator
         kin_optimizer.use_second_order_inv_kin = self.planner_setting.get(PlannerBoolParam_UseSecondOrderInverseKinematics)
         if self.kin_optimizer.use_second_order_inv_kin:
+            print("\n Second order IK formulation is used, set use_second_order_inv_kin to False "
+                  "in the config file if you want to use first order IK. \n")
             etg.z_offset = self.planner_setting.get(PlannerDoubleParam_SwingTrajViaZ_Second)
             snd_order_inv_kin.w_lin_mom_tracking = self.planner_setting.get(PlannerDoubleParam_WeightLinMomentumTracking_Second)
             snd_order_inv_kin.w_ang_mom_tracking = self.planner_setting.get(PlannerDoubleParam_WeightAngMomentumTracking_Second)
@@ -86,12 +88,13 @@ class MotionPlanner():
             snd_order_inv_kin.w_endeff_tracking = self.planner_setting.get(PlannerDoubleParam_WeightEndEffTracking_Second)
             snd_order_inv_kin.w_joint_regularization = self.planner_setting.get(PlannerDoubleParam_WeightJointReg_Second)
             snd_order_inv_kin.p_endeff_tracking = self.planner_setting.get(PlannerDoubleParam_PGainEndEffTracking_Second)
-            snd_order_inv_kin.p_com_tracking = self.planner_setting.get(PlannerDoubleParam_PGainComTracking_Second)
             kin_optimizer.n_via_joint = self.planner_setting.get(PlannerIntParam_NumJointViapoints_Second)
             kin_optimizer.via_joint = self.planner_setting.get(PlannerCVectorParam_JointViapoints_Second)
             kin_optimizer.n_via_base = self.planner_setting.get(PlannerIntParam_NumBaseViapoints_Second)
             kin_optimizer.via_base = self.planner_setting.get(PlannerCVectorParam_BaseViapoints_Second)
+
             # parameters specific to second order IK
+            snd_order_inv_kin.p_com_tracking = self.planner_setting.get(PlannerVectorParam_PGainComTracking_Second)
             snd_order_inv_kin.d_endeff_tracking = self.planner_setting.get(PlannerDoubleParam_DGainEndEffTracking_Second)
             snd_order_inv_kin.p_orient_tracking = self.planner_setting.get(PlannerDoubleParam_PGainBaseOrientationTracking_Second)
             snd_order_inv_kin.d_orient_tracking = self.planner_setting.get(PlannerDoubleParam_DGainBaseOrientationTracking_Second)
@@ -99,6 +102,8 @@ class MotionPlanner():
             snd_order_inv_kin.d_joint_regularization =self.planner_setting.get(PlannerDoubleParam_DGainJointRegularization_Second)
             snd_order_inv_kin.p_mom_tracking = self.planner_setting.get(PlannerVectorParam_PGainMomentumTracking_Second)
         else:
+            print("\n First order IK formulation is used, set use_second_order_inv_kin to True "
+                  "in the config file if you want to use second order IK. \n")
             etg.z_offset = self.planner_setting.get(PlannerDoubleParam_SwingTrajViaZ)
             inv_kin.w_lin_mom_tracking = self.planner_setting.get(PlannerDoubleParam_WeightLinMomentumTracking)
             inv_kin.w_ang_mom_tracking = self.planner_setting.get(PlannerDoubleParam_WeightAngMomentumTracking)
@@ -253,7 +258,7 @@ class MotionPlanner():
     def plot_foot_traj(self, plot_show=True):
         fig, axes = plt.subplots(np.size(self.kin_optimizer.robot.effs), 3, figsize=(16, 8), sharex=True)
         des_ee_traj = EndeffectorTrajectoryGenerator()
-        des_ee_traj.z_offset = self.planner_setting.get(PlannerDoubleParam_SwingTrajViaZ)
+        des_ee_traj.z_offset = self.kin_optimizer.endeff_traj_generator.z_offset
         des_ee_pos = des_ee_traj(self.kin_optimizer)[0]
         foot_traj = self.kin_optimizer.motion_eff['trajectory']
 
@@ -347,7 +352,7 @@ class MotionPlanner():
         self.optimize_dynamics(0)
         for kd_iter in range(0, self.planner_setting.get(PlannerIntParam_KinDynIterations)):
             self.optimize_kinematics(kd_iter + 1, plotting=False)
-            self.optimize_dynamics(kd_iter + 1)
+            # self.optimize_dynamics(kd_iter + 1)
             optimized_kin_plan = self.kin_optimizer.kinematics_sequence
             optimized_dyn_plan = self.dyn_optimizer.dynamicsSequence()
             if plot_com_motion:

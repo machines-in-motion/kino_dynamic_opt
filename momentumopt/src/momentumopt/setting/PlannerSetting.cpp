@@ -344,7 +344,6 @@ namespace momentumopt {
       case PlannerDoubleParam_WeightEndEffContact_Second : { return w_endeff_contact_second_; }
       case PlannerDoubleParam_WeightEndEffTracking_Second : { return w_endeff_tracking_second_; }
       case PlannerDoubleParam_PGainEndEffTracking_Second : { return p_endeff_tracking_second_; }
-      case PlannerDoubleParam_PGainComTracking_Second : { return p_com_tracking_second_; }
       case PlannerDoubleParam_WeightJointReg_Second : { return w_joint_regularization_second_; }
       case PlannerDoubleParam_DGainEndEffTracking_Second : { return d_endeff_tracking_second_; }
       case PlannerDoubleParam_PGainBaseOrientationTracking_Second : { return p_orient_tracking_second_; }
@@ -437,6 +436,7 @@ namespace momentumopt {
 
       //Second order IK (python)
       case PlannerVectorParam_PGainMomentumTracking_Second : { return p_mom_tracking_second_; }
+      case PlannerVectorParam_PGainComTracking_Second : { return p_com_tracking_second_; }
 
       // Not handled parameters
       default: { throw std::runtime_error("PlannerSetting::get PlannerVectorParam invalid"); break; }
@@ -584,7 +584,6 @@ namespace momentumopt {
       case PlannerDoubleParam_WeightEndEffContact_Second : { return w_endeff_contact_second_; }
       case PlannerDoubleParam_WeightEndEffTracking_Second : { return w_endeff_tracking_second_; }
       case PlannerDoubleParam_PGainEndEffTracking_Second : { return p_endeff_tracking_second_; }
-      case PlannerDoubleParam_PGainComTracking_Second : { return p_com_tracking_second_; }
 
       // Not handled parameters
       default: { throw std::runtime_error("PlannerSetting::set PlannerDoubleParam invalid"); break; }
@@ -672,6 +671,7 @@ namespace momentumopt {
 
       //Second order IK (python)
       case PlannerVectorParam_PGainMomentumTracking_Second : { return p_mom_tracking_second_; }
+      case PlannerVectorParam_PGainComTracking_Second : { return p_com_tracking_second_; }
 
       // Not handled parameters
       default: { throw std::runtime_error("PlannerSetting::get PlannerVectorParam invalid"); break; }

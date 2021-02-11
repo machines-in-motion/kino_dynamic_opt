@@ -42,7 +42,7 @@ class SecondOrderInverseKinematics(object):
         self.p_endeff_tracking = 10000.
         self.d_endeff_tracking = 200
 
-        self.p_com_tracking = 100.
+        self.p_com_tracking = [10., 10., 10.]
         self.p_orient_tracking = 10.
         self.d_orient_tracking = 1.
         self.p_mom_tracking = 10. * np.array([1., 1., 1., .01, .01, .01])
@@ -80,7 +80,7 @@ class SecondOrderInverseKinematics(object):
         self.desired_acceleration[:6] = dmom_ref + np.diag(self.p_mom_tracking) @ (mom_ref - self.robot.data.hg)
 
         # com part
-        self.desired_acceleration[:3] += self.p_com_tracking * (com_ref - self.robot.com(q))
+        self.desired_acceleration[:3] += np.diag(self.p_com_tracking) @ (com_ref - self.robot.com(q))
 
         # orientation part
         base_orien = self.robot.data.oMf[self.base_id].rotation
@@ -99,7 +99,6 @@ class SecondOrderInverseKinematics(object):
         else:
             # we add some damping
             self.desired_acceleration[(self.ne + 2) * 3:] = self.p_joint_regularization * (joint_regularization_ref - q[7:])
-            # REVIEW(mkhadiv): I am not sure if the negative sign makes sense here!
             self.desired_acceleration[(self.ne + 2) * 3:] += - self.d_joint_regularization * dq[6:]
 
     def fill_weights(self, endeff_contact):

@@ -72,7 +72,7 @@ namespace momentumopt {
              lambda_regularization_, swing_traj_via_z_, w_lin_mom_tracking_, w_ang_mom_tracking_, w_endeff_contact_,
              w_endeff_tracking_, p_endeff_tracking_, p_com_tracking_, w_joint_regularization_, reg_orientation_,
              reg_joint_position_, swing_traj_via_z_second_ ,w_lin_mom_tracking_second_ ,w_ang_mom_tracking_second_,
-             w_endeff_contact_second_, w_endeff_tracking_second_, p_endeff_tracking_second_, p_com_tracking_second_,
+             w_endeff_contact_second_, w_endeff_tracking_second_, p_endeff_tracking_second_,
              w_joint_regularization_second_, d_endeff_tracking_second_, p_orient_tracking_second_,
              d_orient_tracking_second_, p_joint_regularization_second_, d_joint_regularization_second_;
 
@@ -85,7 +85,7 @@ namespace momentumopt {
                       w_kin_com_, w_kin_lmom_, w_kin_amom_, w_kin_lmomd_, w_kin_amomd_, w_kin_eff_pos_,
 					  w_kin_eff_pos_nonact_;
       Eigen::VectorXd default_joint_positions_, w_kin_default_joints_, w_kin_joint_vel_, w_kin_joint_acc_,
-                      min_joint_limits_, max_joint_limits_, p_mom_tracking_second_;
+                      min_joint_limits_, max_joint_limits_, p_mom_tracking_second_, p_com_tracking_second_;
       Eigen::VectorXi active_dofs_, extended_active_dofs_;
 
       /*! via points for center of mass motion */

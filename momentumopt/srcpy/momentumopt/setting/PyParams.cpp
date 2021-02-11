@@ -80,7 +80,6 @@ void init_params(py::module &m)
   .value("PlannerDoubleParam_WeightEndEffContact_Second", PlannerDoubleParam_WeightEndEffContact_Second)
   .value("PlannerDoubleParam_WeightEndEffTracking_Second", PlannerDoubleParam_WeightEndEffTracking_Second)
   .value("PlannerDoubleParam_PGainEndEffTracking_Second", PlannerDoubleParam_PGainEndEffTracking_Second)
-  .value("PlannerDoubleParam_PGainComTracking_Second", PlannerDoubleParam_PGainComTracking_Second)
   .value("PlannerDoubleParam_WeightJointReg_Second", PlannerDoubleParam_WeightJointReg_Second)
   .value("PlannerDoubleParam_DGainEndEffTracking_Second", PlannerDoubleParam_DGainEndEffTracking_Second)
   .value("PlannerDoubleParam_PGainBaseOrientationTracking_Second", PlannerDoubleParam_PGainBaseOrientationTracking_Second)
@@ -143,6 +142,7 @@ void init_params(py::module &m)
 	.value("PlannerVectorParam_WeightKinematicTrackingEndeffectorPosition", PlannerVectorParam_WeightKinematicTrackingEndeffectorPosition)
 
   .value("PlannerVectorParam_PGainMomentumTracking_Second", PlannerVectorParam_PGainMomentumTracking_Second)
+  .value("PlannerVectorParam_PGainComTracking_Second", PlannerVectorParam_PGainComTracking_Second)
   .export_values();
 
   // binding c-vector variables used by the planner
