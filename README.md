@@ -1,4 +1,4 @@
-# Kino-dynamic Trajectory Optimization for Quadruped Robot
+# Kino-dynamic Trajectory Optimization for Multiped Robots
 
 This software provides methods for kino-dynamic optimization for multiped robots.
 It contains a list of solvers and optimization problem for robotics optimal control.
