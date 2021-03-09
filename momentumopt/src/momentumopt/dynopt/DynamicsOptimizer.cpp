@@ -625,16 +625,17 @@ namespace momentumopt {
   void DynamicsOptimizer::storeSolution()
   {
 	com_.getGuessValue(mat_guess_);
+  dynamicsSequence().dynamicsState(0).centerOfMass() = Eigen::Vector3d(mat_guess_.block<3,1>(0,0));
     for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++)
-      dynamicsSequence().dynamicsState(time_id).centerOfMass() = Eigen::Vector3d(mat_guess_.block<3,1>(0,time_id));
+      dynamicsSequence().dynamicsState(time_id+1).centerOfMass() = Eigen::Vector3d(mat_guess_.block<3,1>(0,time_id));
 
 	lmom_.getGuessValue(mat_guess_);
     for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++)
-      dynamicsSequence().dynamicsState(time_id).linearMomentum() = Eigen::Vector3d(mat_guess_.block<3,1>(0,time_id));
+      dynamicsSequence().dynamicsState(time_id+1).linearMomentum() = Eigen::Vector3d(mat_guess_.block<3,1>(0,time_id));
 
 	amom_.getGuessValue(mat_guess_);
     for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++)
-      dynamicsSequence().dynamicsState(time_id).angularMomentum() = Eigen::Vector3d(mat_guess_.block<3,1>(0,time_id));
+      dynamicsSequence().dynamicsState(time_id+1).angularMomentum() = Eigen::Vector3d(mat_guess_.block<3,1>(0,time_id));
 
     if (this->getSetting().heuristic() == Heuristic::TimeOptimization) {
   	  dt_.getGuessValue(mat_guess_);

@@ -179,39 +179,3 @@ class PolynominalList(object):
 
     def deval(self, t):
         return self.get_poly(t).deval(t)
-
-
-def generate_eff_traj(contacts, z_max, z_min):
-    effs = contacts.keys()
-    eff_traj_poly = {}
-
-    for eff in effs:
-        cnt = contacts[eff]
-        num_contacts = len(cnt)
-
-        poly_traj = [
-            PolynominalList(), PolynominalList(), PolynominalList()
-        ]
-
-        for i in range(num_contacts):
-            # Create a constant polynominal for endeffector on the ground.
-            t = [cnt[i].start_time(), cnt[i].end_time()]
-            for idx in range(3):
-                poly_traj[idx].append(t, constant_poly(cnt[i].position()[idx]))
-
-            # If there is a contact following, add the transition between
-            # the two contact points.
-            if i < num_contacts - 1:
-                t = [cnt[i].end_time(), cnt[i+1].start_time()]
-
-                for idx in range(3):
-                    via = None
-                    if idx == 2:
-                        via = 0.1*max((z_max - z_min), 0.1) + cnt[i].position()[idx]
-                    poly = poly_points(t, cnt[i].position()[idx], cnt[i+1].position()[idx], via)
-                    poly_traj[idx].append(t, poly)
-
-        eff_traj_poly[eff] = poly_traj
-
-    # returns end eff trajectories
-    return eff_traj_poly
