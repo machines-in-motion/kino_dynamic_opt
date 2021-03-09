@@ -178,7 +178,7 @@ planner_variables:
   n_act_eefs: 2
   # time step discretization
   time_step: 0.01
-  time_horizon: 2.49
+  time_horizon: 2.50
   external_force: [0.00, 0.00, 0.00]
   com_displacement: [0.00, 0.0, 0.00]
   # Will only read via points if this number is great than 0
@@ -315,7 +315,7 @@ solverlqr_dynamics:
 
   problem_name: DynamicMomentumOptimization
   time_step: 0.01
-  time_horizon: 2.49
+  time_horizon: 2.50
   state_dimension: 9
   control_dimension: 12
   initial_state: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
