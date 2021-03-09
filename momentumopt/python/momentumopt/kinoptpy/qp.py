@@ -59,7 +59,10 @@ class QpSolver():
             print("quadprog: note that warm-start values ignored by wrapper")
         qp_G = P
         qp_a = -q
-        if G is not None and h is not None:
+        if A is not None and G is None:
+            meq = A.shape[0]
+            return solve_qp(qp_G, qp_a, -A.T, -b, meq)[0]
+        elif G is not None:
             if A is not None:
                 qp_C = -vstack([A, G]).T
                 qp_b = -hstack([b, h])
