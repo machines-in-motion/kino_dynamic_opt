@@ -52,6 +52,7 @@ class PointContactInverseKinematics(object):
         # (self.nv - 6) is the number of jointss for posture regularization
         self.J = np.zeros(((self.ne + 2) * 3 + (self.nv - 6), self.nv))
         self.vel_des = zero( (self.ne + 2) * 3 + (self.nv - 6) )
+        self.mom_ref_air_phase = zero(6)
 
         self.qp_solver = QpSolver()
 
@@ -65,7 +66,6 @@ class PointContactInverseKinematics(object):
             index)
 
     def fill_jacobians(self, q):
-        # REVIEW(jviereck): The Ludo invkin sets the angular momentum part to the identity.
         self.J[:6, :] = self.robot.data.Ag
 #         self.J[:3, :] = robot.data.Jcom * invkin.mass
         for i, idx in enumerate(self.endeff_ids):
@@ -74,7 +74,11 @@ class PointContactInverseKinematics(object):
         self.J[(self.ne + 2) * 3:,6:] = np.identity(self.nv - 6)
 
 
-    def fill_vel_des(self, q, dq, com_ref, lmom_ref, amom_ref, endeff_pos_ref, endeff_vel_ref, joint_regularization_ref):
+    def fill_vel_des(self, q, dq, com_ref, lmom_ref, amom_ref, endeff_pos_ref,
+                     endeff_vel_ref, joint_regularization_ref, is_flight_phase):
+        if is_flight_phase:
+            self.mom_ref_air_phase[:3] = lmom_ref
+            self.mom_ref_air_phase[3:6] = amom_ref
         self.vel_des[:3] = (lmom_ref + self.p_com_tracking * (com_ref - self.robot.com(q)))
         self.vel_des[3:6] = amom_ref
 
@@ -111,7 +115,9 @@ class PointContactInverseKinematics(object):
         self.last_q = q.copy()
         self.last_dq = dq.copy()
 
-    def compute(self, q, dq, com_ref, lmom_ref, amom_ref, endeff_pos_ref, endeff_vel_ref, endeff_contact, joint_regularization_ref):
+    def compute(self, q, dq, com_ref, lmom_ref, amom_ref, endeff_pos_ref,
+                endeff_vel_ref, endeff_contact, joint_regularization_ref,
+                is_flight_phase=False):
         '''
         Arguments:
             q: Current robot state
@@ -121,12 +127,16 @@ class PointContactInverseKinematics(object):
             amom_ref: Reference angular momentum in global coordinates
             endeff_pos_ref: [N_endeff x 3] Reference endeffectors position in global coordinates
             endeff_vel_ref: [N_endeff x 3] Reference endeffectors velocity in global coordinates
+            endeff_contact: True if end-effector is in contact
+            joint_regularization_ref: regularize joint values around a desired trajectory
+            is_flight_phase: True if all end-effectors are in the air
         '''
         if not np.all(np.equal(self.last_q, q)) or np.all(np.equal(self.last_dq, dq)):
             self.forward_robot(q, dq)
 
         self.fill_jacobians(q)
-        self.fill_vel_des(q, dq, com_ref, lmom_ref, amom_ref, endeff_pos_ref, endeff_vel_ref, joint_regularization_ref)
+        self.fill_vel_des(q, dq, com_ref, lmom_ref, amom_ref, endeff_pos_ref,
+                          endeff_vel_ref, joint_regularization_ref, is_flight_phase)
         self.fill_weights(endeff_contact)
 
         self.forwarded_robot = False
@@ -134,9 +144,11 @@ class PointContactInverseKinematics(object):
         # print("Jacobian shape:",np.shape(self.J))
         # print("desired vel shape:",np.shape(self.vel_des))
         hessian = self.J.T.dot(self.w).dot(self.J)
-        # print hessian, "\n"
         hessian += 1e-6 * np.identity(len(hessian))
         gradient = -self.J.T.dot(self.w).dot(self.vel_des).reshape(-1)
-        w,v=np.linalg.eig(hessian)
-        # np.set_printoptions(precision=6)
-        return self.qp_solver.quadprog_solve_qp(hessian, gradient)
+
+        if is_flight_phase:
+            # solve constrained problem when in the air
+            return self.qp_solver.quadprog_solve_qp(hessian, gradient, A = self.J[:6,:], b = self.mom_ref_air_phase)
+        else:
+            return self.qp_solver.quadprog_solve_qp(hessian, gradient)

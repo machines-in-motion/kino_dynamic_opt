@@ -26,72 +26,6 @@ from pymomentum import \
     PlannerIntParam_NumTimesteps, \
     PlannerDoubleParam_TimeStep
 
-class Contact(object):
-    def __init__(self, position, start_time, end_time):
-        self.pos = position
-        self.init_time = start_time
-        self.final_time = end_time
-
-    def position(self):
-        return self.pos
-
-    def start_time(self):
-        return self.init_time
-
-    def end_time(self):
-        return self.final_time
-
-
-def get_contact_plan(contact_states, effs):
-    contacts = {}
-    for i, eff in enumerate(effs):
-        num_contacts = len(contact_states(i))
-        contacts[eff] = []
-        for j in range(num_contacts):
-            contact_ = contact_states(i)[j]
-            start_time = contact_.start_time
-            end_time = contact_.end_time
-            position = contact_.position
-            contacts[eff].append(Contact(position, start_time, end_time))
-
-    return contacts
-
-
-def generate_eff_traj(contacts, z_offset):
-    effs = contacts.keys()
-    eff_traj_poly = {}
-
-    for eff in effs:
-        cnt = contacts[eff]
-        num_contacts = len(cnt)
-
-        poly_traj = [
-            PolynominalList(), PolynominalList(), PolynominalList()
-        ]
-
-        for i in range(num_contacts):
-            # Create a constant polynominal for endeffector on the ground.
-            t = [cnt[i].start_time(), cnt[i].end_time()]
-            for idx in range(3):
-                poly_traj[idx].append(t, constant_poly(cnt[i].position()[idx]))
-
-            # If there is a contact following, add the transition between
-            # the two contact points.
-            if i < num_contacts - 1:
-                t = [cnt[i].end_time(), cnt[i+1].start_time()]
-
-                for idx in range(3):
-                    via = None
-                    if idx == 2:
-                        via = z_offset + cnt[i].position()[idx]
-                    poly = poly_points(t, cnt[i].position()[idx], cnt[i+1].position()[idx], via)
-                    poly_traj[idx].append(t, poly)
-
-        eff_traj_poly[eff] = poly_traj
-
-    # returns end eff trajectories
-    return eff_traj_poly
-
 
 class EndeffectorTrajectoryGenerator(object):
     def __init__(self):
@@ -101,6 +35,61 @@ class EndeffectorTrajectoryGenerator(object):
         z_max = min(max(mom_kin_optimizer.com_dyn[:, 2]), self.max_bound)
         z_min = max(min(mom_kin_optimizer.com_dyn[:, 2]), self.min_bound)
         return z_max, z_min
+
+    def is_end_eff_in_contact(self, it, eff, mom_kin_optimizer):
+        if mom_kin_optimizer.dynamic_sequence.dynamics_states[it].effActivation(eff):
+            endeff_contact = 1.
+        else:
+            endeff_contact = 0.
+        return endeff_contact
+
+    def get_contact_plan_from_dyn_optimizer(self, mom_kin_optimizer):
+        contact_plan = {}
+        for i, eff in enumerate(mom_kin_optimizer.eff_names):
+            contact_plan[eff] = []
+            start_time = 0.
+            count = 1
+            for it in range(mom_kin_optimizer.num_time_steps-1):
+                current_contact_activation = mom_kin_optimizer.dynamic_sequence.dynamics_states[it].effActivation(i)
+                last_contact_activation = mom_kin_optimizer.dynamic_sequence.dynamics_states[it+1].effActivation(i)
+                if not current_contact_activation == last_contact_activation:
+                    if (count%2 == 0):
+                        start_time = it+1
+                    elif (count%2 == 1 or it == mom_kin_optimizer.num_time_steps-1):
+                        end_time = it
+                        plan = [start_time, end_time, mom_kin_optimizer.dynamic_sequence.dynamics_states[it].eff(i)]
+                        contact_plan[eff].append(plan)
+                    count += 1
+        return contact_plan
+
+
+    def generate_eff_traj(self, mom_kin_optimizer, contact_plan):
+        eff_traj_poly = {}
+        for eff in mom_kin_optimizer.eff_names:
+            num_contacts = len(contact_plan[eff])
+            poly_traj = [PolynominalList(), PolynominalList(), PolynominalList()]
+            for i in range(num_contacts):
+                # Create a constant polynominal for endeffector on the ground.
+                t = [contact_plan[eff][i][0], contact_plan[eff][i][1]]
+                for idx in range(3):
+                    poly_traj[idx].append(t, constant_poly(contact_plan[eff][i][2][idx]))
+
+                # If there is a contact following, add the transition between
+                # the two contact points.
+                if i < num_contacts - 1:
+                    t = [contact_plan[eff][i][1], contact_plan[eff][i+1][0]]
+                    for idx in range(3):
+                        via = None
+                        if idx == 2:
+                            via = self.z_offset + contact_plan[eff][i][2][idx]
+                        poly = poly_points(t, contact_plan[eff][i][2][idx], contact_plan[eff][i+1][2][idx], via)
+                        poly_traj[idx].append(t, poly)
+
+            eff_traj_poly[eff] = poly_traj
+
+        # returns end eff trajectories
+        return eff_traj_poly
+
 
     def __call__(self, mom_kin_optimizer):
         '''
@@ -114,11 +103,11 @@ class EndeffectorTrajectoryGenerator(object):
         num_eff = len(mom_kin_optimizer.eff_names)
         num_time_steps = mom_kin_optimizer.num_time_steps
 
-        contacts = get_contact_plan(mom_kin_optimizer.contact_sequence.contact_states,
-                                    mom_kin_optimizer.eff_names)
+
+        contact_plan = self.get_contact_plan_from_dyn_optimizer(mom_kin_optimizer)
 
         # Generate minimum jerk trajectories
-        eff_traj_poly = generate_eff_traj(contacts, self.z_offset)
+        eff_traj_poly = self.generate_eff_traj(mom_kin_optimizer, contact_plan)
 
         # Compute the endeffector position and velocity trajectories.
         endeff_pos_ref = np.zeros((num_time_steps, num_eff, 3))
@@ -127,15 +116,9 @@ class EndeffectorTrajectoryGenerator(object):
 
         for it in range(num_time_steps):
             for eff, name in enumerate(mom_kin_optimizer.eff_names):
-                endeff_pos_ref[it][eff] = [eff_traj_poly[name][i].eval(it * dt) for i in range(3)]
-                endeff_vel_ref[it][eff] = [eff_traj_poly[name][i].deval(it * dt) for i in range(3)]
-
-                # HACK: If the velocity is zero, assume the endeffector is in
-                # contact with the ground.
-                if np.all(endeff_vel_ref[it][eff] == 0.):
-                    endeff_contact[it][eff] = 1.
-                else:
-                    endeff_contact[it][eff] = 0.
+                endeff_pos_ref[it][eff] = [eff_traj_poly[name][i].eval(it) for i in range(3)]
+                endeff_vel_ref[it][eff] = [eff_traj_poly[name][i].deval(it) for i in range(3)]
+                endeff_contact[it][eff] = self.is_end_eff_in_contact(it, eff, mom_kin_optimizer)
 
         return endeff_pos_ref, endeff_vel_ref, endeff_contact
 
@@ -399,7 +382,22 @@ class MomentumKinematicsOptimizer(object):
             for it in range(self.num_time_steps):
                 quad_goal = se3.Quaternion(se3.rpy.rpyToMatrix(np.matrix(self.base_des[:,it]).T))
                 quad_q = se3.Quaternion(float(q[6]), float(q[3]), float(q[4]), float(q[5]))
-                amom_ref = self.reg_orientation * se3.log((quad_goal * quad_q.inverse()).matrix()) + self.amom_dyn[it]
+
+                ## check if this instance belongs to the flight phase and set the momentums accordingly
+                for eff in range(len(self.eff_names)):
+                    if self.dynamic_sequence.dynamics_states[it].effActivation(eff):
+                        is_flight_phase = False
+                        break
+                    else:
+                        is_flight_phase = True
+                ## for flight phase keep the desired momentum constant
+                if is_flight_phase:
+                    lmom_ref[0:2] = mom_ref_flight[0:2]
+                    amom_ref = mom_ref_flight[3:6]
+                    lmom_ref[2] -= self.inv_kin.mass * 9.81 * self.dt
+                else:
+                    lmom_ref = self.lmom_dyn[it]
+                    amom_ref = (self.reg_orientation * se3.log((quad_goal * quad_q.inverse()).matrix()).T + self.amom_dyn[it]).reshape(-1)
 
                 joint_regularization_ref = self.reg_joint_position * (self.joint_des[:,it] - q[7 : ])
 
@@ -407,10 +405,17 @@ class MomentumKinematicsOptimizer(object):
                 self.inv_kin.forward_robot(q, dq)
                 self.fill_kinematic_result(it, q, dq)
 
+                # Store the momentum to be used in flight phase
+                if not is_flight_phase:
+                    mom_ref_flight = (self.inv_kin.J[0:6, :].dot(dq)).reshape(-1)
+
+            # Compute the inverse kinematics
+
                 dq = self.inv_kin.compute(
-                        q, dq, self.com_dyn[it], self.lmom_dyn[it], amom_ref,
+                        q, dq, self.com_dyn[it], lmom_ref, amom_ref,
                         self.endeff_pos_ref[it], self.endeff_vel_ref[it],
-                        self.endeff_contact[it], joint_regularization_ref)
+                        self.endeff_contact[it], joint_regularization_ref,
+                        is_flight_phase)
 
                 # Integrate to the next state.
                 q = se3.integrate(self.robot.model, q, dq * self.dt)
