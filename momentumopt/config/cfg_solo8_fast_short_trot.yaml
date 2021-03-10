@@ -80,7 +80,7 @@ planner_variables:
   # IK formulation #
   #########################
 
-  use_second_order_inv_kin: True # True: Second order IK,  False: First order IK,
+  use_second_order_inv_kin: False # True: Second order IK,  False: First order IK,
 
   #########################
   # First Order IK parameters #

@@ -79,6 +79,8 @@ class MotionPlanner():
         etg = kin_optimizer.endeff_traj_generator
         kin_optimizer.use_second_order_inv_kin = self.planner_setting.get(PlannerBoolParam_UseSecondOrderInverseKinematics)
         if self.kin_optimizer.use_second_order_inv_kin:
+            print("\n Second order IK formulation is used, set use_second_order_inv_kin to False "
+                  "in the config file if you want to use first order IK. \n")
             etg.z_offset = self.planner_setting.get(PlannerDoubleParam_SwingTrajViaZ_Second)
             snd_order_inv_kin.w_lin_mom_tracking = self.planner_setting.get(PlannerDoubleParam_WeightLinMomentumTracking_Second)
             snd_order_inv_kin.w_ang_mom_tracking = self.planner_setting.get(PlannerDoubleParam_WeightAngMomentumTracking_Second)
@@ -99,6 +101,8 @@ class MotionPlanner():
             snd_order_inv_kin.d_joint_regularization =self.planner_setting.get(PlannerDoubleParam_DGainJointRegularization_Second)
             snd_order_inv_kin.p_mom_tracking = self.planner_setting.get(PlannerVectorParam_PGainMomentumTracking_Second)
         else:
+            print("\n First order IK formulation is used, set use_second_order_inv_kin to True "
+                  "in the config file if you want to use second order IK. \n")
             etg.z_offset = self.planner_setting.get(PlannerDoubleParam_SwingTrajViaZ)
             inv_kin.w_lin_mom_tracking = self.planner_setting.get(PlannerDoubleParam_WeightLinMomentumTracking)
             inv_kin.w_ang_mom_tracking = self.planner_setting.get(PlannerDoubleParam_WeightAngMomentumTracking)
