@@ -56,17 +56,17 @@ contact_plan:
 
   effcnt_rf:
   - [0.0, 1.0, 0.20, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
-  - [1.7, 3.0, 0.20, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [1.5, 3.0, 0.20, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
 
   effcnt_lf:
   - [0.0, 1.0, 0.20, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
-  - [1.7, 3.0, 0.20, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [1.5, 3.0, 0.20, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
   effcnt_rh:
   - [0.0, 1.0, -0.20, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
-  - [1.7, 3.0, -0.20, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [1.5, 3.0, -0.20, -0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
   effcnt_lh:
   - [0.0, 1.0, -0.20, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
-  - [1.7, 3.0, -0.20, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [1.5, 3.0, -0.20, 0.142, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
   effvia_rf: []
   effvia_lf: []
   effvia_rh: []
@@ -86,7 +86,7 @@ planner_variables:
   active_dofs: [0, 1, 2, 3, 4, 5, 6, 7]
   min_joint_limits: [-2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5]
   max_joint_limits: [2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5]
-  default_joint_positions: [0., 0.52, -1.04, 0., 0.52, -1.04, 0., 0.52, -1.04, 0., 0.52, -1.04]
+  default_joint_positions: [0., 0.52, -1.04, 0., 0.52, -1.04, 0., -0.52, 1.04, 0., -0.52, 1.04]
 
   #########################
   # IK formulation #
@@ -98,16 +98,16 @@ planner_variables:
   # First Order IK parameters #
   #########################
 
-  swing_traj_via_z: .4
-  w_lin_mom_tracking: 20.
+  swing_traj_via_z: .3
+  w_lin_mom_tracking: 1000.
   w_ang_mom_tracking: 1.
   w_endeff_contact: 30.
-  w_endeff_tracking: 0.1
-  p_endeff_tracking: 0.
-  p_com_tracking: .1
+  w_endeff_tracking: 1.
+  p_endeff_tracking: 3.
+  p_com_tracking: 3.
   w_joint_regularization: .05
   reg_orientation: 5.
-  reg_joint_position: 2.
+  reg_joint_position: 1.
   num_joint_viapoints: 0
   num_base_viapoints: 0
   # joint via point definition
@@ -197,7 +197,7 @@ planner_variables:
   heuristic: TrustRegion  # Types: TrustRegion, SoftConstraint, TimeOptimization #
   n_act_eefs: 4
   # time step discretization
-  time_step: 0.01
+  time_step: 0.005
   time_horizon: 3.0
   external_force: [0.00, 0.00, 0.00]
   com_displacement: [0.00, 0.0, 0.00]
@@ -222,11 +222,11 @@ planner_variables:
   ############################
 
   gravity: 9.81
-  robot_mass: 2.178
+  robot_mass: 2.50000
   friction_coeff: 0.5
   floor_height: 0.0
   # minimum allowed distance from the robot base to the floor
-  min_rel_height: 0.05
+  min_rel_height: 0.15
   friction_cone: LinearCone  # Types: LinearCone, SocCone #
   time_range: [0.02, 0.25]
   is_time_horizon_fixed: true
@@ -334,7 +334,7 @@ solverlqr_dynamics:
   ##########################
 
   problem_name: DynamicMomentumOptimization
-  time_step: 0.01
+  time_step: 0.005
   time_horizon: 3.0
   state_dimension: 9
   control_dimension: 12

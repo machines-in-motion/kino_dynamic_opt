@@ -56,17 +56,17 @@ contact_plan:
 
   effcnt_rf:
   - [0.0, 1.0, 0.20, -0.15, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
-  - [1.7, 3.0, 0.20, -0.15, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [1.4, 3.0, 0.20, -0.15, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
 
   effcnt_lf:
   - [0.0, 1.0, 0.20, 0.15, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
-  - [1.7, 3.0, 0.20, 0.15, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [1.4, 3.0, 0.20, 0.15, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
   effcnt_rh:
   - [0.0, 1.0, -0.20, -0.15, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
-  - [1.7, 3.0, -0.20, -0.15, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [1.4, 3.0, -0.20, -0.15, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
   effcnt_lh:
   - [0.0, 1.0, -0.20, 0.15, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
-  - [1.7, 3.0, -0.20, 0.15, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
+  - [1.4, 3.0, -0.20, 0.15, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0]
   effvia_rf: []
   effvia_lf: []
   effvia_rh: []
@@ -100,16 +100,16 @@ planner_variables:
   # First Order IK parameters #
   #########################
 
-  swing_traj_via_z: .8
-  w_lin_mom_tracking: 50.
+  swing_traj_via_z: .2
+  w_lin_mom_tracking: 1000.
   w_ang_mom_tracking: 1.
   w_endeff_contact: 30.
   w_endeff_tracking: 0.1
-  p_endeff_tracking: 0.
-  p_com_tracking: 1.
-  w_joint_regularization: .05
+  p_endeff_tracking: 2.
+  p_com_tracking: 3.
+  w_joint_regularization: .01
   reg_orientation: 5.
-  reg_joint_position: 2.
+  reg_joint_position: 1.
   num_joint_viapoints: 0
   num_base_viapoints: 0
 
@@ -230,7 +230,7 @@ planner_variables:
   friction_coeff: 0.5
   floor_height: 0.0
   # minimum allowed distance from the robot base to the floor
-  min_rel_height: 0.05
+  min_rel_height: 0.1
   friction_cone: LinearCone  # Types: LinearCone, SocCone #
   time_range: [0.02, 0.25]
   is_time_horizon_fixed: true
