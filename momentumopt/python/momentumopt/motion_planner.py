@@ -25,7 +25,6 @@ def create_time_vector(dynamics_sequence):
     num_time_steps = len(dynamics_sequence.dynamics_states)
     # Create time vector
     time = np.zeros((num_time_steps))
-    time[0] = dynamics_sequence.dynamics_states[0].dt
     for i in range(num_time_steps - 1):
         time[i + 1] = time[i] + dynamics_sequence.dynamics_states[i].dt
 
