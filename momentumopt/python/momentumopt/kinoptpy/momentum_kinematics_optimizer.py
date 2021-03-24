@@ -117,7 +117,7 @@ class EndeffectorTrajectoryGenerator(object):
         for it in range(num_time_steps):
             for eff, name in enumerate(mom_kin_optimizer.eff_names):
                 endeff_pos_ref[it][eff] = [eff_traj_poly[name][i].eval(it) for i in range(3)]
-                endeff_vel_ref[it][eff] = [eff_traj_poly[name][i].deval(it) for i in range(3)]
+                endeff_vel_ref[it][eff] = [eff_traj_poly[name][i].deval(it)/dt for i in range(3)]
                 endeff_contact[it][eff] = self.is_end_eff_in_contact(it, eff, mom_kin_optimizer)
 
         return endeff_pos_ref, endeff_vel_ref, endeff_contact
