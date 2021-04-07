@@ -11,13 +11,22 @@ Please make sure to install the following packages:
 ```
 pip install lightargs==1.22 quadprog treep
 ```
+- yaml-cpp for reading the parameters of the optimal control problem:
+  - ubuntu:
+```
+sudo apt install libyaml-cpp-dev
+```
+  - MacOs
+```
+brew install yaml-cpp
+```
 
-And colcon to build packages (more info about the build system https://design.ros2.org/articles/build_tool.html)
-- Ubuntu
+- And colcon to build packages (more info about the build system https://design.ros2.org/articles/build_tool.html)
+  - Ubuntu
 ```
 sudo apt install python3-colcon-common-extensions
 ```
-- MacOs
+  - MacOs
 ```
 python3 -m pip install colcon-common-extensions
 ```
