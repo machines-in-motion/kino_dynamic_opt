@@ -7,9 +7,9 @@ It contains a list of solvers and optimization problem for robotics optimal cont
 
 Please make sure to install the following packages:
 
-- the qp solver quadprog and the code manager treep
+- the qp solver quadprog, the code manager treep and the python resource manager:
 ```
-pip install lightargs==1.22 quadprog treep
+pip install lightargs==1.22 quadprog treep importlib_resources
 ```
 - yaml-cpp for reading the parameters of the optimal control problem:
   - ubuntu:
