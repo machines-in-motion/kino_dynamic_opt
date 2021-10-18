@@ -151,11 +151,16 @@ class TrajectoryInterpolator(object):
                     poly = poly_points(t, q_via[i-1][j+1], q_via[i][j+1])
                     self.poly_traj[j].append(t, poly)
 
-    def evaluate_trajecory(self,t):
+    def evaluate_trajecory(self, t):
         q = np.zeros((1,len(self.init)),float)
         for j in range(len(self.init)):
             q[0,j] = self.poly_traj[j].eval(t)
         return q
+    def normalize_vector(self, vec):
+        norm = np.linalg.norm(vec)
+        if norm == 0:
+            return vec
+        return vec / norm
 
 
 class MomentumKinematicsOptimizer(object):
@@ -272,7 +277,6 @@ class MomentumKinematicsOptimizer(object):
         kinematic_state.robot_velocity.base_angular_velocity = dq[3:6]
         kinematic_state.robot_velocity.joint_velocities = dq[6:]
 
-
     def optimize_initial_position(self, init_state):
         # Optimize the initial configuration
         q = se3.neutral(self.robot.model)
@@ -314,7 +318,11 @@ class MomentumKinematicsOptimizer(object):
                 break
 
         if iters == self.max_iterations - 1:
-            print('Failed to converge for initial setup.')
+            print('Failed to converge for initial setup, going to the manual initial setup.')
+            q = se3.neutral(self.robot.model)
+            q[7:] = plan_joint_init_pos
+            q[2] = init_state.com[2] + 0.05
+            dq = np.zeros(self.robot.robot.nv)
 
         print("initial configuration: \n", q)
 
@@ -347,6 +355,26 @@ class MomentumKinematicsOptimizer(object):
             for it in range(self.num_time_steps):
                 self.joint_des[:,it] = joint_traj_gen.evaluate_trajecory(it)
 
+        # Generate smooth quaternion base trajectory for regularization
+        base_des_quat = np.zeros((4,self.num_time_steps), float)
+        base_des_axis_angle = np.zeros((4,self.num_time_steps), float)
+        self.n_via_base_angle_axis = 0
+        self.via_base_angle_axis = np.array([[0.9, 0. , 1. , 0., 0.],[1.5, 0. , 1. , 0., 6.28],[2.5, 0. , 1. , 0., 6.28]])
+        if self.n_via_base_angle_axis == 0:
+            for it in range(self.num_time_steps):
+                base_des_quat[:,it] = np.array([0., 0., 0., 1.]).reshape(-1)
+        else:
+            base_traj_gen = TrajectoryInterpolator()
+            base_traj_gen.num_time_steps = self.num_time_steps
+            base_traj_gen.init = np.array([0. , 1. , 0., 0.])
+            base_traj_gen.end = np.array([0. , 1. , 0., 0.])
+            base_traj_gen.generate_trajectory(self.n_via_base_angle_axis, self.via_base_angle_axis, self.dt)
+            for it in range(self.num_time_steps):
+                base_des_axis_angle[:,it] = base_traj_gen.evaluate_trajecory(it)
+                base_des_axis_angle[0:3,it] = base_traj_gen.normalize_vector(base_des_axis_angle[0:3,it])
+                base_des_quat[:,it] = np.concatenate([base_des_axis_angle[0:3, it] * np.sin(base_des_axis_angle[3, it]/2.),\
+                                                     [np.cos(base_des_axis_angle[3, it]/2.)]])
+
         # Generate smooth base trajectory for regularization
         self.base_des = np.zeros((3,self.num_time_steps), float)
         if self.n_via_base == 0:
@@ -361,10 +389,12 @@ class MomentumKinematicsOptimizer(object):
             for it in range(self.num_time_steps):
                 self.base_des[:,it] = base_traj_gen.evaluate_trajecory(it)
 
+
         # Compute inverse kinematics over the full trajectory.
         self.inv_kin.is_init_time = 0
         q, dq = self.q_init.copy(), self.dq_init.copy()
-
+        self.use_second_order_inv_kin = False
+        self.use_crocoddyl_inv_kin = True
         if self.use_second_order_inv_kin:
             q_kin, dq_kin, com_kin, lmom_kin, amom_kin, endeff_pos_kin, endeff_vel_kin = \
                 self.snd_order_inv_kin.solve(self.dt, q, dq, self.com_dyn, self.lmom_dyn,
@@ -374,6 +404,83 @@ class MomentumKinematicsOptimizer(object):
             for it, (q, dq) in enumerate(zip(q_kin, dq_kin)):
                 self.inv_kin.forward_robot(q, dq)
                 self.fill_kinematic_result(it, q, dq)
+
+        elif(self.use_crocoddyl_inv_kin):
+            from py_biconvex_mpc.ik.inverse_kinematics import InverseKinematics
+            import crocoddyl
+            robot = RobotWrapper(self.robot.model)
+            stance_weight = 1e5
+            swing_weight = 30
+            end_time = self.num_time_steps * self.dt
+            ik = InverseKinematics(robot.model, self.dt, end_time)
+            ik.add_com_position_tracking_task(0, end_time,
+                                              self.com_dyn, 1e3, "com_task")
+            cmom_traj = np.hstack((self.lmom_dyn, self.amom_dyn))
+            ik.add_centroidal_momentum_tracking_task(0, end_time,
+                                              cmom_traj, 1e3, "cent_tc")
+            contact_plan = self.endeff_traj_generator.get_contact_plan_from_dyn_optimizer(self)
+            for eff, name in enumerate(self.eff_names):
+                num_contacts = len(contact_plan[name])
+                for i in range(num_contacts):
+                    t_start = int(contact_plan[name][i][0])
+                    t_end = int(contact_plan[name][i][1])
+                    ik.add_position_tracking_task(robot.model.getFrameId(name), t_start * self.dt, t_end * self.dt,
+                                                  self.endeff_pos_ref[t_start:t_end, eff], stance_weight,name+"_pos")
+                    if i < num_contacts - 1:
+                        t_start = int(contact_plan[name][i][1])
+                        t_end = int(contact_plan[name][i+1][0])
+                        ik.add_position_tracking_task(robot.model.getFrameId(name), t_start * self.dt, t_end * self.dt,
+                                                      self.endeff_pos_ref[t_start:t_end, eff], swing_weight,name+"_pos")
+
+            x_reg = np.concatenate([q, dq])
+            for it in range(self.num_time_steps):
+                for j in range(4):
+                    q[j+3] = base_des_quat[j,it]
+                x_reg = np.vstack((x_reg, np.concatenate([q, dq])))
+
+            stateWeights = np.array([0.] * 3 + [50.] * 3 + [.2] * (ik.state.nv - 6) \
+                + [.01] * 3+ [.01] * 3 + [1.] *(ik.state.nv - 6))
+            ik.add_state_regularization_cost(0, end_time, 1e-1, x_reg, "xReg", state_weights = stateWeights)
+            ik.add_ctrl_regularization_cost(0, end_time, 1e-7, "uReg")
+
+            # setting up terminal cost model
+            xRegCost = crocoddyl.CostModelState(ik.state)
+            uRegCost = crocoddyl.CostModelControl(ik.state)
+            comTrack = crocoddyl.CostModelCoMPosition(ik.state, self.com_dyn[-1], ik.state.nv)
+
+            ik.terminalCostModel.addCost("stateReg", xRegCost, 1e-4)
+            ik.terminalCostModel.addCost("ctrlReg", uRegCost, 1e-7)
+
+            ik.setup_costs()
+            x0 = np.concatenate([q, dq])
+            print("x0", x0)
+            print("x_reg", x_reg[0,:])
+            xs = ik.optimize(x0)
+            base_measured_quat = np.zeros((4,self.num_time_steps), float)
+            for it in range(self.num_time_steps):
+                robot.forwardKinematics(q, dq)
+                robot.computeJointJacobians(q)
+                robot.framesForwardKinematics(q)
+                se3.ccrba(robot.model, robot.data, q, dq)
+                se3.computeCentroidalMomentum(robot.model, robot.data)
+                self.fill_kinematic_result(it, q, dq)
+                q = xs[it][:robot.model.nq]
+                dq = xs[it][robot.model.nq:]
+                q = se3.integrate(robot.model, q, dq * self.dt)
+                base_measured_quat[:, it] = q[3:7]
+
+            import matplotlib.pyplot as plt
+
+            fig, axes = plt.subplots(4, 1, figsize=(16, 8), sharex=True)
+            for i, ylabel in enumerate(["x", "y", "z", "w"]):
+                axes[i].plot(base_des_quat[i,:], label = "des")
+                axes[i].plot(base_measured_quat[i,:], label = "act")
+                axes[i].set_ylabel(ylabel)
+                axes[i].grid(True)
+            axes[0].legend()
+            fig.suptitle('Base quaternion')
+            plt.show()
+
         else:
             for it in range(self.num_time_steps):
                 quad_goal = se3.Quaternion(se3.rpy.rpyToMatrix(np.matrix(self.base_des[:,it]).T))
