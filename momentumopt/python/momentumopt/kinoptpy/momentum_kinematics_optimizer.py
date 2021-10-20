@@ -13,6 +13,7 @@ import numpy as np
 from momentumopt.kinoptpy.qp import QpSolver
 from momentumopt.kinoptpy.inverse_kinematics import PointContactInverseKinematics
 from momentumopt.kinoptpy.second_order_ik import SecondOrderInverseKinematics
+from momentumopt.kinoptpy.crocoddyl_inv_kin import CrocoddylInverseKinematics
 from pinocchio import RobotWrapper
 import pinocchio as se3
 from pinocchio.utils import zero
@@ -215,6 +216,7 @@ class MomentumKinematicsOptimizer(object):
 
         self.inv_kin = PointContactInverseKinematics(self.robot.model, self.eff_names)
         self.snd_order_inv_kin = SecondOrderInverseKinematics(self.robot.model, self.eff_names)
+        self.crocoddyl_inv_kin = CrocoddylInverseKinematics(self.robot.model, self.eff_names)
         self.use_second_order_inv_kin = False
 
         self.motion_eff = {
@@ -406,71 +408,31 @@ class MomentumKinematicsOptimizer(object):
                 self.fill_kinematic_result(it, q, dq)
 
         elif(self.use_crocoddyl_inv_kin):
-            from py_biconvex_mpc.ik.inverse_kinematics import InverseKinematics
-            import crocoddyl
-            robot = RobotWrapper(self.robot.model)
-            stance_weight = 1e5
-            swing_weight = 30
-            end_time = self.num_time_steps * self.dt
-            ik = InverseKinematics(robot.model, self.dt, end_time)
-            ik.add_com_position_tracking_task(0, end_time,
-                                              self.com_dyn, 1e3, "com_task")
-            cmom_traj = np.hstack((self.lmom_dyn, self.amom_dyn))
-            ik.add_centroidal_momentum_tracking_task(0, end_time,
-                                              cmom_traj, 1e3, "cent_tc")
             contact_plan = self.endeff_traj_generator.get_contact_plan_from_dyn_optimizer(self)
-            for eff, name in enumerate(self.eff_names):
-                num_contacts = len(contact_plan[name])
-                for i in range(num_contacts):
-                    t_start = int(contact_plan[name][i][0])
-                    t_end = int(contact_plan[name][i][1])
-                    ik.add_position_tracking_task(robot.model.getFrameId(name), t_start * self.dt, t_end * self.dt,
-                                                  self.endeff_pos_ref[t_start:t_end, eff], stance_weight,name+"_pos")
-                    if i < num_contacts - 1:
-                        t_start = int(contact_plan[name][i][1])
-                        t_end = int(contact_plan[name][i+1][0])
-                        ik.add_position_tracking_task(robot.model.getFrameId(name), t_start * self.dt, t_end * self.dt,
-                                                      self.endeff_pos_ref[t_start:t_end, eff], swing_weight,name+"_pos")
+            xs, us = self.crocoddyl_inv_kin.solve(self.dt, q, dq, self.com_dyn, self.lmom_dyn,
+                self.amom_dyn, self.endeff_pos_ref, self.endeff_vel_ref,
+                self.endeff_contact, self.joint_des, base_des_quat, contact_plan)
 
-            x_reg = np.concatenate([q, dq])
+            base_measured_quat = np.zeros((4, self.num_time_steps), float)
+            torque = np.zeros((3 * self.inv_kin.ne, self.num_time_steps), float)
             for it in range(self.num_time_steps):
-                for j in range(4):
-                    q[j+3] = base_des_quat[j,it]
-                x_reg = np.vstack((x_reg, np.concatenate([q, dq])))
-
-            stateWeights = np.array([0.] * 3 + [50.] * 3 + [.2] * (ik.state.nv - 6) \
-                + [.01] * 3+ [.01] * 3 + [1.] *(ik.state.nv - 6))
-            ik.add_state_regularization_cost(0, end_time, 1e-1, x_reg, "xReg", state_weights = stateWeights)
-            ik.add_ctrl_regularization_cost(0, end_time, 1e-7, "uReg")
-
-            # setting up terminal cost model
-            xRegCost = crocoddyl.CostModelState(ik.state)
-            uRegCost = crocoddyl.CostModelControl(ik.state)
-            comTrack = crocoddyl.CostModelCoMPosition(ik.state, self.com_dyn[-1], ik.state.nv)
-
-            ik.terminalCostModel.addCost("stateReg", xRegCost, 1e-4)
-            ik.terminalCostModel.addCost("ctrlReg", uRegCost, 1e-7)
-
-            ik.setup_costs()
-            x0 = np.concatenate([q, dq])
-            print("x0", x0)
-            print("x_reg", x_reg[0,:])
-            xs = ik.optimize(x0)
-            base_measured_quat = np.zeros((4,self.num_time_steps), float)
-            for it in range(self.num_time_steps):
-                robot.forwardKinematics(q, dq)
-                robot.computeJointJacobians(q)
-                robot.framesForwardKinematics(q)
-                se3.ccrba(robot.model, robot.data, q, dq)
-                se3.computeCentroidalMomentum(robot.model, robot.data)
-                self.fill_kinematic_result(it, q, dq)
-                q = xs[it][:robot.model.nq]
-                dq = xs[it][robot.model.nq:]
-                q = se3.integrate(robot.model, q, dq * self.dt)
+                q = xs[it][:self.robot.model.nq]
+                dq = xs[it][self.robot.model.nq:]
                 base_measured_quat[:, it] = q[3:7]
+                self.inv_kin.forward_robot(q, dq)
+                self.fill_kinematic_result(it, q, dq)
+
+                # compute feedforward joint torques
+                mass_matrix = se3.crba(self.robot.model, self.robot.data, q)
+                nonlinear = se3.nonLinearEffects(self.robot.model, self.robot.data, q, dq)
+                torque[:, it] = (mass_matrix[6: , :] @ us[it].reshape(self.robot.model.nv, 1) + nonlinear[6:].reshape(self.robot.model.nv - 6, 1)).reshape(-1)
+                for idx, eff in enumerate(self.eff_names):
+                    force = self.dynamic_sequence.dynamics_states[it].effForce(idx).reshape(3,1)
+                    jacobian = self.inv_kin.J[6 + idx * 3 : 6 + (idx + 1) * 3, 6 + idx * 3 : 6 + (idx + 1) * 3]
+                    torque[3 * idx : 3 * (idx +  1), it] += (jacobian.T @ force).reshape(-1)
+
 
             import matplotlib.pyplot as plt
-
             fig, axes = plt.subplots(4, 1, figsize=(16, 8), sharex=True)
             for i, ylabel in enumerate(["x", "y", "z", "w"]):
                 axes[i].plot(base_des_quat[i,:], label = "des")
@@ -479,6 +441,16 @@ class MomentumKinematicsOptimizer(object):
                 axes[i].grid(True)
             axes[0].legend()
             fig.suptitle('Base quaternion')
+            plt.show()
+
+            fig, axes = plt.subplots(3, 1, figsize=(16, 8), sharex=True)
+            for i, ylabel in enumerate(["HAA", "HFE", "KFE"]):
+                axes[i].plot(torque[i,:], label = "left")
+                axes[i].plot(torque[i + 3,:], label = "right")
+                axes[i].set_ylabel(ylabel)
+                axes[i].grid(True)
+            axes[0].legend()
+            fig.suptitle('Joint torques')
             plt.show()
 
         else:
