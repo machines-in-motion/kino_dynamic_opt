@@ -40,11 +40,20 @@ namespace momentumopt {
     return text.str();
   }
 
+  // RobotTorque class functions implementation
+  std::string RobotTorque::toString() const
+  {
+	std::stringstream text;
+    text << "    joints torque   " << this->jointTorques().transpose() << "\n";
+    return text.str();
+  }
+
   // KinematicsState class functions implementation
   KinematicsState::KinematicsState(int num_joints)
     : robot_posture_(num_joints),
       robot_velocity_(num_joints),
       robot_acceleration_(num_joints),
+      robot_torque_(num_joints),
       num_joints_(num_joints)
   {
     com_.setZero();

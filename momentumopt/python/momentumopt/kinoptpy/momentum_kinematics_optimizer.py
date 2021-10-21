@@ -270,6 +270,7 @@ class MomentumKinematicsOptimizer(object):
         kinematic_state.com = self.com_kin[it]
         kinematic_state.lmom = self.lmom_kin[it]
         kinematic_state.amom = self.amom_kin[it]
+        kinematic_state.robot_torque.joint_torques = self.torque[:, it]
 
         kinematic_state.robot_posture.base_position = q[:3]
         kinematic_state.robot_posture.base_orientation = q[3:7]
@@ -414,22 +415,23 @@ class MomentumKinematicsOptimizer(object):
                 self.endeff_contact, self.joint_des, base_des_quat, contact_plan)
 
             base_measured_quat = np.zeros((4, self.num_time_steps), float)
-            torque = np.zeros((3 * self.inv_kin.ne, self.num_time_steps), float)
+            self.torque = np.zeros((3 * self.inv_kin.ne, self.num_time_steps), float)
             for it in range(self.num_time_steps):
                 q = xs[it][:self.robot.model.nq]
                 dq = xs[it][self.robot.model.nq:]
                 base_measured_quat[:, it] = q[3:7]
-                self.inv_kin.forward_robot(q, dq)
-                self.fill_kinematic_result(it, q, dq)
 
                 # compute feedforward joint torques
+                ddq = us[it].reshape(self.robot.model.nv, 1)
                 mass_matrix = se3.crba(self.robot.model, self.robot.data, q)
                 nonlinear = se3.nonLinearEffects(self.robot.model, self.robot.data, q, dq)
-                torque[:, it] = (mass_matrix[6: , :] @ us[it].reshape(self.robot.model.nv, 1) + nonlinear[6:].reshape(self.robot.model.nv - 6, 1)).reshape(-1)
+                self.torque[:, it] = (mass_matrix[6: , :] @ ddq + nonlinear[6:].reshape(self.robot.model.nv - 6, 1)).reshape(-1)
                 for idx, eff in enumerate(self.eff_names):
                     force = self.dynamic_sequence.dynamics_states[it].effForce(idx).reshape(3,1)
                     jacobian = self.inv_kin.J[6 + idx * 3 : 6 + (idx + 1) * 3, 6 + idx * 3 : 6 + (idx + 1) * 3]
-                    torque[3 * idx : 3 * (idx +  1), it] += (jacobian.T @ force).reshape(-1)
+                    self.torque[3 * idx : 3 * (idx +  1), it] += (jacobian.T @ force).reshape(-1)
+                self.inv_kin.forward_robot(q, dq)
+                self.fill_kinematic_result(it, q, dq)
 
 
             import matplotlib.pyplot as plt
@@ -445,8 +447,8 @@ class MomentumKinematicsOptimizer(object):
 
             fig, axes = plt.subplots(3, 1, figsize=(16, 8), sharex=True)
             for i, ylabel in enumerate(["HAA", "HFE", "KFE"]):
-                axes[i].plot(torque[i,:], label = "left")
-                axes[i].plot(torque[i + 3,:], label = "right")
+                axes[i].plot(self.torque[i,:], label = "left")
+                axes[i].plot(self.torque[i + 3,:], label = "right")
                 axes[i].set_ylabel(ylabel)
                 axes[i].grid(True)
             axes[0].legend()

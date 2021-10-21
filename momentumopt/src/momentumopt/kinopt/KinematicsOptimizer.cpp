@@ -453,6 +453,7 @@ namespace momentumopt {
       current_state.angularMomentum() = desired_state.angularMomentum();
       current_state.robotVelocity().generalizedJointVelocities().setZero();
       current_state.robotAcceleration().generalizedJointAccelerations().setZero();
+      current_state.robotTorque().jointTorques().setZero();
     }
   }
 

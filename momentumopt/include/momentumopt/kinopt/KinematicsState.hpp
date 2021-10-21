@@ -138,6 +138,33 @@ namespace momentumopt {
       Eigen::VectorXd generalized_joint_accelerations_;
   };
 
+  /*! container for robot torque variables */
+  class RobotTorque
+  {
+    public:
+      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+    public:
+	  RobotTorque(int num_joints)
+        : num_joints_(num_joints),
+		  joint_torques_(Eigen::VectorXd(num_joints).setZero())
+      {}
+	  ~RobotTorque(){}
+
+      Eigen::VectorXd& jointTorques() { return joint_torques_; }
+
+      const Eigen::VectorXd& jointTorques() const { return joint_torques_; }
+
+      void jointTorques(const Eigen::VectorXd& joint_torques) { joint_torques_ = joint_torques; }
+
+	  std::string toString() const;
+	  friend std::ostream& operator<<(std::ostream &os, const RobotTorque& obj) { return os << obj.toString(); }
+
+    private:
+      int num_joints_;
+      Eigen::VectorXd joint_torques_;
+  };
+
   /**
    * This class is a container for all variables required to define a
    * kinematics state: joint posture, joint velocities and accelerations,
@@ -166,14 +193,17 @@ namespace momentumopt {
 	  RobotPosture& robotPosture() { return robot_posture_; }
 	  RobotVelocity& robotVelocity() { return robot_velocity_; }
 	  RobotAcceleration& robotAcceleration() { return robot_acceleration_; }
+    RobotTorque& robotTorque() { return robot_torque_; }
 
 	  const RobotPosture& robotPosture() const { return robot_posture_; }
 	  const RobotVelocity& robotVelocity() const { return robot_velocity_; }
 	  const RobotAcceleration& robotAcceleration() const { return robot_acceleration_; }
+    const RobotTorque& robotTorque() const { return robot_torque_; }
 
 	  void robotPosture(const RobotPosture& robot_posture) { robot_posture_ = robot_posture; }
 	  void robotVelocity(const RobotVelocity& robot_velocity) { robot_velocity_ = robot_velocity; }
 	  void robotAcceleration(const RobotAcceleration& robot_acceleration) { robot_acceleration_ = robot_acceleration; }
+    void robotTorque(const RobotTorque& robot_torque) { robot_torque_ = robot_torque; }
 
       // endeffector poses
       Eigen::Vector3d& endeffectorPosition(int eff_id) { return eff_positions_[eff_id]; }
@@ -198,6 +228,7 @@ namespace momentumopt {
 	  RobotPosture robot_posture_;
 	  RobotVelocity robot_velocity_;
 	  RobotAcceleration robot_acceleration_;
+    RobotTorque robot_torque_;
 
       int num_joints_;
       Eigen::Vector3d com_, lmom_, amom_;

@@ -703,6 +703,7 @@ namespace momentumopt {
         mat_guess_.resize(this->getSetting().get(PlannerIntParam_NumExtendedActiveDofs), this->getSetting().get(PlannerIntParam_NumTimesteps));    mat_guess_.setZero();
         for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++) { mat_guess_.col(time_id) = kin_sequence.kinematicsState(time_id).robotVelocity().generalizedJointVelocities();  } qcqp_cfg["dynopt_params"]["jnt_vel"] = mat_guess_;
         for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++) { mat_guess_.col(time_id) = kin_sequence.kinematicsState(time_id).robotAcceleration().generalizedJointAccelerations();  } qcqp_cfg["dynopt_params"]["jnt_acc"] = mat_guess_;
+        // for (int time_id=0; time_id<this->getSetting().get(PlannerIntParam_NumTimesteps); time_id++) { mat_guess_.col(time_id) = kin_sequence.kinematicsState(time_id).robotTorque().jointTorques();  } qcqp_cfg["dynopt_params"]["jnt_acc"] = mat_guess_;
 
         // saving vector of time-steps
         mat_guess_.resize(1, this->getSetting().get(PlannerIntParam_NumTimesteps)); mat_guess_.setZero();

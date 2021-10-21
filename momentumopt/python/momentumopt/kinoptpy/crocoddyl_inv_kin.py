@@ -1,3 +1,11 @@
+'''
+@file crocoddyl_inv_kin.py
+@package momentumopt
+@author Majid Khadiv (majid.khadiv@tuebingen.mpg.de)
+@license License BSD-3-Clause
+@copyright Copyright (c) 2019, New York University and Max Planck Gesellschaft.
+@date 2021-10-20
+'''
 from py_biconvex_mpc.ik.inverse_kinematics import InverseKinematics
 import crocoddyl
 import numpy as np

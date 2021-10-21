@@ -18,6 +18,7 @@ sample_frequency = 1000 # 1kHz
 def create_file(time_vector, optimized_sequence, optimized_dyn_plan, dynamics_feedback, robot_weight):
     desired_pos = desired_state("POSITION", time_vector, optimized_sequence=optimized_sequence)
     desired_vel = desired_state("VELOCITY", time_vector, optimized_sequence=optimized_sequence)
+    desired_torque = desired_state("TORQUE", time_vector, optimized_sequence=optimized_sequence)
     desired_gen_pos = desired_state("GENERALIZED_POSITION", time_vector, optimized_sequence=optimized_sequence)
     desired_gen_vel = desired_state("GENERALIZED_VELOCITY", time_vector, optimized_sequence=optimized_sequence)
     desired_gen_acc = desired_state("GENERALIZED_ACCELERATION", time_vector, optimized_sequence=optimized_sequence)
@@ -41,12 +42,9 @@ def create_file(time_vector, optimized_sequence, optimized_dyn_plan, dynamics_fe
 
     num_joints = len(optimized_sequence.kinematics_states[0].robot_posture.generalized_joint_positions) - 7
     if using_quadruped:
-        desired_feedforward_torque = np.zeros((num_points, num_joints + 1))
-        for i in range(num_points):
-            desired_feedforward_torque[i,0] = i
-        np.savetxt("quadruped_feedforward_torque.dat", desired_feedforward_torque)
         dump_data("quadruped_positions.dat", desired_pos)
         dump_data("quadruped_velocities.dat", desired_vel)
+        dump_data("quadruped_feedforward_torque.dat", desired_torque)
         # dump_data("quadruped_forces.dat", desired_forces, robot_weight)
         # dump_data("quadruped_generalized_positions.dat", desired_gen_pos)
         # dump_data("quadruped_generalized_velocities.dat", desired_gen_vel)

@@ -55,6 +55,12 @@ void init_kinematics(py::module &m)
     .def_property("base_angular_acceleration", (const Eigen::Ref<const Eigen::Vector3d> (RobotAcceleration::*)(void) const) &RobotAcceleration::baseAngularAcceleration, (void (RobotAcceleration::*)(const Eigen::Ref<const Eigen::Vector3d>)) &RobotAcceleration::baseAngularAcceleration)
     .def("__repr__", [](const RobotAcceleration &robot_acceleration) { return robot_acceleration.toString(); } );
 
+  // binding of robot torque
+  py::class_<RobotTorque>(m, "RobotTorque")
+    .def(py::init<int&>())
+    .def_property("joint_torques", (const Eigen::VectorXd& (RobotTorque::*)(void) const) &RobotTorque::jointTorques, (void (RobotTorque::*)(const Eigen::VectorXd&)) &RobotTorque::jointTorques)
+    .def("__repr__", [](const RobotTorque &robot_torque) { return robot_torque.toString(); } );
+
   // binding of kinematics state
   py::class_<KinematicsState>(m, "KinematicsState")
     .def(py::init<int&>())
@@ -65,6 +71,7 @@ void init_kinematics(py::module &m)
 	.def_property("robot_posture", (const RobotPosture& (KinematicsState::*)(void) const) &KinematicsState::robotPosture, (void (KinematicsState::*)(const RobotPosture&)) &KinematicsState::robotPosture)
 	.def_property("robot_velocity", (const RobotVelocity& (KinematicsState::*)(void) const) &KinematicsState::robotVelocity, (void (KinematicsState::*)(const RobotVelocity&)) &KinematicsState::robotVelocity)
 	.def_property("robot_acceleration", (const RobotAcceleration& (KinematicsState::*)(void) const) &KinematicsState::robotAcceleration, (void (KinematicsState::*)(const RobotAcceleration&)) &KinematicsState::robotAcceleration)
+  .def_property("robot_torque", (const RobotTorque& (KinematicsState::*)(void) const) &KinematicsState::robotTorque, (void (KinematicsState::*)(const RobotTorque&)) &KinematicsState::robotTorque)
     .def_property("endeffector_positions", (const std::vector<Eigen::Vector3d>& (KinematicsState::*)(void) const) &KinematicsState::pyEndeffectorPositions, (void (KinematicsState::*)(const std::vector<Eigen::Vector3d>&)) &KinematicsState::pyEndeffectorPositions)
     .def("__repr__", [](const KinematicsState &kin_state) { return kin_state.toString(); } );
 

@@ -73,6 +73,9 @@ def desired_state(specification, time_vector, optimized_sequence=None, dynamics_
         elif specification == "VELOCITY":
             state_1 = optimized_sequence.kinematics_states[t1_idx].robot_velocity.joint_velocities
             state_2 = optimized_sequence.kinematics_states[t2_idx].robot_velocity.joint_velocities
+        elif specification == "TORQUE":
+            state_1 = optimized_sequence.kinematics_states[t1_idx].robot_torque.joint_torques
+            state_2 = optimized_sequence.kinematics_states[t2_idx].robot_torque.joint_torques
         elif specification == "GENERALIZED_POSITION":
             state_1 = optimized_sequence.kinematics_states[t1_idx].robot_posture.generalized_joint_positions
             state_2 = optimized_sequence.kinematics_states[t2_idx].robot_posture.generalized_joint_positions

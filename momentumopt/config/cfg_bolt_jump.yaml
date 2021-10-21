@@ -103,13 +103,13 @@ planner_variables:
   #########################
 
   swing_traj_via_z: .3
-  w_lin_mom_tracking: 50.
+  w_lin_mom_tracking: 10.
   w_ang_mom_tracking: .1
-  w_endeff_contact: 30.
-  w_endeff_tracking: 30.
+  w_endeff_contact: 100.
+  w_endeff_tracking: 0.
   p_endeff_tracking: 3.
-  p_com_tracking: .1
-  w_joint_regularization: .1
+  p_com_tracking: 1.
+  w_joint_regularization: .5
   reg_orientation: 1.
   reg_joint_position: 2.
   num_joint_viapoints: 0
