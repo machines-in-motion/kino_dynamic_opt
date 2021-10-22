@@ -6,7 +6,7 @@
 @copyright Copyright (c) 2019, New York University and Max Planck Gesellschaft.
 @date 2021-10-20
 '''
-from py_biconvex_mpc.ik.inverse_kinematics import InverseKinematics
+from momentumopt.kinoptpy.ik.inverse_kinematics import InverseKinematics
 import crocoddyl
 import numpy as np
 from pinocchio import RobotWrapper
@@ -29,10 +29,10 @@ class CrocoddylInverseKinematics(object):
         self.endeff_ids = [getFrameId(name) for name in endeff_frame_names]
         self.ne = len(self.endeff_ids)
         self.stance_weight = 1e5
-        self.swing_weight = 0.
+        self.swing_weight = 1e3
         self.base_pos_regularization = 0.
-        self.base_ori_regularization = 50.
-        self.joint_pos_regularization = 0.2
+        self.base_ori_regularization = 1e2
+        self.joint_pos_regularization = 0.5
         self.base_vel_regularization = 0.1
         self.base_ang_vel_regularization = 0.1
         self.joint_vel_regularization = 1.0

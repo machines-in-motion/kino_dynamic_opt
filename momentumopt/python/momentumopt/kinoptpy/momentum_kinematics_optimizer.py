@@ -423,6 +423,9 @@ class MomentumKinematicsOptimizer(object):
 
                 # compute feedforward joint torques
                 ddq = us[it].reshape(self.robot.model.nv, 1)
+                if it<10:
+                    ddq = 0 * ddq
+                    # dq = 0 * dq
                 mass_matrix = se3.crba(self.robot.model, self.robot.data, q)
                 nonlinear = se3.nonLinearEffects(self.robot.model, self.robot.data, q, dq)
                 self.torque[:, it] = (mass_matrix[6: , :] @ ddq + nonlinear[6:].reshape(self.robot.model.nv - 6, 1)).reshape(-1)

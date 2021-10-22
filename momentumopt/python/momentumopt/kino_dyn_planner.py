@@ -118,6 +118,7 @@ def main(argv):
 
     # Dump the computed trajectory in a files (should follow the dynamic graph format)
     motion_planner.save_files()
+    # motion_planner.save_qp_files()
 
     # Display the motion
     display = True

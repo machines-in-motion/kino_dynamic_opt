@@ -34,13 +34,14 @@ def create_file(time_vector, optimized_sequence, optimized_dyn_plan, dynamics_fe
 
     num_points = int(round(time_vector[-1] * sample_frequency))
     using_quadruped = True
+    using_biped = False
 
     def dump_data(output_file, desired_fn, scale=1.):
         np.savetxt(output_file, np.vstack([
             np.hstack((i, scale * desired_fn(i / 1e3))) for i in range(num_points)
         ]), fmt='%.8e')
 
-    num_joints = len(optimized_sequence.kinematics_states[0].robot_posture.generalized_joint_positions) - 7
+
     if using_quadruped:
         dump_data("quadruped_positions.dat", desired_pos)
         dump_data("quadruped_velocities.dat", desired_vel)
@@ -49,10 +50,14 @@ def create_file(time_vector, optimized_sequence, optimized_dyn_plan, dynamics_fe
         # dump_data("quadruped_generalized_positions.dat", desired_gen_pos)
         # dump_data("quadruped_generalized_velocities.dat", desired_gen_vel)
         # dump_data("quadruped_generalized_acceleration.dat", desired_gen_acc)
-        # dump_data("quadruped_com_old.dat", desired_com)
-        # dump_data("quadruped_lmom_old.dat", desired_lmom)
-        # dump_data("quadruped_amom_old.dat", desired_amom)
+        # dump_data("quadruped_com", desired_com)
+        # dump_data("quadruped_lmom", desired_lmom)
+        # dump_data("quadruped_amom", desired_amom)
         # dump_data("quadruped_dyn_feedback.dat", desired_dyn_feedback)
+    elif using_biped:
+        dump_data("bolt_positions.dat", desired_pos)
+        dump_data("bolt_velocities.dat", desired_vel)
+        dump_data("bolt_feedforward_torque.dat", desired_torque)
     else:  # using teststand
         des_positions = np.zeros((num_points, 3))
         des_velocities = np.zeros((num_points, 3))
@@ -72,7 +77,7 @@ def create_qp_files(time_vector, optimized_motion_eff, optimized_sequence, optim
     desired_vel = interpolate("VELOCITY", time_vector, optimized_motion_eff=optimized_motion_eff, optimized_sequence = optimized_sequence)
     desired_com = interpolate("COM", time_vector, optimized_motion_eff=optimized_motion_eff, optimized_sequence = optimized_sequence)
     desired_lmom = interpolate("LMOM", time_vector, optimized_motion_eff=optimized_motion_eff, optimized_sequence = optimized_sequence)
-    # desired_amom = interpolate("AMOM", time_vector, optimized_motion_eff=optimized_motion_eff, optimized_sequence = optimized_sequence)
+    desired_amom = interpolate("AMOM", time_vector, optimized_motion_eff=optimized_motion_eff, optimized_sequence = optimized_sequence)
     desired_forces = interpolate("FORCES", time_vector, optimized_dyn_plan = optimized_dyn_plan, dynamics_feedback = dynamics_feedback)
     # desired_lqr_gains = interpolate("DYN_FEEDBACK", time_vector, dynamics_feedback = dynamics_feedback)
     desired_quaternion = interpolate("QUATERNION", time_vector, optimized_sequence=optimized_sequence)
@@ -100,40 +105,50 @@ def create_qp_files(time_vector, optimized_motion_eff, optimized_sequence, optim
         ]))
 
     if using_quadruped:
-        desired_joint_positions = np.zeros((num_points, num_joints + 1))
-        desired_joint_velocities = np.zeros((num_points, num_joints + 1))
-        des_positions = np.zeros((num_points, 13))
-        des_velocities = np.zeros((num_points, 13))
-        des_com = np.zeros((num_points, 4))
-        des_lmom = np.zeros((num_points, 4))
-        des_com_vel = np.zeros((num_points, 4))
-        # des_amom = np.zeros((num_points, 4))
-        # des_lqr_gains = np.zeros((num_points, 108))
-        des_forces = np.zeros((num_points, 13))
-        des_centroidal_forces = np.zeros((num_points, 4))
-        des_centroidal_moments = np.zeros((num_points, 4))
-        des_quaternion = np.zeros((num_points, 5))
-        des_base_ang_velocities = np.zeros((num_points, 4))
-        des_positions_abs = np.zeros((num_points, 13))
-        des_velocities_abs = np.zeros((num_points, 13))
-        des_contact_activation = np.zeros((num_points, 5))
-        gain_ratio = np.zeros((num_points, 9))
+        desired_joint_positions = np.zeros((num_points - 50, num_joints + 1))
+        desired_joint_velocities = np.zeros((num_points - 50, num_joints + 1))
+        des_positions = np.zeros((num_points - 50, num_joints + 1))
+        des_velocities = np.zeros((num_points - 50, num_joints + 1))
+        des_com = np.zeros((num_points - 50, 4))
+        des_lmom = np.zeros((num_points - 50, 4))
+        des_com_vel = np.zeros((num_points - 50, 4))
+        des_amom = np.zeros((num_points - 50, 4))
+        # des_lqr_gains = np.zeros((num_points - 50, 108))
+        des_forces = np.zeros((num_points - 50, 13))
+        des_centroidal_forces = np.zeros((num_points - 50, 4))
+        des_centroidal_moments = np.zeros((num_points - 50, 4))
+        des_quaternion = np.zeros((num_points - 50, 5))
+        des_base_ang_velocities = np.zeros((num_points - 50, 4))
+        des_positions_abs = np.zeros((num_points - 50, num_joints + 1))
+        des_velocities_abs = np.zeros((num_points - 50, num_joints + 1))
+        des_contact_activation = np.zeros((num_points - 50, 5))
+        gain_ratio = np.zeros((num_points - 50, 9))
+
+        fl_end_eff_positions = np.zeros((num_points - 50, 8))
+        fr_end_eff_positions = np.zeros((num_points - 50, 8))
+        hl_end_eff_positions = np.zeros((num_points - 50, 8))
+        hr_end_eff_positions = np.zeros((num_points - 50, 8))
+        fl_end_eff_velocities = np.zeros((num_points - 50, 7))
+        fr_end_eff_velocities = np.zeros((num_points - 50, 7))
+        hl_end_eff_velocities = np.zeros((num_points - 50, 7))
+        hr_end_eff_velocities = np.zeros((num_points - 50, 7))
 
 
-        for i in range(num_points):
+        for i in range(num_points - 50):
             ## making des_pos and des_vel a 6d vector
             ### re arranging the sequence of legs to the latest from (FR, FL, HR, HL)
             ### to (FL, FR, HL, HR) for des_pos, des_vel and forces
-            des_forces[i:, ] = np.hstack((i, desired_forces(i /1e3)))
-            des_centroidal_forces[i:, ] = np.hstack((i, desired_centroidal_forces(i /1e3)))
-            des_centroidal_moments[i:, ] = np.hstack((i, desired_centroidal_moments(i /1e3)))
+            des_forces[i, :] = np.hstack((i, desired_forces(i /1e3)))
+            des_centroidal_forces[i, :] = np.hstack((i, desired_centroidal_forces(i /1e3)))
+            des_centroidal_moments[i, :] = np.hstack((i, desired_centroidal_moments(i /1e3)))
             desired_joint_positions[i, :] = np.hstack((i, desired_joint_pos(i / 1e3)))
             desired_joint_velocities[i, :] = np.hstack((i, desired_joint_vel(i / 1e3)))
             des_positions[i, :] = np.hstack((i, desired_pos(i / 1e3)))
             des_velocities[i, :] = np.hstack((i, desired_vel(i / 1e3)))
             des_com[i, :] = np.hstack((i, desired_com(i / 1e3)))
             des_com_vel[i, :] = np.hstack((i, desired_lmom(i / 1e3)/(robot_weight/9.81)))
-            # des_amom[i, :] = np.hstack((i, desired_amom(i / 1e3)))
+            des_amom[i, :] = np.hstack((i, desired_amom(i / 1e3)))
+            des_lmom[i, :] = np.hstack((i, desired_lmom(i / 1e3)))
             # des_lqr_gains_tmp = desired_lqr_gains(i / 1e3)
             # ## Converting lqr matrix (12 * 9) to a 108d vector
             # des_lqr_gains_tmp = np.reshape(des_lqr_gains_tmp, (108,))
@@ -143,6 +158,18 @@ def create_qp_files(time_vector, optimized_motion_eff, optimized_sequence, optim
             des_positions_abs[i, :] = np.hstack((i, desired_pos_abs(i /1e3)))
             des_velocities_abs[i, :] = np.hstack((i, desired_vel_abs(i /1e3)))
             gain_ratio[i, 0] = i
+
+            for j in range(3):
+                fr_end_eff_positions[i, :] = np.hstack((i, des_positions_abs[i, 1:4], 0., 0., 0., 1.))
+                fl_end_eff_positions[i, :] = np.hstack((i, des_positions_abs[i, 4:7], 0., 0., 0., 1.))
+                hr_end_eff_positions[i, :] = np.hstack((i, des_positions_abs[i, 7:10], 0., 0., 0., 1.))
+                hl_end_eff_positions[i, :] = np.hstack((i, des_positions_abs[i, 10:13], 0., 0., 0., 1.))
+                fr_end_eff_velocities[i, :] = np.hstack((i, des_velocities_abs[i, 1:4], 0., 0., 0.))
+                fl_end_eff_velocities[i, :] = np.hstack((i, des_velocities_abs[i, 4:7], 0., 0., 0.))
+                hr_end_eff_velocities[i, :] = np.hstack((i, des_velocities_abs[i, 7:10], 0., 0., 0.))
+                hl_end_eff_velocities[i, :] = np.hstack((i, des_velocities_abs[i, 10:13], 0., 0., 0.))
+
+
 
         ## resequencing the eff sequence
 
@@ -157,41 +184,60 @@ def create_qp_files(time_vector, optimized_motion_eff, optimized_sequence, optim
         swap_coordinates_vec12(des_velocities_abs)
 
         # filling contact switch vector in the horizon
-        for i in range (num_points):
+        for i in range (num_points - 50):
             des_contact_activation[i, 0]=i
+            # print(i)
             for j in range(4):
+                # print(des_forces[i, 3*j+3])
                 if des_forces[i, 3*j+3]>0:
                     des_contact_activation[i, j+1]=1
                 else:
                     des_contact_activation[i, j+1]=0
 
-        des_positions_final = np.zeros((num_points, 24))
-        des_velocities_final = np.zeros((num_points, 24))
+        # des_positions_final = np.zeros((num_points, 24))
+        # des_velocities_final = np.zeros((num_points, 24))
 
 
         ## Converting des_pos and des_vel of end effector to a 6d vector per leg
         ## for the impedance controller
         ## so in total n*24
-        for i in range(num_points):
-            for eff in range(4):
-                des_positions_final[i][6*eff:6*(eff+1)] = np.hstack((des_positions[i][3*(eff)+1:3*(eff+1) + 1], [0.0, 0.0, 0.0]))
-                des_velocities_final[i][6*eff:6*(eff+1)] = np.hstack((des_velocities[i][3*(eff)+1:3*(eff+1) + 1], [0.0, 0.0, 0.0]))
+        # for i in range(num_points):
+        #     for eff in range(2):
+        #         des_positions_final[i][6*eff:6*(eff+1)] = np.hstack((des_positions[i][3*(eff)+1:3*(eff+1) + 1], [0.0, 0.0, 0.0]))
+        #         des_velocities_final[i][6*eff:6*(eff+1)] = np.hstack((des_velocities[i][3*(eff)+1:3*(eff+1) + 1], [0.0, 0.0, 0.0]))
 
         print("saving trajectories....")
-        np.savetxt("quadruped_positions.dat", desired_joint_positions)
-        np.savetxt("quadruped_velocities.dat", des_velocities_final)
-        np.savetxt("quadruped_positions_eff.dat", des_positions_final)
-        np.savetxt("quadruped_velocities_eff.dat", des_velocities_final)
-        np.savetxt("quadruped_com.dat", des_com)
-        np.savetxt("quadruped_com_vel.dat", des_com_vel)
-        np.savetxt("quadruped_centroidal_forces.dat", des_centroidal_forces)
-        np.savetxt("quadruped_centroidal_moments.dat", des_centroidal_moments)
-        np.savetxt("quadruped_quaternion.dat", des_quaternion)
-        np.savetxt("quadruped_base_ang_velocities.dat", des_base_ang_velocities)
-        np.savetxt("quadruped_positions_abs.dat", des_positions_abs)
-        np.savetxt("quadruped_velocities_abs.dat", des_velocities_abs)
+        # np.savetxt("quadruped_positions.dat", desired_joint_positions)
+        # np.savetxt("quadruped_velocities.dat", des_velocities_final)
+        # np.savetxt("quadruped_positions_eff.dat", des_positions_final)
+        # np.savetxt("quadruped_velocities_eff.dat", des_velocities_final)
+        # np.savetxt("quadruped_com.dat", des_com)
+        # np.savetxt("quadruped_com_vel.dat", des_com_vel)
+        # np.savetxt("quadruped_centroidal_forces.dat", des_centroidal_forces)
+        # np.savetxt("quadruped_centroidal_moments.dat", des_centroidal_moments)
+        # np.savetxt("quadruped_quaternion.dat", des_quaternion)
+        # np.savetxt("quadruped_base_ang_velocities.dat", des_base_ang_velocities)
+        # np.savetxt("quadruped_positions_abs.dat", des_positions_abs)
+        # np.savetxt("quadruped_velocities_abs.dat", des_velocities_abs)
         np.savetxt("quadruped_contact_activation.dat", des_contact_activation)
-        np.savetxt("quadruped_gain_ratio.dat", gain_ratio)
+        # np.savetxt("quadruped_gain_ratio.dat", gain_ratio)
+
+        np.savetxt("init_joint_positions.dat", desired_joint_positions[0,1:])
+        np.savetxt("com_position.dat", des_com)
+        np.savetxt("linear_momentum.dat", des_lmom)
+        np.savetxt("angular_momentum.dat", des_amom)
+        np.savetxt("com_velocity.dat", des_com_vel)
+        np.savetxt("base_orientation.dat", des_quaternion)
+        np.savetxt("base_angular_velocity.dat", des_base_ang_velocities)
+        np.savetxt("fr_end_eff_positions.dat", fr_end_eff_positions)
+        np.savetxt("fl_end_eff_positions.dat", fl_end_eff_positions)
+        np.savetxt("hr_end_eff_positions.dat", hr_end_eff_positions)
+        np.savetxt("hl_end_eff_positions.dat", hl_end_eff_positions)
+        np.savetxt("fr_end_eff_velocities.dat", fr_end_eff_velocities)
+        np.savetxt("fl_end_eff_velocities.dat", fl_end_eff_velocities)
+        np.savetxt("hr_end_eff_velocities.dat", hr_end_eff_velocities)
+        np.savetxt("hl_end_eff_velocities.dat", hl_end_eff_velocities)
+
 
 
 
