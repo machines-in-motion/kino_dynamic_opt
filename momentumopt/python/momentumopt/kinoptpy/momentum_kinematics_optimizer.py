@@ -426,7 +426,9 @@ class MomentumKinematicsOptimizer(object):
                 if it<10:
                     ddq = 0 * ddq
                     # dq = 0 * dq
+                rotor_inrtia = 0.00000447
                 mass_matrix = se3.crba(self.robot.model, self.robot.data, q)
+                mass_matrix[6:, 6:] += rotor_inrtia * np.identity(self.robot.model.nv - 6)
                 nonlinear = se3.nonLinearEffects(self.robot.model, self.robot.data, q, dq)
                 self.torque[:, it] = (mass_matrix[6: , :] @ ddq + nonlinear[6:].reshape(self.robot.model.nv - 6, 1)).reshape(-1)
                 for idx, eff in enumerate(self.eff_names):

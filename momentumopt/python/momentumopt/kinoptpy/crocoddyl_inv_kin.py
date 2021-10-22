@@ -6,7 +6,7 @@
 @copyright Copyright (c) 2019, New York University and Max Planck Gesellschaft.
 @date 2021-10-20
 '''
-from momentumopt.kinoptpy.ik.inverse_kinematics import InverseKinematics
+from momentumopt.kinoptpy.croc_ik.inverse_kinematics import InverseKinematics
 import crocoddyl
 import numpy as np
 from pinocchio import RobotWrapper
