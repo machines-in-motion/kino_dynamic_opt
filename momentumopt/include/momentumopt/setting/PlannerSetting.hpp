@@ -74,7 +74,12 @@ namespace momentumopt {
              reg_joint_position_, swing_traj_via_z_second_ ,w_lin_mom_tracking_second_ ,w_ang_mom_tracking_second_,
              w_endeff_contact_second_, w_endeff_tracking_second_, p_endeff_tracking_second_, p_com_tracking_second_,
              w_joint_regularization_second_, d_endeff_tracking_second_, p_orient_tracking_second_,
-             d_orient_tracking_second_, p_joint_regularization_second_, d_joint_regularization_second_;
+             d_orient_tracking_second_, p_joint_regularization_second_, d_joint_regularization_second_,
+             swing_traj_via_z_nonlinear_, stance_weight_nonlinear_, swing_trackig_weight_nonlinear_,
+             com_tracking_weight_nonlinear_, momentum_tracking_weight_nonlinear_, base_pos_reg_ratio_nonlinear_,
+             base_ori_reg_ratio_nonlinear_, joint_pos_reg_ratio_nonlinear_, base_vel_reg_ratio_nonlinear_,
+             base_ang_vel_reg_ratio_nonlinear_, joint_vel_reg_ratio_nonlinear_, state_reg_weight_nonlinear_,
+             control_reg_weight_nonlinear_, state_terminal_weight_nonlinear_, control_terminal_weight_nonlinear_;
 
       /*! helper vector variables for the optimization problem */
       Eigen::Vector2d time_range_, torque_range_;

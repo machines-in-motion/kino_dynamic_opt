@@ -164,7 +164,7 @@ namespace momentumopt {
         else if (inv_kin_solver_ == 2){
           // Kinematic paramters of second order IK (python)
           YAML::ReadParameter(planner_vars, "swing_traj_via_z_second", swing_traj_via_z_second_);
-          YAML::ReadParameter(planner_vars, "w_lin_mom_tracking_second", w_lin_mom_tracking_second_);
+          YAML::ReadParameter(planner_vars, "stance_weight", w_lin_mom_tracking_second_);
           YAML::ReadParameter(planner_vars, "w_ang_mom_tracking_second", w_ang_mom_tracking_second_);
           YAML::ReadParameter(planner_vars, "w_endeff_contact_second", w_endeff_contact_second_);
           YAML::ReadParameter(planner_vars, "w_endeff_tracking_second", w_endeff_tracking_second_);
@@ -182,18 +182,25 @@ namespace momentumopt {
         }
         else if (inv_kin_solver_ == 3){
           // Kinematic paramters of nonlinear IK (python)
-          YAML::ReadParameter(planner_vars, "swing_traj_via_z", swing_traj_via_z_);
-          YAML::ReadParameter(planner_vars, "w_lin_mom_tracking", w_lin_mom_tracking_);
-          YAML::ReadParameter(planner_vars, "w_ang_mom_tracking", w_ang_mom_tracking_);
-          YAML::ReadParameter(planner_vars, "w_endeff_contact", w_endeff_contact_);
-          YAML::ReadParameter(planner_vars, "w_endeff_tracking", w_endeff_tracking_);
-          YAML::ReadParameter(planner_vars, "p_endeff_tracking", p_endeff_tracking_);
-          YAML::ReadParameter(planner_vars, "p_com_tracking", p_com_tracking_);
-          YAML::ReadParameter(planner_vars, "w_joint_regularization", w_joint_regularization_);
-          YAML::ReadParameter(planner_vars, "reg_orientation", reg_orientation_);
-          YAML::ReadParameter(planner_vars, "reg_joint_position", reg_joint_position_);
-          YAML::ReadParameter(planner_vars, "num_joint_viapoints", num_joint_viapoints_);
-          YAML::ReadParameter(planner_vars, "num_base_viapoints", num_base_viapoints_);
+          YAML::ReadParameter(planner_vars, "swing_traj_via_z_nonlinear", swing_traj_via_z_nonlinear_);
+          YAML::ReadParameter(planner_vars, "stance_weight_nonlinear", stance_weight_nonlinear_);
+          YAML::ReadParameter(planner_vars, "swing_trackig_weight_nonlinear", swing_trackig_weight_nonlinear_);
+          YAML::ReadParameter(planner_vars, "com_tracking_weight_nonlinear", com_tracking_weight_nonlinear_);
+          YAML::ReadParameter(planner_vars, "momentum_tracking_weight_nonlinear", momentum_tracking_weight_nonlinear_);
+          YAML::ReadParameter(planner_vars, "base_pos_reg_ratio_nonlinear", base_pos_reg_ratio_nonlinear_);
+          YAML::ReadParameter(planner_vars, "base_ori_reg_ratio_nonlinear", base_ori_reg_ratio_nonlinear_);
+          YAML::ReadParameter(planner_vars, "joint_pos_reg_ratio_nonlinear", joint_pos_reg_ratio_nonlinear_);
+          YAML::ReadParameter(planner_vars, "base_vel_reg_ratio_nonlinear", base_vel_reg_ratio_nonlinear_);
+          YAML::ReadParameter(planner_vars, "base_ang_vel_reg_ratio_nonlinear", base_ang_vel_reg_ratio_nonlinear_);
+          YAML::ReadParameter(planner_vars, "joint_vel_reg_ratio_nonlinear", joint_vel_reg_ratio_nonlinear_);
+          YAML::ReadParameter(planner_vars, "state_reg_weight_nonlinear", state_reg_weight_nonlinear_);
+          YAML::ReadParameter(planner_vars, "control_reg_weight_nonlinear", control_reg_weight_nonlinear_);
+          YAML::ReadParameter(planner_vars, "state_terminal_weight_nonlinear", state_terminal_weight_nonlinear_);
+          YAML::ReadParameter(planner_vars, "control_terminal_weight_nonlinear", control_terminal_weight_nonlinear_);
+          YAML::ReadParameter(planner_vars, "num_joint_viapoints_nonlinear", num_joint_viapoints_nonlinear_);
+          YAML::ReadParameter(planner_vars, "num_base_viapoints_nonlinear", num_base_viapoints_nonlinear_);
+
+
         }
         // else{
         //   throw std::runtime_error("inv_kin_solver is invalid"); break;
@@ -386,6 +393,24 @@ namespace momentumopt {
       case PlannerDoubleParam_DGainBaseOrientationTracking_Second : { return d_orient_tracking_second_; }
       case PlannerDoubleParam_PGainJointRegularization_Second : { return p_joint_regularization_second_; }
       case PlannerDoubleParam_DGainJointRegularization_Second : { return d_joint_regularization_second_; }
+
+      // weights of Nonlinear IK (python)
+      case PlannerDoubleParam_SwingTrajViaZ_Nonlinear : { return swing_traj_via_z_nonlinear_; }
+      case PlannerDoubleParam_WeightStance_Nonlinear : { return stance_weight_nonlinear_; }
+      case PlannerDoubleParam_WeightSwingTracking_Nonlinear : { return swing_trackig_weight_nonlinear_; }
+      case PlannerDoubleParam_WeightComTracking_Nonlinear : { return com_tracking_weight_nonlinear_; }
+      case PlannerDoubleParam_WeightMomentumTracking_Nonlinear : { return momentum_tracking_weight_nonlinear_; }
+      case PlannerDoubleParam_RatioBasePosReg_Nonlinear : { return base_pos_reg_ratio_nonlinear_; }
+      case PlannerDoubleParam_RatioBaseOriReg_Nonlinear : { return base_ori_reg_ratio_nonlinear_; }
+      case PlannerDoubleParam_RatioJointPosReg_Nonlinear : { return joint_pos_reg_ratio_nonlinear_; }
+      case PlannerDoubleParam_RatioBaseVelReg_Nonlinear : { return base_vel_reg_ratio_nonlinear_; }
+      case PlannerDoubleParam_RatioBaseAngVelReg_Nonlinear : { return base_ang_vel_reg_ratio_nonlinear_; }
+      case PlannerDoubleParam_RatioJointVelReg_Nonlinear : { return joint_vel_reg_ratio_nonlinear_; }
+      case PlannerDoubleParam_WeightStateReg_Nonlinear : { return state_reg_weight_nonlinear_; }
+      case PlannerDoubleParam_WeightControlReg_Nonlinear : { return control_reg_weight_nonlinear_; }
+      case PlannerDoubleParam_WeightTerminalStateReg_Nonlinear : { return state_terminal_weight_nonlinear_; }
+      case PlannerDoubleParam_WeightTerminalControlReg_Nonlinear : { return control_terminal_weight_nonlinear_; }
+
       // Not handled parameters
       default: { throw std::runtime_error("PlannerSetting::get PlannerDoubleParam invalid"); break; }
     }
@@ -501,6 +526,8 @@ namespace momentumopt {
     case PlannerCVectorParam_BaseViapoints : { return base_viapoints_; }
     case PlannerCVectorParam_JointViapoints_Second : { return joint_viapoints_second_; }
     case PlannerCVectorParam_BaseViapoints_Second : { return base_viapoints_second_; }
+    case PlannerCVectorParam_JointViapoints_Nonlinear : { return joint_viapoints_nonlinear_; }
+    case PlannerCVectorParam_BaseViapoints_Nonlinear : { return base_viapoints_nonlinear_; }
 
     // Not handled parameters
     default: { throw std::runtime_error("PlannerSetting::get PlannerCVectorParam invalid"); break; }
@@ -624,6 +651,23 @@ namespace momentumopt {
       case PlannerDoubleParam_WeightEndEffTracking_Second : { return w_endeff_tracking_second_; }
       case PlannerDoubleParam_PGainEndEffTracking_Second : { return p_endeff_tracking_second_; }
       case PlannerDoubleParam_PGainComTracking_Second : { return p_com_tracking_second_; }
+
+      // weights of nonlinear IK (python)
+      case PlannerDoubleParam_SwingTrajViaZ_Nonlinear : { return swing_traj_via_z_nonlinear_; }
+      case PlannerDoubleParam_WeightStance_Nonlinear : { return stance_weight_nonlinear_; }
+      case PlannerDoubleParam_WeightSwingTracking_Nonlinear : { return swing_trackig_weight_nonlinear_; }
+      case PlannerDoubleParam_WeightComTracking_Nonlinear : { return com_tracking_weight_nonlinear_; }
+      case PlannerDoubleParam_WeightMomentumTracking_Nonlinear : { return momentum_tracking_weight_nonlinear_; }
+      case PlannerDoubleParam_RatioBasePosReg_Nonlinear : { return base_pos_reg_ratio_nonlinear_; }
+      case PlannerDoubleParam_RatioBaseOriReg_Nonlinear : { return base_ori_reg_ratio_nonlinear_; }
+      case PlannerDoubleParam_RatioJointPosReg_Nonlinear : { return joint_pos_reg_ratio_nonlinear_; }
+      case PlannerDoubleParam_RatioBaseVelReg_Nonlinear : { return base_vel_reg_ratio_nonlinear_; }
+      case PlannerDoubleParam_RatioBaseAngVelReg_Nonlinear : { return base_ang_vel_reg_ratio_nonlinear_; }
+      case PlannerDoubleParam_RatioJointVelReg_Nonlinear : { return joint_vel_reg_ratio_nonlinear_; }
+      case PlannerDoubleParam_WeightStateReg_Nonlinear : { return state_reg_weight_nonlinear_; }
+      case PlannerDoubleParam_WeightControlReg_Nonlinear : { return control_reg_weight_nonlinear_; }
+      case PlannerDoubleParam_WeightTerminalStateReg_Nonlinear : { return state_terminal_weight_nonlinear_; }
+      case PlannerDoubleParam_WeightTerminalControlReg_Nonlinear : { return control_terminal_weight_nonlinear_; }
 
       // Not handled parameters
       default: { throw std::runtime_error("PlannerSetting::set PlannerDoubleParam invalid"); break; }

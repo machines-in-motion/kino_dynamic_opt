@@ -92,7 +92,7 @@ planner_variables:
   # IK formulation #
   #########################
 
-  inv_kin_solver: 1 # 1: First order IK, 2: Second order IK,  3: Nonlinear IK.
+  inv_kin_solver: 3 # 1: First order IK, 2: Second order IK,  3: Nonlinear IK.
 
   #########################
   # First Order IK parameters #
@@ -163,20 +163,20 @@ planner_variables:
   # Nonlinear IK parameters #
   #########################
   swing_traj_via_z_nonlinear: 0.3
-  stance_weight: 1e5
-  swing_trackig_weight: 1e3#0.
-  com_tracking_weight: 1e3
-  momentum_tracking_weight: 1e3
-  base_pos_regularization_ratio: 0.
-  base_ori_regularization_ratio: 1e2#1.
-  joint_pos_regularization_ratio: 0.5# 0.1
-  base_vel_regularization_ratio: 0.1
-  base_ang_vel_regularization_ratio: 0.1
-  joint_vel_regularization_ratio: 1.0
-  state_reularization_weight: 1e-1
-  control_reularization_weight: 1e-5
-  state_terminal_weight: 1e-4
-  control_terminal_weight: 1e-7
+  stance_weight_nonlinear: 1e5
+  swing_trackig_weight_nonlinear: 0.
+  com_tracking_weight_nonlinear: 1e3
+  momentum_tracking_weight_nonlinear: 1e3
+  base_pos_reg_ratio_nonlinear: 0.
+  base_ori_reg_ratio_nonlinear: 1.
+  joint_pos_reg_ratio_nonlinear: 0.1
+  base_vel_reg_ratio_nonlinear: 0.1
+  base_ang_vel_reg_ratio_nonlinear: 0.1
+  joint_vel_reg_ratio_nonlinear: 1.0
+  state_reg_weight_nonlinear: 1e-1
+  control_reg_weight_nonlinear: 1e-5
+  state_terminal_weight_nonlinear: 1e-4
+  control_terminal_weight_nonlinear: 1e-7
   num_joint_viapoints_nonlinear: 0
   num_base_viapoints_nonlinear: 0
 

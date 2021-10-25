@@ -396,7 +396,6 @@ class MomentumKinematicsOptimizer(object):
         # Compute inverse kinematics over the full trajectory.
         self.inv_kin.is_init_time = 0
         q, dq = self.q_init.copy(), self.dq_init.copy()
-        self.use_crocoddyl_inv_kin = True
         if (self.inv_kin_solver == 2):
             q_kin, dq_kin, com_kin, lmom_kin, amom_kin, endeff_pos_kin, endeff_vel_kin = \
                 self.snd_order_inv_kin.solve(self.dt, q, dq, self.com_dyn, self.lmom_dyn,
@@ -407,7 +406,7 @@ class MomentumKinematicsOptimizer(object):
                 self.inv_kin.forward_robot(q, dq)
                 self.fill_kinematic_result(it, q, dq)
 
-        elif(self.use_crocoddyl_inv_kin):
+        elif(self.inv_kin_solver == 3):
             contact_plan = self.endeff_traj_generator.get_contact_plan_from_dyn_optimizer(self)
             xs, us = self.crocoddyl_inv_kin.solve(self.dt, q, dq, self.com_dyn, self.lmom_dyn,
                 self.amom_dyn, self.endeff_pos_ref, self.endeff_vel_ref,

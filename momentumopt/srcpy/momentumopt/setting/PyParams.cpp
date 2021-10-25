@@ -89,7 +89,23 @@ void init_params(py::module &m)
   .value("PlannerDoubleParam_DGainBaseOrientationTracking_Second", PlannerDoubleParam_DGainBaseOrientationTracking_Second)
   .value("PlannerDoubleParam_PGainJointRegularization_Second", PlannerDoubleParam_PGainJointRegularization_Second)
   .value("PlannerDoubleParam_DGainJointRegularization_Second", PlannerDoubleParam_DGainJointRegularization_Second)
+  .value("PlannerDoubleParam_SwingTrajViaZ_Nonlinear", PlannerDoubleParam_SwingTrajViaZ_Nonlinear)
+  .value("PlannerDoubleParam_WeightStance_Nonlinear", PlannerDoubleParam_WeightStance_Nonlinear)
+  .value("PlannerDoubleParam_WeightSwingTracking_Nonlinear", PlannerDoubleParam_WeightSwingTracking_Nonlinear)
+  .value("PlannerDoubleParam_WeightComTracking_Nonlinear", PlannerDoubleParam_WeightComTracking_Nonlinear)
+  .value("PlannerDoubleParam_WeightMomentumTracking_Nonlinear", PlannerDoubleParam_WeightMomentumTracking_Nonlinear)
+  .value("PlannerDoubleParam_RatioBasePosReg_Nonlinear", PlannerDoubleParam_RatioBasePosReg_Nonlinear)
+  .value("PlannerDoubleParam_RatioBaseOriReg_Nonlinear", PlannerDoubleParam_RatioBaseOriReg_Nonlinear)
+  .value("PlannerDoubleParam_RatioJointPosReg_Nonlinear", PlannerDoubleParam_RatioJointPosReg_Nonlinear)
+  .value("PlannerDoubleParam_RatioBaseVelReg_Nonlinear", PlannerDoubleParam_RatioBaseVelReg_Nonlinear)
+  .value("PlannerDoubleParam_RatioBaseAngVelReg_Nonlinear", PlannerDoubleParam_RatioBaseAngVelReg_Nonlinear)
+  .value("PlannerDoubleParam_RatioJointVelReg_Nonlinear", PlannerDoubleParam_RatioJointVelReg_Nonlinear)
+  .value("PlannerDoubleParam_WeightStateReg_Nonlinear", PlannerDoubleParam_WeightStateReg_Nonlinear)
+  .value("PlannerDoubleParam_WeightControlReg_Nonlinear", PlannerDoubleParam_WeightControlReg_Nonlinear)
+  .value("PlannerDoubleParam_WeightTerminalStateReg_Nonlinear", PlannerDoubleParam_WeightTerminalStateReg_Nonlinear)
+  .value("PlannerDoubleParam_WeightTerminalControlReg_Nonlinear", PlannerDoubleParam_WeightTerminalControlReg_Nonlinear)
   .export_values();
+
 
   // binding string parameters
   py::enum_<PlannerStringParam>(m, "PlannerStringParam")
@@ -153,6 +169,8 @@ void init_params(py::module &m)
     .value("PlannerCVectorParam_BaseViapoints", PlannerCVectorParam_BaseViapoints)
     .value("PlannerCVectorParam_JointViapoints_Second", PlannerCVectorParam_JointViapoints_Second)
     .value("PlannerCVectorParam_BaseViapoints_Second", PlannerCVectorParam_BaseViapoints_Second)
+    .value("PlannerCVectorParam_JointViapoints_Nonlinear", PlannerCVectorParam_JointViapoints_Nonlinear)
+    .value("PlannerCVectorParam_BaseViapoints_Nonlinear", PlannerCVectorParam_BaseViapoints_Nonlinear)
     .value("PlannerCVectorParam_Viapoints", PlannerCVectorParam_Viapoints)
     .export_values();
   }

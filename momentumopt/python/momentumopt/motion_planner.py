@@ -76,6 +76,7 @@ class MotionPlanner():
         kin_optimizer = self.kin_optimizer
         inv_kin = kin_optimizer.inv_kin
         snd_order_inv_kin = kin_optimizer.snd_order_inv_kin
+        crocoddyl_inv_kin = kin_optimizer.crocoddyl_inv_kin
         etg = kin_optimizer.endeff_traj_generator
         kin_optimizer.inv_kin_solver = self.planner_setting.get(PlannerIntParam_InverseKinematicsSolver)
         if (self.kin_optimizer.inv_kin_solver == 1):
@@ -110,7 +111,6 @@ class MotionPlanner():
             kin_optimizer.via_joint = self.planner_setting.get(PlannerCVectorParam_JointViapoints_Second)
             kin_optimizer.n_via_base = self.planner_setting.get(PlannerIntParam_NumBaseViapoints_Second)
             kin_optimizer.via_base = self.planner_setting.get(PlannerCVectorParam_BaseViapoints_Second)
-            # parameters specific to second order IK
             snd_order_inv_kin.d_endeff_tracking = self.planner_setting.get(PlannerDoubleParam_DGainEndEffTracking_Second)
             snd_order_inv_kin.p_orient_tracking = self.planner_setting.get(PlannerDoubleParam_PGainBaseOrientationTracking_Second)
             snd_order_inv_kin.d_orient_tracking = self.planner_setting.get(PlannerDoubleParam_DGainBaseOrientationTracking_Second)
@@ -118,23 +118,27 @@ class MotionPlanner():
             snd_order_inv_kin.d_joint_regularization =self.planner_setting.get(PlannerDoubleParam_DGainJointRegularization_Second)
             snd_order_inv_kin.p_mom_tracking = self.planner_setting.get(PlannerVectorParam_PGainMomentumTracking_Second)
         elif (self.kin_optimizer.inv_kin_solver == 3):
-            etg.z_offset = self.planner_setting.get(PlannerDoubleParam_SwingTrajViaZ)
-            inv_kin.w_lin_mom_tracking = self.planner_setting.get(PlannerDoubleParam_WeightLinMomentumTracking)
-            inv_kin.w_ang_mom_tracking = self.planner_setting.get(PlannerDoubleParam_WeightAngMomentumTracking)
-            inv_kin.w_endeff_contact = self.planner_setting.get(PlannerDoubleParam_WeightEndEffContact)
-            inv_kin.w_endeff_tracking = self.planner_setting.get(PlannerDoubleParam_WeightEndEffTracking)
-            inv_kin.w_joint_regularization = self.planner_setting.get(PlannerDoubleParam_WeightJointReg)
-            inv_kin.p_endeff_tracking = self.planner_setting.get(PlannerDoubleParam_PGainEndEffTracking)
-            inv_kin.p_com_tracking = self.planner_setting.get(PlannerDoubleParam_PGainComTracking)
-            kin_optimizer.reg_orientation = self.planner_setting.get(PlannerDoubleParam_PGainOrientationTracking)
-            kin_optimizer.reg_joint_position = self.planner_setting.get(PlannerDoubleParam_PGainPositionTracking)
-            kin_optimizer.n_via_joint = self.planner_setting.get(PlannerIntParam_NumJointViapoints)
-            kin_optimizer.via_joint = self.planner_setting.get(PlannerCVectorParam_JointViapoints)
-            kin_optimizer.n_via_base = self.planner_setting.get(PlannerIntParam_NumBaseViapoints)
-            kin_optimizer.via_base = self.planner_setting.get(PlannerCVectorParam_BaseViapoints)
             print("\n Nonlinear IK formulation is used, set inv_kin_sover to 1 "
                   "to use first order IK and 2 to use second order IK. \n")
-
+            etg.z_offset = self.planner_setting.get(PlannerDoubleParam_SwingTrajViaZ_Nonlinear)
+            kin_optimizer.n_via_joint = self.planner_setting.get(PlannerIntParam_NumJointViapoints_Nonlinear)
+            kin_optimizer.via_joint = self.planner_setting.get(PlannerCVectorParam_JointViapoints_Nonlinear)
+            kin_optimizer.n_via_base = self.planner_setting.get(PlannerIntParam_NumBaseViapoints_Nonlinear)
+            kin_optimizer.via_base = self.planner_setting.get(PlannerCVectorParam_BaseViapoints_Nonlinear)
+            crocoddyl_inv_kin.stance_weight_nonlinear = self.planner_setting.get(PlannerDoubleParam_WeightStance_Nonlinear)
+            crocoddyl_inv_kin.swing_trackig_weight_nonlinear = self.planner_setting.get(PlannerDoubleParam_WeightSwingTracking_Nonlinear)
+            crocoddyl_inv_kin.com_tracking_weight_nonlinear = self.planner_setting.get(PlannerDoubleParam_WeightComTracking_Nonlinear)
+            crocoddyl_inv_kin.momentum_tracking_weight_nonlinear = self.planner_setting.get(PlannerDoubleParam_WeightMomentumTracking_Nonlinear)
+            crocoddyl_inv_kin.base_pos_reg_ratio_nonlinear = self.planner_setting.get(PlannerDoubleParam_RatioBasePosReg_Nonlinear)
+            crocoddyl_inv_kin.base_ori_reg_ratio_nonlinear = self.planner_setting.get(PlannerDoubleParam_RatioBaseOriReg_Nonlinear)
+            crocoddyl_inv_kin.joint_pos_reg_ratio_nonlinear = self.planner_setting.get(PlannerDoubleParam_RatioJointPosReg_Nonlinear)
+            crocoddyl_inv_kin.base_vel_reg_ratio_nonlinear = self.planner_setting.get(PlannerDoubleParam_RatioBaseVelReg_Nonlinear)
+            crocoddyl_inv_kin.base_ang_vel_reg_ratio_nonlinear = self.planner_setting.get(PlannerDoubleParam_RatioBaseAngVelReg_Nonlinear)
+            crocoddyl_inv_kin.joint_vel_reg_ratio_nonlinear = self.planner_setting.get(PlannerDoubleParam_RatioJointVelReg_Nonlinear)
+            crocoddyl_inv_kin.state_reg_weight_nonlinear = self.planner_setting.get(PlannerDoubleParam_WeightStateReg_Nonlinear)
+            crocoddyl_inv_kin.control_reg_weight_nonlinear = self.planner_setting.get(PlannerDoubleParam_WeightControlReg_Nonlinear)
+            crocoddyl_inv_kin.state_terminal_weight_nonlinear = self.planner_setting.get(PlannerDoubleParam_WeightTerminalStateReg_Nonlinear)
+            crocoddyl_inv_kin.control_terminal_weight_nonlinear = self.planner_setting.get(PlannerDoubleParam_WeightTerminalControlReg_Nonlinear)
 
 
     def optimize_dynamics(self, kd_iter):

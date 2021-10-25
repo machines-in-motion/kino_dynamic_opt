@@ -107,6 +107,23 @@ namespace momentumopt {
   PlannerDoubleParam_DGainBaseOrientationTracking_Second,
   PlannerDoubleParam_PGainJointRegularization_Second,
   PlannerDoubleParam_DGainJointRegularization_Second,
+
+  //Nonlinear IK
+  PlannerDoubleParam_SwingTrajViaZ_Nonlinear,
+  PlannerDoubleParam_WeightStance_Nonlinear,
+  PlannerDoubleParam_WeightSwingTracking_Nonlinear,
+  PlannerDoubleParam_WeightComTracking_Nonlinear,
+  PlannerDoubleParam_WeightMomentumTracking_Nonlinear,
+  PlannerDoubleParam_RatioBasePosReg_Nonlinear,
+  PlannerDoubleParam_RatioBaseOriReg_Nonlinear,
+  PlannerDoubleParam_RatioJointPosReg_Nonlinear,
+  PlannerDoubleParam_RatioBaseVelReg_Nonlinear,
+  PlannerDoubleParam_RatioBaseAngVelReg_Nonlinear,
+  PlannerDoubleParam_RatioJointVelReg_Nonlinear,
+  PlannerDoubleParam_WeightStateReg_Nonlinear,
+  PlannerDoubleParam_WeightControlReg_Nonlinear,
+  PlannerDoubleParam_WeightTerminalStateReg_Nonlinear,
+  PlannerDoubleParam_WeightTerminalControlReg_Nonlinear,
   };
 
   /*! Available string variables used by the planner */
