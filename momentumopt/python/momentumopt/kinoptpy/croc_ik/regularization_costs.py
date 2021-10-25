@@ -30,11 +30,10 @@ class RegularizationCosts:
             xRegCost = crocoddyl.CostModelState(self.state)
             if state_weights[0] == None:
                 stateWeights = np.array([0.] * 3 + [500.] * 3 + [0.01] * (self.state.nv - 6) \
-                    + [.01] * 3+ [10.] * 3 + [0.01] *(self.state.nv - 6))
+                             + [.01] * 3+ [10.] * 3 + [0.01] *(self.state.nv - 6))
 
             xRegCost = crocoddyl.CostModelState(self.state, \
-                            crocoddyl.ActivationModelWeightedQuad(state_weights**2), \
-                                            x0[i,:])
+                       crocoddyl.ActivationModelWeightedQuad(state_weights**2), x0[i,:])
 
             self.rcost_model_arr[i].addCost(cost_name+str(i), xRegCost, wt)
 

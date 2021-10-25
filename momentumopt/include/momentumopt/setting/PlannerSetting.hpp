@@ -57,13 +57,13 @@ namespace momentumopt {
 
 	  /*! helper integer variables for the optimization problem */
       int num_com_viapoints_, num_joint_viapoints_, num_base_viapoints_, num_joint_viapoints_second_,
-          num_base_viapoints_second_, num_act_eefs_, num_timesteps_, max_time_iterations_, num_dofs_,
-          num_act_dofs_, num_extended_act_dofs_, max_convergence_iters_, num_subsamples_,
-		      kd_iterations_, max_trajectory_iters_;
+          num_base_viapoints_second_, num_joint_viapoints_nonlinear_, num_base_viapoints_nonlinear_,
+          num_act_eefs_, num_timesteps_, max_time_iterations_, num_dofs_, num_act_dofs_, num_extended_act_dofs_,
+          max_convergence_iters_, num_subsamples_, kd_iterations_, max_trajectory_iters_, inv_kin_solver_;
 
       /*! helper boolean variables for the optimization problem */
       bool store_data_, is_time_horizon_fixed_, is_friction_cone_linear_, use_default_solver_setting_,
-           load_kinematics_, display_motion_, use_second_order_inv_kin_;
+           load_kinematics_, display_motion_;
 
       /*! helper double variables for the optimization problem */
       double gravity_, time_step_, robot_mass_, time_horizon_, friction_coeff_, max_time_residual_tolerance_,
@@ -94,10 +94,12 @@ namespace momentumopt {
       /*! via points for joints */
       std::vector<Eigen::VectorXd> joint_viapoints_;
       std::vector<Eigen::VectorXd> joint_viapoints_second_;
+      std::vector<Eigen::VectorXd> joint_viapoints_nonlinear_;
 
       /*! via points for base */
       std::vector<Eigen::VectorXd> base_viapoints_;
       std::vector<Eigen::VectorXd> base_viapoints_second_;
+      std::vector<Eigen::VectorXd> base_viapoints_nonlinear_;
 
       /*! region of support for end-effectors */
       std::array<Eigen::VectorXd, Problem::n_endeffs_> cop_range_;

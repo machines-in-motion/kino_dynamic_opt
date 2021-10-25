@@ -144,9 +144,24 @@ namespace momentumopt {
 	      YAML::ReadParameter(planner_vars, "convergence_tolerance", convergence_tolerance_);
         YAML::ReadParameter(planner_vars, "lambda_regularization", lambda_regularization_);
         // IK version to be used in python
-        YAML::ReadParameter(planner_vars, "use_second_order_inv_kin", use_second_order_inv_kin_);
+        YAML::ReadParameter(planner_vars, "inv_kin_solver", inv_kin_solver_);
 
-        if (use_second_order_inv_kin_) {
+        if (inv_kin_solver_ == 1) {
+          // Kinematic paramters of first order IK (python)
+          YAML::ReadParameter(planner_vars, "swing_traj_via_z", swing_traj_via_z_);
+          YAML::ReadParameter(planner_vars, "w_lin_mom_tracking", w_lin_mom_tracking_);
+          YAML::ReadParameter(planner_vars, "w_ang_mom_tracking", w_ang_mom_tracking_);
+          YAML::ReadParameter(planner_vars, "w_endeff_contact", w_endeff_contact_);
+          YAML::ReadParameter(planner_vars, "w_endeff_tracking", w_endeff_tracking_);
+          YAML::ReadParameter(planner_vars, "p_endeff_tracking", p_endeff_tracking_);
+          YAML::ReadParameter(planner_vars, "p_com_tracking", p_com_tracking_);
+          YAML::ReadParameter(planner_vars, "w_joint_regularization", w_joint_regularization_);
+          YAML::ReadParameter(planner_vars, "reg_orientation", reg_orientation_);
+          YAML::ReadParameter(planner_vars, "reg_joint_position", reg_joint_position_);
+          YAML::ReadParameter(planner_vars, "num_joint_viapoints", num_joint_viapoints_);
+          YAML::ReadParameter(planner_vars, "num_base_viapoints", num_base_viapoints_);
+        }
+        else if (inv_kin_solver_ == 2){
           // Kinematic paramters of second order IK (python)
           YAML::ReadParameter(planner_vars, "swing_traj_via_z_second", swing_traj_via_z_second_);
           YAML::ReadParameter(planner_vars, "w_lin_mom_tracking_second", w_lin_mom_tracking_second_);
@@ -165,8 +180,8 @@ namespace momentumopt {
           YAML::ReadParameter(planner_vars, "num_joint_viapoints_second", num_joint_viapoints_second_);
           YAML::ReadParameter(planner_vars, "num_base_viapoints_second", num_base_viapoints_second_);
         }
-        else{
-          // Kinematic paramters of first order IK (python)
+        else if (inv_kin_solver_ == 3){
+          // Kinematic paramters of nonlinear IK (python)
           YAML::ReadParameter(planner_vars, "swing_traj_via_z", swing_traj_via_z_);
           YAML::ReadParameter(planner_vars, "w_lin_mom_tracking", w_lin_mom_tracking_);
           YAML::ReadParameter(planner_vars, "w_ang_mom_tracking", w_ang_mom_tracking_);
@@ -179,18 +194,34 @@ namespace momentumopt {
           YAML::ReadParameter(planner_vars, "reg_joint_position", reg_joint_position_);
           YAML::ReadParameter(planner_vars, "num_joint_viapoints", num_joint_viapoints_);
           YAML::ReadParameter(planner_vars, "num_base_viapoints", num_base_viapoints_);
-      }
+        }
+        // else{
+        //   throw std::runtime_error("inv_kin_solver is invalid"); break;
+        // }
 
-
-        if (use_second_order_inv_kin_) {
+        if (inv_kin_solver_ == 1) {
+          joint_viapoints_.clear();
+          base_viapoints_.clear();
+        }
+        else if (inv_kin_solver_ == 2) {
           joint_viapoints_second_.clear();
           base_viapoints_second_.clear();
         }
         else{
-          joint_viapoints_.clear();
-          base_viapoints_.clear();
+          joint_viapoints_nonlinear_.clear();
+          base_viapoints_nonlinear_.clear();
         }
-        if (use_second_order_inv_kin_) {
+        if (inv_kin_solver_ == 1) {
+          for (int via_id=0; via_id<num_joint_viapoints_; via_id++) {
+            joint_viapoints_.push_back(Eigen::VectorXd::Zero(num_dofs_+1));
+            YAML::ReadParameter(planner_vars["joint_viapoints"], "via"+std::to_string(via_id), joint_viapoints_[via_id]);
+          }
+            for (int via_id=0; via_id<num_base_viapoints_; via_id++) {
+              base_viapoints_.push_back(Eigen::VectorXd::Zero(4));
+              YAML::ReadParameter(planner_vars["base_viapoints"], "via"+std::to_string(via_id), base_viapoints_[via_id]);
+          }
+        }
+        else if (inv_kin_solver_ == 2) {
           for (int via_id=0; via_id<num_joint_viapoints_second_; via_id++) {
             joint_viapoints_second_.push_back(Eigen::VectorXd::Zero(num_dofs_+1));
             YAML::ReadParameter(planner_vars["joint_viapoints_second"], "via"+std::to_string(via_id), joint_viapoints_second_[via_id]);
@@ -201,13 +232,13 @@ namespace momentumopt {
           }
         }
         else{
-          for (int via_id=0; via_id<num_joint_viapoints_; via_id++) {
-            joint_viapoints_.push_back(Eigen::VectorXd::Zero(num_dofs_+1));
-            YAML::ReadParameter(planner_vars["joint_viapoints"], "via"+std::to_string(via_id), joint_viapoints_[via_id]);
+          for (int via_id=0; via_id<num_joint_viapoints_nonlinear_; via_id++) {
+            joint_viapoints_second_.push_back(Eigen::VectorXd::Zero(num_dofs_+1));
+            YAML::ReadParameter(planner_vars["joint_viapoints_second"], "via"+std::to_string(via_id), joint_viapoints_nonlinear_[via_id]);
           }
-            for (int via_id=0; via_id<num_base_viapoints_; via_id++) {
-              base_viapoints_.push_back(Eigen::VectorXd::Zero(4));
-              YAML::ReadParameter(planner_vars["base_viapoints"], "via"+std::to_string(via_id), base_viapoints_[via_id]);
+          for (int via_id=0; via_id<num_base_viapoints_nonlinear_; via_id++) {
+            base_viapoints_second_.push_back(Eigen::VectorXd::Zero(4));
+            YAML::ReadParameter(planner_vars["base_viapoints_second"], "via"+std::to_string(via_id), base_viapoints_nonlinear_[via_id]);
           }
         }
       }
@@ -258,6 +289,13 @@ namespace momentumopt {
       case PlannerIntParam_NumJointViapoints_Second : { return num_joint_viapoints_second_; }
       case PlannerIntParam_NumBaseViapoints_Second : { return num_base_viapoints_second_; }
 
+      // Nonlinear IK (python) parameters
+      case PlannerIntParam_NumJointViapoints_Nonlinear : { return num_joint_viapoints_nonlinear_; }
+      case PlannerIntParam_NumBaseViapoints_Nonlinear : { return num_base_viapoints_nonlinear_; }
+
+      // Inverse kinematics (python)
+      case PlannerIntParam_InverseKinematicsSolver : { return inv_kin_solver_; }
+
       // Time optimization parameters
       case PlannerIntParam_MaxNumTimeIterations : { return max_time_iterations_; }
 
@@ -283,9 +321,6 @@ namespace momentumopt {
 
       // Solver setting
       case PlannerBoolParam_UseDefaultSolverSetting : { return use_default_solver_setting_; }
-
-      // Inverse kinematics (python)
-      case PlannerBoolParam_UseSecondOrderInverseKinematics : { return use_second_order_inv_kin_; }
 
       // Not handled parameters
       default: { throw std::runtime_error("PlannerSetting::get PlannerBoolParam invalid"); break; }
@@ -498,6 +533,13 @@ namespace momentumopt {
       case PlannerIntParam_NumJointViapoints_Second : { return num_joint_viapoints_second_; }
       case PlannerIntParam_NumBaseViapoints_Second : { return num_base_viapoints_second_; }
 
+      // Nonlinear IK (python) parameters
+      case PlannerIntParam_NumJointViapoints_Nonlinear : { return num_joint_viapoints_nonlinear_; }
+      case PlannerIntParam_NumBaseViapoints_Nonlinear : { return num_base_viapoints_nonlinear_; }
+
+      // Inverse kinematics (python)
+      case PlannerIntParam_InverseKinematicsSolver : { return inv_kin_solver_; }
+
       // Time optimization parameters
       case PlannerIntParam_MaxNumTimeIterations : { return max_time_iterations_; }
 
@@ -523,9 +565,6 @@ namespace momentumopt {
 
       // Solver setting
       case PlannerBoolParam_UseDefaultSolverSetting : { return use_default_solver_setting_; }
-
-      // Inverse kinematics (python)
-      case PlannerBoolParam_UseSecondOrderInverseKinematics : { return use_second_order_inv_kin_; }
 
       // Not handled parameters
       default: { throw std::runtime_error("PlannerSetting::set PlannerBoolParam invalid"); break; }
@@ -701,6 +740,8 @@ namespace momentumopt {
     case PlannerCVectorParam_BaseViapoints : { return base_viapoints_; }
     case PlannerCVectorParam_JointViapoints_Second : { return joint_viapoints_second_; }
     case PlannerCVectorParam_BaseViapoints_Second : { return base_viapoints_second_; }
+    case PlannerCVectorParam_JointViapoints_Nonlinear : { return joint_viapoints_nonlinear_; }
+    case PlannerCVectorParam_BaseViapoints_Nonlinear : { return base_viapoints_nonlinear_; }
 
 
     // Not handled parameters

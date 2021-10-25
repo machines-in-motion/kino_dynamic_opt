@@ -26,6 +26,9 @@ void init_params(py::module &m)
   .value("PlannerIntParam_NumBaseViapoints", PlannerIntParam_NumBaseViapoints)
   .value("PlannerIntParam_NumJointViapoints_Second", PlannerIntParam_NumJointViapoints_Second)
   .value("PlannerIntParam_NumBaseViapoints_Second", PlannerIntParam_NumBaseViapoints_Second)
+  .value("PlannerIntParam_NumJointViapoints_Nonlinear", PlannerIntParam_NumJointViapoints_Nonlinear)
+  .value("PlannerIntParam_NumBaseViapoints_Nonlinear", PlannerIntParam_NumBaseViapoints_Nonlinear)
+  .value("PlannerIntParam_InverseKinematicsSolver", PlannerIntParam_InverseKinematicsSolver)
 	.value("PlannerIntParam_NumActiveDofs", PlannerIntParam_NumActiveDofs)
 	.value("PlannerIntParam_NumSubsamples", PlannerIntParam_NumSubsamples)
 	.value("PlannerIntParam_KinDynIterations", PlannerIntParam_KinDynIterations)
@@ -43,7 +46,6 @@ void init_params(py::module &m)
   .value("PlannerBoolParam_IsTimeHorizonFixed", PlannerBoolParam_IsTimeHorizonFixed)
   .value("PlannerBoolParam_IsFrictionConeLinear", PlannerBoolParam_IsFrictionConeLinear)
 	.value("PlannerBoolParam_UseDefaultSolverSetting", PlannerBoolParam_UseDefaultSolverSetting)
-  .value("PlannerBoolParam_UseSecondOrderInverseKinematics", PlannerBoolParam_UseSecondOrderInverseKinematics)
   .export_values();
 
   // binding double parameters

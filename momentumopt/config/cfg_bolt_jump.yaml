@@ -96,7 +96,7 @@ planner_variables:
   # IK formulation #
   #########################
 
-  use_second_order_inv_kin: False # True: Second order IK,  False: First order IK,
+  inv_kin_solver: 1 # 1: First order IK, 2: Second order IK,  3: Nonlinear IK.
 
   #########################
   # First Order IK parameters #

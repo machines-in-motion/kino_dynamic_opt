@@ -92,7 +92,7 @@ planner_variables:
   # IK formulation #
   #########################
 
-  use_second_order_inv_kin: False # True: Second order IK,  False: First order IK,
+  inv_kin_solver: 1 # 1: First order IK, 2: Second order IK,  3: Nonlinear IK.
 
   #########################
   # First Order IK parameters #
@@ -127,7 +127,6 @@ planner_variables:
   #########################
   # Second Order IK parameters #
   #########################
-
   swing_traj_via_z_second: 0.8
   w_lin_mom_tracking_second: 1e2
   w_ang_mom_tracking_second: 1e1
@@ -158,6 +157,42 @@ planner_variables:
   #  [time,                      # activation time of the via point
   # roll, pitch, yaw]        # desired base Euler angles in radian
   base_viapoints_second:
+    via0: [1.4, 0., 0., 0.]
+
+  #########################
+  # Nonlinear IK parameters #
+  #########################
+  swing_traj_via_z_nonlinear: 0.3
+  stance_weight: 1e5
+  swing_trackig_weight: 1e3#0.
+  com_tracking_weight: 1e3
+  momentum_tracking_weight: 1e3
+  base_pos_regularization_ratio: 0.
+  base_ori_regularization_ratio: 1e2#1.
+  joint_pos_regularization_ratio: 0.5# 0.1
+  base_vel_regularization_ratio: 0.1
+  base_ang_vel_regularization_ratio: 0.1
+  joint_vel_regularization_ratio: 1.0
+  state_reularization_weight: 1e-1
+  control_reularization_weight: 1e-5
+  state_terminal_weight: 1e-4
+  control_terminal_weight: 1e-7
+  num_joint_viapoints_nonlinear: 0
+  num_base_viapoints_nonlinear: 0
+
+  # joint via point definition
+  #  [time,                      # activation time of the via point
+  # Front_left_hip, Front_left_knee,
+  # Front_right_hip, Front_right_knee,
+  # Back_left_hip, Back_left_knee,
+  # Back_right_hip, Back_right_knee ]        # desired joint position
+  joint_viapoints_nonlinear:
+    via0: [1.4, 0.0, 1.57, -3.14, 0.0, 1.57, -3.14, 0.0, -1.57, 3.14, 0.0 -1.57, 3.14]
+
+  # base via point definition
+  #  [time,                      # activation time of the via point
+  # roll, pitch, yaw]        # desired base Euler angles in radian
+  base_viapoints_nonlinear:
     via0: [1.4, 0., 0., 0.]
 
   #########################
@@ -226,7 +261,7 @@ planner_variables:
   friction_coeff: 0.5
   floor_height: 0.0
   # minimum allowed distance from the robot base to the floor
-  min_rel_height: 0.15
+  min_rel_height: 0.10
   friction_cone: LinearCone  # Types: LinearCone, SocCone #
   time_range: [0.02, 0.25]
   is_time_horizon_fixed: true

@@ -20,6 +20,8 @@ namespace momentumopt {
   PlannerIntParam_NumBaseViapoints,
   PlannerIntParam_NumJointViapoints_Second,
   PlannerIntParam_NumBaseViapoints_Second,
+  PlannerIntParam_NumJointViapoints_Nonlinear,
+  PlannerIntParam_NumBaseViapoints_Nonlinear,
   PlannerIntParam_NumActiveDofs,
 	PlannerIntParam_MaxNumTimeIterations,
 	PlannerIntParam_NumExtendedActiveDofs,
@@ -30,6 +32,9 @@ namespace momentumopt {
 	// Kinematics parameters
 	PlannerIntParam_NumSubsamples,
 	PlannerIntParam_KinDynIterations,
+
+  // Inverse kinematics (python)
+  PlannerIntParam_InverseKinematicsSolver,
   };
 
   /*! Available boolean variables used by the planner */
@@ -47,9 +52,6 @@ namespace momentumopt {
 
 	// Solver setting
 	PlannerBoolParam_UseDefaultSolverSetting,
-
-  // Inverse kinematics (python)
-  PlannerBoolParam_UseSecondOrderInverseKinematics
   };
 
   /*! Available double variables used by the planner */
@@ -189,6 +191,8 @@ namespace momentumopt {
     PlannerCVectorParam_BaseViapoints,
     PlannerCVectorParam_JointViapoints_Second,
     PlannerCVectorParam_BaseViapoints_Second,
+    PlannerCVectorParam_JointViapoints_Nonlinear,
+    PlannerCVectorParam_BaseViapoints_Nonlinear,
   };
 
 }

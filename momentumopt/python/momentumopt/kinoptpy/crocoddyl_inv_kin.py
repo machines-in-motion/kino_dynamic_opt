@@ -28,16 +28,21 @@ class CrocoddylInverseKinematics(object):
         self.endeff_frame_names = endeff_frame_names
         self.endeff_ids = [getFrameId(name) for name in endeff_frame_names]
         self.ne = len(self.endeff_ids)
+        # cost weights for different tasks
         self.stance_weight = 1e5
-        self.swing_weight = 1e3
-        self.base_pos_regularization = 0.
-        self.base_ori_regularization = 1e2
-        self.joint_pos_regularization = 0.5
-        self.base_vel_regularization = 0.1
-        self.base_ang_vel_regularization = 0.1
-        self.joint_vel_regularization = 1.0
-        self.state_terminal_cost = 1e-4
-        self.control_terminal_cost = 1e-7
+        self.swing_trackig_weight = 1e3#0.
+        self.com_tracking_weight = 1e3
+        self.momentum_tracking_weight = 1e3
+        self.base_pos_regularization_ratio = 0.
+        self.base_ori_regularization_ratio = 1e2#1.
+        self.joint_pos_regularization_ratio = 0.5# 0.1
+        self.base_vel_regularization_ratio = 0.1
+        self.base_ang_vel_regularization_ratio = 0.1
+        self.joint_vel_regularization_ratio = 1.0
+        self.state_reularization_weight = 1e-1
+        self.control_reularization_weight = 1e-5
+        self.state_terminal_weight = 1e-4
+        self.control_terminal_weight = 1e-7
 
     # def update_kinematics(self, q, dq):
     #     # Update the pinocchio model.
@@ -53,10 +58,10 @@ class CrocoddylInverseKinematics(object):
         end_time = num_time_steps * dt
         ik = InverseKinematics(self.model, dt, end_time)
         ik.add_com_position_tracking_task(0, end_time,
-                                          com_dyn, 1e3, "com_task")
+                                          com_dyn, self.com_tracking_weight, "com_task")
         cmom_traj = np.hstack((lmom_dyn, amom_dyn))
         ik.add_centroidal_momentum_tracking_task(0, end_time,
-                                          cmom_traj, 1e3, "cent_tc")
+                                          cmom_traj, self.momentum_tracking_weight, "cent_tc")
 
         for eff, name in enumerate(self.endeff_frame_names):
             num_contacts = len(contact_plan[name])
@@ -69,7 +74,7 @@ class CrocoddylInverseKinematics(object):
                     t_start = int(contact_plan[name][i][1])
                     t_end = int(contact_plan[name][i+1][0])
                     ik.add_position_tracking_task(self.model.getFrameId(name), t_start * dt, t_end * dt,
-                                                  endeff_pos_ref[t_start:t_end, eff], self.swing_weight,name+"_pos")
+                                                  endeff_pos_ref[t_start:t_end, eff], self.swing_trackig_weight,name+"_pos")
 
         x_reg = np.concatenate([q, dq])
         for it in range(num_time_steps):
@@ -77,19 +82,19 @@ class CrocoddylInverseKinematics(object):
                 q[j+3] = base_des_quat[j,it]
             x_reg = np.vstack((x_reg, np.concatenate([q, dq])))
 
-        stateWeights = np.array([self.base_pos_regularization] * 3 + [self.base_ori_regularization] * 3\
-                     + [self.joint_pos_regularization] * (ik.state.nv - 6) + [self.base_pos_regularization] * 3\
-                     + [self.base_ang_vel_regularization] * 3 + [self.joint_vel_regularization] *(ik.state.nv - 6))
-        ik.add_state_regularization_cost(0, end_time, 1e-1, x_reg, "xReg", state_weights = stateWeights)
-        ik.add_ctrl_regularization_cost(0, end_time, 1e-7, "uReg")
+        stateWeights = np.array([self.base_pos_regularization_ratio] * 3 + [self.base_ori_regularization_ratio] * 3\
+                     + [self.joint_pos_regularization_ratio] * (ik.state.nv - 6) + [self.base_vel_regularization_ratio] * 3\
+                     + [self.base_ang_vel_regularization_ratio] * 3 + [self.joint_vel_regularization_ratio] *(ik.state.nv - 6))
+        ik.add_state_regularization_cost(0, end_time, self.state_reularization_weight, x_reg, "xReg", state_weights = stateWeights)
+        ik.add_ctrl_regularization_cost(0, end_time, self.control_reularization_weight, "uReg")
 
         # setting up terminal cost model
         xRegCost = crocoddyl.CostModelState(ik.state)
         uRegCost = crocoddyl.CostModelControl(ik.state)
 
         comTrack = crocoddyl.CostModelCoMPosition(ik.state, com_dyn[-1], ik.state.nv)
-        ik.terminalCostModel.addCost("stateReg", xRegCost, self.state_terminal_cost)
-        ik.terminalCostModel.addCost("ctrlReg", uRegCost, self.control_terminal_cost)
+        ik.terminalCostModel.addCost("stateReg", xRegCost, self.state_terminal_weight)
+        ik.terminalCostModel.addCost("ctrlReg", uRegCost, self.control_terminal_weight)
 
         ik.setup_costs()
         x0 = np.concatenate([q, dq])

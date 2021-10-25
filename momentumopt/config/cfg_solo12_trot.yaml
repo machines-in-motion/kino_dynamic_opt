@@ -116,7 +116,7 @@ planner_variables:
   #########################
   # First Order IK parameters #
   #########################
-  swing_traj_via_z: .08
+  swing_traj_via_z: .2
   w_lin_mom_tracking: 1.
   w_ang_mom_tracking: 10.
   w_endeff_contact: 1.

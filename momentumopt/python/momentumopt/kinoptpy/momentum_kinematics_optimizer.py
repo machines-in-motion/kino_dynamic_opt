@@ -217,7 +217,7 @@ class MomentumKinematicsOptimizer(object):
         self.inv_kin = PointContactInverseKinematics(self.robot.model, self.eff_names)
         self.snd_order_inv_kin = SecondOrderInverseKinematics(self.robot.model, self.eff_names)
         self.crocoddyl_inv_kin = CrocoddylInverseKinematics(self.robot.model, self.eff_names)
-        self.use_second_order_inv_kin = False
+        self.inv_kin_solver = 1
 
         self.motion_eff = {
             'trajectory': np.zeros((self.num_time_steps, 3 * self.inv_kin.ne)),
@@ -396,9 +396,8 @@ class MomentumKinematicsOptimizer(object):
         # Compute inverse kinematics over the full trajectory.
         self.inv_kin.is_init_time = 0
         q, dq = self.q_init.copy(), self.dq_init.copy()
-        self.use_second_order_inv_kin = False
         self.use_crocoddyl_inv_kin = True
-        if self.use_second_order_inv_kin:
+        if (self.inv_kin_solver == 2):
             q_kin, dq_kin, com_kin, lmom_kin, amom_kin, endeff_pos_kin, endeff_vel_kin = \
                 self.snd_order_inv_kin.solve(self.dt, q, dq, self.com_dyn, self.lmom_dyn,
                     self.amom_dyn, self.endeff_pos_ref, self.endeff_vel_ref,
@@ -424,9 +423,9 @@ class MomentumKinematicsOptimizer(object):
                 # compute feedforward joint torques
                 ddq = us[it].reshape(self.robot.model.nv, 1)
                 if it<10:
-                    ddq = 0 * ddq
-                    # dq = 0 * dq
-                rotor_inrtia = 0.00000447
+                    ddq = 0. * ddq
+                    dq = 0 * dq
+                rotor_inrtia = 81 * 0.00000447
                 mass_matrix = se3.crba(self.robot.model, self.robot.data, q)
                 mass_matrix[6:, 6:] += rotor_inrtia * np.identity(self.robot.model.nv - 6)
                 nonlinear = se3.nonLinearEffects(self.robot.model, self.robot.data, q, dq)
